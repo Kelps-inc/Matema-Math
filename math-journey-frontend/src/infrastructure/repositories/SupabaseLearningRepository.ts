@@ -1,0 +1,105 @@
+import type { SupabaseClient } from '@supabase/supabase-js'
+import type { ILearningRepository } from '@/domain/learning/repositories/ILearningRepository'
+import { Module, Lesson, Exercise } from '@/domain/learning/entities/Module'
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
+export class SupabaseLearningRepository implements ILearningRepository {
+  constructor(private readonly supabase: SupabaseClient<any>) {}
+
+  async findAllModules(): Promise<Module[]> {
+    const { data: modules, error } = await this.supabase
+      .from('modules')
+      .select('*, lessons(id, module_id, slug, title, description, order_index, xp_reward, coin_reward)')
+      .order('order_index')
+
+    if (error) throw new Error(error.message)
+    if (!modules) return []
+
+    return (modules as any[]).map((m) =>
+      new Module(
+        m.id,
+        m.slug,
+        m.title,
+        m.description,
+        m.icon,
+        m.color,
+        m.order_index,
+        m.is_free,
+        ((m.lessons ?? []) as any[])
+          .sort((a: any, b: any) => a.order_index - b.order_index)
+          .map((l: any) => new Lesson(l.id, l.module_id, l.slug, l.title, l.description, l.order_index, l.xp_reward, l.coin_reward)),
+      )
+    )
+  }
+
+  async findModuleBySlug(slug: string): Promise<Module | null> {
+    const { data: m, error } = await this.supabase
+      .from('modules')
+      .select('*, lessons(id, module_id, slug, title, description, order_index, xp_reward, coin_reward)')
+      .eq('slug', slug)
+      .single()
+
+    if (error || !m) return null
+
+    return new Module(
+      m.id,
+      m.slug,
+      m.title,
+      m.description,
+      m.icon,
+      m.color,
+      m.order_index,
+      m.is_free,
+      ((m.lessons ?? []) as any[])
+        .sort((a: any, b: any) => a.order_index - b.order_index)
+        .map((l: any) => new Lesson(l.id, l.module_id, l.slug, l.title, l.description, l.order_index, l.xp_reward, l.coin_reward)),
+    )
+  }
+
+  async findLessonWithExercises(lessonId: string): Promise<{ lesson: Lesson; exercises: Exercise[] } | null> {
+    const { data: l, error: le } = await this.supabase
+      .from('lessons')
+      .select('*')
+      .eq('id', lessonId)
+      .single()
+
+    if (le || !l) return null
+
+    const { data: exercises, error: ee } = await this.supabase
+      .from('exercises')
+      .select('*')
+      .eq('lesson_id', lessonId)
+      .order('order_index')
+
+    if (ee) throw new Error(ee.message)
+
+    return {
+      lesson: new Lesson(l.id, l.module_id, l.slug, l.title, l.description, l.order_index, l.xp_reward, l.coin_reward),
+      exercises: ((exercises ?? []) as any[]).map((e: any) =>
+        new Exercise(
+          e.id,
+          e.lesson_id,
+          e.question,
+          e.context ?? null,
+          e.type,
+          Array.isArray(e.options) ? (e.options as string[]) : null,
+          e.correct_answer,
+          e.explanation,
+          e.difficulty,
+          e.order_index,
+        )
+      ),
+    }
+  }
+
+  async findCompletedLessonIds(userId: string): Promise<string[]> {
+    const { data, error } = await this.supabase
+      .from('user_lesson_progress')
+      .select('lesson_id')
+      .eq('user_id', userId)
+
+    if (error) throw new Error(error.message)
+    return ((data ?? []) as any[]).map((d: any) => d.lesson_id as string)
+  }
+}

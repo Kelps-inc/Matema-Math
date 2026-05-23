@@ -1,0 +1,67 @@
+@import "tailwindcss";
+
+@theme inline {
+  /* Matema — paleta cozy e acolhedora */
+  --color-matema-cream:   #FAF8F4;
+  --color-matema-warm:    #F3EDE3;
+  --color-matema-border:  #E8E0D4;
+  --color-matema-primary: #D4845A;
+  --color-matema-secondary: #6B9E7A;
+  --color-matema-accent:  #8B7CC4;
+  --color-matema-gold:    #F0B429;
+  --color-matema-dark:    #2C2418;
+  --color-matema-muted:   #8B8178;
+
+  /* Font */
+  --font-sans: var(--font-nunito);
+
+  /* Border radius */
+  --radius-4xl: 2rem;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background-color: var(--color-matema-cream);
+  color: var(--color-matema-dark);
+}
+
+body {
+  min-height: 100vh;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Scrollbar cozy */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-matema-warm);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-matema-border);
+  border-radius: 99px;
+}
+
+/* Animações */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out both;
+}
+
+@keyframes pop {
+  0%   { transform: scale(1); }
+  50%  { transform: scale(1.08); }
+  100% { transform: scale(1); }
+}
+
+.animate-pop {
+  animation: pop 0.3s ease-out;
+}
