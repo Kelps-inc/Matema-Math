@@ -7,11 +7,11 @@ import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 
 const CompleteLessonSchema = z.object({
-  lessonId: z.string().uuid(),
+  lessonId: z.string().min(1),
   xpReward: z.number().positive(),
   coinReward: z.number().positive(),
   answers: z.array(z.object({
-    exerciseId: z.string().uuid(),
+    exerciseId: z.string().min(1),
     answer: z.string(),
     isCorrect: z.boolean(),
   })),
