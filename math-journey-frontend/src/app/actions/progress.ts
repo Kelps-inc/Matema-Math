@@ -23,24 +23,37 @@ export async function completeLessonAction(input: {
   coinReward: number
   answers: Array<{ exerciseId: string; answer: string; isCorrect: boolean }>
 }) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  console.log('[completeLessonAction] start', { lessonId: input.lessonId, xpReward: input.xpReward, coinReward: input.coinReward, answerCount: input.answers.length })
 
-  if (!user) return { error: 'Não autenticado' }
+  const supabase = await createClient()
+  const { data: { user }, error: authError } = await supabase.auth.getUser()
+
+  if (authError) console.error('[completeLessonAction] auth error:', authError.message)
+  if (!user) {
+    console.error('[completeLessonAction] no user found')
+    return { error: 'Não autenticado' }
+  }
+
+  console.log('[completeLessonAction] user:', user.id)
 
   const parsed = CompleteLessonSchema.safeParse(input)
-  if (!parsed.success) return { error: 'Dados inválidos' }
+  if (!parsed.success) {
+    console.error('[completeLessonAction] zod validation failed:', parsed.error.flatten())
+    return { error: 'Dados inválidos: ' + JSON.stringify(parsed.error.flatten()) }
+  }
 
   const repo = new SupabaseProgressRepository(supabase)
   const useCase = new CompleteLessonUseCase(repo)
 
   try {
+    console.log('[completeLessonAction] executing use case...')
     const result = await useCase.execute({ userId: user.id, ...parsed.data })
+    console.log('[completeLessonAction] success:', result)
     revalidatePath('/dashboard')
     revalidatePath('/modulos')
     return { success: true, result }
   } catch (e) {
-    console.error('[completeLessonAction] failed:', e)
+    console.error('[completeLessonAction] use case threw:', e)
     return { error: e instanceof Error ? e.message : 'Erro ao salvar progresso' }
   }
 }
