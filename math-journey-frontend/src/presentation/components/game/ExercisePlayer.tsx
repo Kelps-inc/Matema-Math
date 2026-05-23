@@ -34,7 +34,7 @@ interface ExercisePlayerProps {
 }
 
 type AnswerState = { exerciseId: string; answer: string; isCorrect: boolean }
-type Phase = 'answering' | 'feedback' | 'completed'
+type Phase = 'intro' | 'answering' | 'feedback' | 'completed'
 
 function isCorrect(exercise: ExerciseDTO, answer: string): boolean {
   return exercise.correctAnswer.trim().toLowerCase() === answer.trim().toLowerCase()
@@ -46,7 +46,7 @@ export function ExercisePlayer({ lesson, exercises }: ExercisePlayerProps) {
 
   const [currentIndex, setCurrentIndex] = useState(0)
   const [selected, setSelected] = useState<string | null>(null)
-  const [phase, setPhase] = useState<Phase>('answering')
+  const [phase, setPhase] = useState<Phase>('intro')
   const [answers, setAnswers] = useState<AnswerState[]>([])
   const [completionResult, setCompletionResult] = useState<{ newXp: number; newLevel: number; newCoins: number; leveledUp: boolean } | null>(null)
   const [actionError, setActionError] = useState<string | null>(null)
@@ -86,6 +86,16 @@ export function ExercisePlayer({ lesson, exercises }: ExercisePlayerProps) {
       setSelected(null)
       setPhase('answering')
     }
+  }
+
+  if (phase === 'intro') {
+    return (
+      <IntroScreen
+        lesson={lesson}
+        totalQuestions={exercises.length}
+        onStart={() => setPhase('answering')}
+      />
+    )
   }
 
   if (phase === 'completed') {
@@ -217,6 +227,40 @@ export function ExercisePlayer({ lesson, exercises }: ExercisePlayerProps) {
           </Button>
         )}
       </div>
+    </div>
+  )
+}
+
+function IntroScreen({ lesson, totalQuestions, onStart }: {
+  lesson: LessonDTO
+  totalQuestions: number
+  onStart: () => void
+}) {
+  return (
+    <div className="max-w-md mx-auto text-center py-8">
+      <div className="text-6xl mb-4">📖</div>
+
+      <h2 className="text-2xl font-bold text-matema-dark mb-2">{lesson.title}</h2>
+      <p className="text-matema-muted mb-8 leading-relaxed">{lesson.description}</p>
+
+      <div className="grid grid-cols-3 gap-3 mb-8">
+        <div className="bg-matema-cream rounded-2xl p-4 border border-matema-border">
+          <p className="text-xl font-bold text-matema-dark">{totalQuestions}</p>
+          <p className="text-xs text-matema-muted mt-0.5">questões</p>
+        </div>
+        <div className="bg-matema-cream rounded-2xl p-4 border border-matema-border">
+          <p className="text-xl font-bold text-matema-primary">+{lesson.xpReward}</p>
+          <p className="text-xs text-matema-muted mt-0.5">XP</p>
+        </div>
+        <div className="bg-matema-cream rounded-2xl p-4 border border-matema-border">
+          <p className="text-xl font-bold text-amber-600">+{lesson.coinReward}</p>
+          <p className="text-xs text-matema-muted mt-0.5">moedas</p>
+        </div>
+      </div>
+
+      <Button onClick={onStart} size="lg" className="w-full">
+        Começar lição 🚀
+      </Button>
     </div>
   )
 }
