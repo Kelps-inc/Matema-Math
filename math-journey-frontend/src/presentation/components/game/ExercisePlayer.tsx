@@ -7,15 +7,38 @@ import { ProgressBar } from '@/presentation/components/ui/ProgressBar'
 import { Badge } from '@/presentation/components/ui/Badge'
 import { cn } from '@/presentation/lib/utils'
 import { completeLessonAction } from '@/app/actions/progress'
-import type { Exercise, Lesson } from '@/domain/learning/entities/Module'
+
+export interface LessonDTO {
+  id: string
+  title: string
+  description: string
+  xpReward: number
+  coinReward: number
+}
+
+export interface ExerciseDTO {
+  id: string
+  question: string
+  context: string | null
+  type: 'multiple_choice' | 'true_false' | 'numeric'
+  options: string[] | null
+  correctAnswer: string
+  explanation: string
+  difficulty: 'easy' | 'medium' | 'hard'
+  orderIndex: number
+}
 
 interface ExercisePlayerProps {
-  lesson: Lesson
-  exercises: Exercise[]
+  lesson: LessonDTO
+  exercises: ExerciseDTO[]
 }
 
 type AnswerState = { exerciseId: string; answer: string; isCorrect: boolean }
 type Phase = 'answering' | 'feedback' | 'completed'
+
+function isCorrect(exercise: ExerciseDTO, answer: string): boolean {
+  return exercise.correctAnswer.trim().toLowerCase() === answer.trim().toLowerCase()
+}
 
 export function ExercisePlayer({ lesson, exercises }: ExercisePlayerProps) {
   const router = useRouter()
@@ -33,8 +56,8 @@ export function ExercisePlayer({ lesson, exercises }: ExercisePlayerProps) {
 
   function handleAnswer() {
     if (!selected || phase !== 'answering') return
-    const isCorrect = current.isCorrect(selected)
-    const answer: AnswerState = { exerciseId: current.id, answer: selected, isCorrect }
+    const correct = isCorrect(current, selected)
+    const answer: AnswerState = { exerciseId: current.id, answer: selected, isCorrect: correct }
     setAnswers((prev) => [...prev, answer])
     setPhase('feedback')
   }
@@ -99,9 +122,9 @@ export function ExercisePlayer({ lesson, exercises }: ExercisePlayerProps) {
         {current.type === 'multiple_choice' && current.options && (
           <div className="grid gap-3">
             {current.options.map((option) => {
-              const isSelected = selected === option
+              const sel = selected === option
               const isCorrectAnswer = phase === 'feedback' && option === current.correctAnswer
-              const isWrong = phase === 'feedback' && isSelected && !current.isCorrect(option)
+              const isWrong = phase === 'feedback' && sel && option !== current.correctAnswer
 
               return (
                 <button
@@ -110,8 +133,8 @@ export function ExercisePlayer({ lesson, exercises }: ExercisePlayerProps) {
                   disabled={phase === 'feedback'}
                   className={cn(
                     'w-full text-left p-4 rounded-2xl border-2 transition-all duration-200 font-medium text-matema-dark',
-                    phase === 'answering' && !isSelected && 'border-matema-border hover:border-matema-primary/50 hover:bg-matema-cream',
-                    phase === 'answering' && isSelected && 'border-matema-primary bg-matema-primary/5',
+                    phase === 'answering' && !sel && 'border-matema-border hover:border-matema-primary/50 hover:bg-matema-cream',
+                    phase === 'answering' && sel && 'border-matema-primary bg-matema-primary/5',
                     isCorrectAnswer && 'border-green-500 bg-green-50 text-green-800',
                     isWrong && 'border-red-400 bg-red-50 text-red-800',
                   )}
@@ -119,8 +142,8 @@ export function ExercisePlayer({ lesson, exercises }: ExercisePlayerProps) {
                   <span className="flex items-center gap-3">
                     <span className={cn(
                       'w-7 h-7 rounded-full border-2 flex items-center justify-center text-sm flex-shrink-0',
-                      phase === 'answering' && !isSelected && 'border-matema-border',
-                      phase === 'answering' && isSelected && 'border-matema-primary bg-matema-primary text-white',
+                      phase === 'answering' && !sel && 'border-matema-border',
+                      phase === 'answering' && sel && 'border-matema-primary bg-matema-primary text-white',
                       isCorrectAnswer && 'border-green-500 bg-green-500 text-white',
                       isWrong && 'border-red-400 bg-red-400 text-white',
                     )}>
@@ -138,9 +161,9 @@ export function ExercisePlayer({ lesson, exercises }: ExercisePlayerProps) {
           <div className="grid grid-cols-2 gap-3">
             {['true', 'false'].map((val) => {
               const label = val === 'true' ? 'Verdadeiro' : 'Falso'
-              const isSelected = selected === val
+              const sel = selected === val
               const isCorrectAnswer = phase === 'feedback' && val === current.correctAnswer
-              const isWrong = phase === 'feedback' && isSelected && val !== current.correctAnswer
+              const isWrong = phase === 'feedback' && sel && val !== current.correctAnswer
 
               return (
                 <button
@@ -149,8 +172,8 @@ export function ExercisePlayer({ lesson, exercises }: ExercisePlayerProps) {
                   disabled={phase === 'feedback'}
                   className={cn(
                     'p-4 rounded-2xl border-2 font-semibold transition-all duration-200 text-center',
-                    phase === 'answering' && !isSelected && 'border-matema-border hover:border-matema-primary/50 hover:bg-matema-cream text-matema-dark',
-                    phase === 'answering' && isSelected && 'border-matema-primary bg-matema-primary/5 text-matema-primary',
+                    phase === 'answering' && !sel && 'border-matema-border hover:border-matema-primary/50 hover:bg-matema-cream text-matema-dark',
+                    phase === 'answering' && sel && 'border-matema-primary bg-matema-primary/5 text-matema-primary',
                     isCorrectAnswer && 'border-green-500 bg-green-50 text-green-800',
                     isWrong && 'border-red-400 bg-red-50 text-red-800',
                   )}
@@ -166,12 +189,12 @@ export function ExercisePlayer({ lesson, exercises }: ExercisePlayerProps) {
       {phase === 'feedback' && (
         <div className={cn(
           'rounded-2xl p-5 mb-4 border',
-          current.isCorrect(selected!) ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'
+          isCorrect(current, selected!) ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'
         )}>
           <div className="flex items-center gap-2 mb-2">
-            <span className="text-lg">{current.isCorrect(selected!) ? '🎉' : '💡'}</span>
-            <p className={cn('font-bold', current.isCorrect(selected!) ? 'text-green-800' : 'text-red-800')}>
-              {current.isCorrect(selected!) ? 'Correto!' : 'Quase lá!'}
+            <span className="text-lg">{isCorrect(current, selected!) ? '🎉' : '💡'}</span>
+            <p className={cn('font-bold', isCorrect(current, selected!) ? 'text-green-800' : 'text-red-800')}>
+              {isCorrect(current, selected!) ? 'Correto!' : 'Quase lá!'}
             </p>
           </div>
           <p className="text-sm text-matema-dark leading-relaxed">{current.explanation}</p>
@@ -180,21 +203,11 @@ export function ExercisePlayer({ lesson, exercises }: ExercisePlayerProps) {
 
       <div className="flex gap-3">
         {phase === 'answering' ? (
-          <Button
-            onClick={handleAnswer}
-            disabled={!selected}
-            className="flex-1"
-            size="lg"
-          >
+          <Button onClick={handleAnswer} disabled={!selected} className="flex-1" size="lg">
             Confirmar resposta
           </Button>
         ) : (
-          <Button
-            onClick={handleNext}
-            loading={isPending}
-            className="flex-1"
-            size="lg"
-          >
+          <Button onClick={handleNext} loading={isPending} className="flex-1" size="lg">
             {isLast ? 'Concluir lição 🎓' : 'Próxima questão →'}
           </Button>
         )}
@@ -204,13 +217,9 @@ export function ExercisePlayer({ lesson, exercises }: ExercisePlayerProps) {
 }
 
 function CompletionScreen({
-  lesson,
-  correctCount,
-  total,
-  result,
-  onContinue,
+  lesson, correctCount, total, result, onContinue,
 }: {
-  lesson: Lesson
+  lesson: LessonDTO
   correctCount: number
   total: number
   result: { newXp: number; newLevel: number; newCoins: number; leveledUp: boolean } | null
