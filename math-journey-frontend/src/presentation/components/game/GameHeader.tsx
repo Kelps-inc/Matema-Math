@@ -21,7 +21,7 @@ export function GameHeader({ user }: GameHeaderProps) {
             Módulos
           </Link>
           <Link href="/dashboard" className="px-4 py-2 text-sm font-medium text-matema-muted hover:text-matema-dark hover:bg-matema-warm rounded-xl transition-colors">
-            Dashboard
+            Progresso atual
           </Link>
         </nav>
 
