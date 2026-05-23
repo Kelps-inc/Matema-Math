@@ -40,6 +40,7 @@ export async function completeLessonAction(input: {
     revalidatePath('/modulos')
     return { success: true, result }
   } catch (e) {
-    return { error: 'Erro ao salvar progresso' }
+    console.error('[completeLessonAction] failed:', e)
+    return { error: e instanceof Error ? e.message : 'Erro ao salvar progresso' }
   }
 }

@@ -39,13 +39,15 @@ export class SupabaseProgressRepository implements IProgressRepository {
 
     if (error) throw new Error(error.message)
 
-    await this.supabase.from('user_lesson_progress').upsert({
+    const { error: upsertError } = await this.supabase.from('user_lesson_progress').upsert({
       user_id: userId,
       lesson_id: lessonId,
       xp_earned: xpEarned,
       coins_earned: coinsEarned,
       completed_at: new Date().toISOString(),
-    })
+    }, { onConflict: 'user_id,lesson_id' })
+
+    if (upsertError) throw new Error(upsertError.message)
 
     const result = data as { xp: number; level: number; coins: number }
 

@@ -49,6 +49,7 @@ export function ExercisePlayer({ lesson, exercises }: ExercisePlayerProps) {
   const [phase, setPhase] = useState<Phase>('answering')
   const [answers, setAnswers] = useState<AnswerState[]>([])
   const [completionResult, setCompletionResult] = useState<{ newXp: number; newLevel: number; newCoins: number; leveledUp: boolean } | null>(null)
+  const [actionError, setActionError] = useState<string | null>(null)
 
   const current = exercises[currentIndex]
   const isLast = currentIndex === exercises.length - 1
@@ -74,8 +75,11 @@ export function ExercisePlayer({ lesson, exercises }: ExercisePlayerProps) {
         })
         if (result.success && result.result) {
           setCompletionResult(result.result)
+          setPhase('completed')
+        } else {
+          setActionError(result.error ?? 'Erro desconhecido')
+          setPhase('completed')
         }
-        setPhase('completed')
       })
     } else {
       setCurrentIndex((i) => i + 1)
@@ -91,6 +95,7 @@ export function ExercisePlayer({ lesson, exercises }: ExercisePlayerProps) {
         correctCount={correctCount}
         total={exercises.length}
         result={completionResult}
+        error={actionError}
         onContinue={() => router.push('/modulos')}
       />
     )
@@ -217,18 +222,25 @@ export function ExercisePlayer({ lesson, exercises }: ExercisePlayerProps) {
 }
 
 function CompletionScreen({
-  lesson, correctCount, total, result, onContinue,
+  lesson, correctCount, total, result, error, onContinue,
 }: {
   lesson: LessonDTO
   correctCount: number
   total: number
   result: { newXp: number; newLevel: number; newCoins: number; leveledUp: boolean } | null
+  error: string | null
   onContinue: () => void
 }) {
   const percent = Math.round((correctCount / total) * 100)
 
   return (
     <div className="max-w-md mx-auto text-center py-8">
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-2xl p-4 mb-6 text-left">
+          <p className="text-sm font-semibold text-red-800 mb-1">Erro ao salvar progresso</p>
+          <p className="text-xs text-red-600">{error}</p>
+        </div>
+      )}
       <div className="text-6xl mb-6">{percent >= 80 ? '🏆' : percent >= 60 ? '⭐' : '📚'}</div>
 
       <h2 className="text-2xl font-bold text-matema-dark mb-2">
