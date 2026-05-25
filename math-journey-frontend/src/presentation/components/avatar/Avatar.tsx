@@ -46,7 +46,7 @@ const SW = 2.5
 
 // ─── Partes do rosto ────────────────────────────────────────
 
-function Eyes({ style, color }: { style: EyeStyle; color: string }) {
+function Eyes({ style, color }: { style: EyeStyle; color: EyeColor }) {
   const EY = 78
   const c = EYE_HEX[color] ?? EYE_HEX.brown
 
