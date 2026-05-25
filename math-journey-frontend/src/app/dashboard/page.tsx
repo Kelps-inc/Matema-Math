@@ -54,8 +54,6 @@ export default async function DashboardPage() {
 
   const totalLessons = modules.reduce((s, m) => s + m.totalCount, 0)
   const completedLessons = modules.reduce((s, m) => s + m.completedCount, 0)
-  const nextModule = modules.find((m) => m.completedCount < m.totalCount)
-
   return (
     <div className="animate-fade-in">
       {/* Saudação */}
@@ -162,61 +160,6 @@ export default async function DashboardPage() {
         </div>
       </div>
 
-      {/* Continuar de onde parou */}
-      {nextModule && (
-        <div className="mb-8">
-          <h2 className="font-bold text-matema-dark mb-3">Continuar de onde parou</h2>
-          <Link
-            href={`/modulos/${nextModule.slug}`}
-            className="block bg-matema-primary text-white rounded-3xl p-5 hover:bg-matema-primary/90 transition-colors"
-          >
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center text-2xl">
-                {nextModule.icon}
-              </div>
-              <div className="flex-1">
-                <p className="font-bold text-lg leading-none mb-1">{nextModule.title}</p>
-                <p className="text-white/80 text-sm">{nextModule.completedCount} de {nextModule.totalCount} lições</p>
-              </div>
-              <span className="text-2xl">→</span>
-            </div>
-          </Link>
-        </div>
-      )}
-
-      {/* Todos os módulos */}
-      <div>
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="font-bold text-matema-dark">Todos os módulos</h2>
-          <Link href="/modulos" className="text-sm text-matema-primary font-semibold hover:underline">
-            Ver todos →
-          </Link>
-        </div>
-
-        <div className="grid sm:grid-cols-2 gap-4">
-          {modules.slice(0, 4).map((m) => (
-            <Link
-              key={m.id}
-              href={`/modulos/${m.slug}`}
-              className="bg-white rounded-2xl border border-matema-border p-4 flex items-center gap-3 hover:shadow-md hover:shadow-matema-dark/5 hover:-translate-y-0.5 transition-all duration-200"
-            >
-              <div
-                className="w-11 h-11 rounded-xl flex items-center justify-center text-xl flex-shrink-0"
-                style={{ backgroundColor: `${m.color}20` }}
-              >
-                {m.icon}
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="font-semibold text-matema-dark text-sm leading-none mb-1">{m.title}</p>
-                <div className="flex items-center gap-2">
-                  <ProgressBar value={m.completedCount} max={m.totalCount} size="sm" className="flex-1" />
-                  <span className="text-xs text-matema-muted whitespace-nowrap">{m.progressPercent}%</span>
-                </div>
-              </div>
-            </Link>
-          ))}
-        </div>
-      </div>
     </div>
   )
 }
