@@ -38,6 +38,7 @@ export default async function AvatarPage() {
         bodyType:   row.body_type,
         heightType: row.height_type,
         hairStyle:  row.hair_style  ?? 'curto',
+        hairColor:  row.hair_color  ?? 'castanho',
         gender:     row.gender      ?? 'masculino',
       }
     : DEFAULT_AVATAR_CONFIG

@@ -15,8 +15,10 @@ import {
   HEIGHT_TYPES,
   HAIR_STYLES,
   GENDERS,
+  HAIR_COLORS,
   SKIN_HEX,
   EYE_HEX,
+  HAIR_COLOR_HEX,
   SKIN_LABELS,
   EYE_COLOR_LABELS,
   EYE_STYLE_LABELS,
@@ -26,6 +28,7 @@ import {
   BODY_TYPE_LABELS,
   HEIGHT_LABELS,
   HAIR_STYLE_LABELS,
+  HAIR_COLOR_LABELS,
   GENDER_LABELS,
 } from './AvatarConfig'
 import { cn } from '@/presentation/lib/utils'
@@ -214,6 +217,30 @@ export function AvatarEditor({ initialConfig, ownedItemNames = [] }: AvatarEdito
                     ))}
                   </div>
                   <p className="text-xs text-matema-muted mt-2 font-medium">{EYE_COLOR_LABELS[config.eyeColor]}</p>
+                </div>
+
+                {/* Cor do cabelo */}
+                <div>
+                  <p className="text-xs font-bold text-matema-muted uppercase tracking-wide mb-3">
+                    Cor do cabelo
+                  </p>
+                  <div className="flex flex-wrap gap-2.5">
+                    {HAIR_COLORS.map((c) => (
+                      <button
+                        key={c}
+                        title={HAIR_COLOR_LABELS[c]}
+                        onClick={() => set('hairColor', c)}
+                        className={cn(
+                          'w-10 h-10 rounded-full border-4 transition-all hover:scale-110 focus:outline-none',
+                          config.hairColor === c
+                            ? 'border-matema-primary scale-110 shadow-md shadow-matema-primary/30'
+                            : 'border-white shadow-sm',
+                        )}
+                        style={{ backgroundColor: HAIR_COLOR_HEX[c] }}
+                      />
+                    ))}
+                  </div>
+                  <p className="text-xs text-matema-muted mt-2 font-medium">{HAIR_COLOR_LABELS[config.hairColor]}</p>
                 </div>
               </>
             )}

@@ -1,6 +1,6 @@
 'use client'
 
-import { SKIN_HEX, EYE_HEX, DEFAULT_AVATAR_CONFIG } from './AvatarConfig'
+import { SKIN_HEX, EYE_HEX, HAIR_COLOR_HEX, DEFAULT_AVATAR_CONFIG } from './AvatarConfig'
 import type { AvatarConfig, BodyType, HeightType, HairStyle } from './AvatarConfig'
 
 export interface AvatarProps {
@@ -30,14 +30,6 @@ function lt(hex: string, f: number): string {
   const [r, g, b] = h2r(hex)
   return r2h(Math.min(255, Math.round(r * f)), Math.min(255, Math.round(g * f)), Math.min(255, Math.round(b * f)))
 }
-function hairCol(skin: string): string {
-  const r = parseInt(skin.slice(1, 3), 16)
-  if (r > 230) return '#7B4A2A'
-  if (r > 200) return '#5C3018'
-  if (r > 160) return '#3A1C08'
-  return '#1A0A04'
-}
-
 // ─── Dimension tables ─────────────────────────────────────────
 const HEAD_HW: Record<BodyType, number>   = { slim: 4, normal: 5, athletic: 5, chubby: 6 }
 const BODY_HW: Record<BodyType, number>   = { slim: 3, normal: 4, athletic: 5, chubby: 6 }
@@ -193,8 +185,8 @@ export function Avatar({
 
   const S     = SKIN_HEX[config.skinTone]
   const Sd    = dk(S, 0.74)
-  const HAIR  = hairCol(S)
-  const HAIRl = lt(HAIR, 1.5)
+  const HAIR  = HAIR_COLOR_HEX[config.hairColor ?? 'castanho']
+  const HAIRl = lt(HAIR, 1.55)
   const EYE   = EYE_HEX[config.eyeColor]
 
   const headHW = HEAD_HW[config.bodyType]
@@ -282,10 +274,22 @@ export function Avatar({
   bodyLayer.push(blk(bodyL, BODY_TOP, bodyHW * 2, bodyH, OCd))
   bodyLayer.push(blk(bodyL, BODY_TOP, bodyHW * 2 - 1, bodyH, OC))
 
-  // Female hip curve: widen the bottom 2 rows slightly
+  // Female: skirt (covers upper leg area)
   if (config.gender === 'feminino') {
-    bodyLayer.push(blk(bodyL - 1, BODY_BOT - 2, bodyHW * 2 + 2, 2, OCd))
-    bodyLayer.push(blk(bodyL - 1, BODY_BOT - 2, bodyHW * 2 + 1, 2, OC))
+    const SKIRT_H = Math.min(4, legH - 1)   // always leave ≥1 row of leg visible
+    const sx = bodyL - 2                     // 1 px wider each side than body outline
+    const sw = bodyHW * 2 + 4
+
+    // Side outlines
+    bodyLayer.push(blk(sx,          BODY_BOT, 1, SKIRT_H + 1, '#222'))
+    bodyLayer.push(blk(sx + sw - 1, BODY_BOT, 1, SKIRT_H + 1, '#222'))
+    // Bottom hem
+    bodyLayer.push(blk(sx, BODY_BOT + SKIRT_H, sw, 1, '#222'))
+    // Fill — covers the top-of-legs area drawn earlier
+    bodyLayer.push(blk(sx + 1, BODY_BOT, sw - 2, SKIRT_H, OCd))
+    bodyLayer.push(blk(sx + 1, BODY_BOT, sw - 3, SKIRT_H, OC))
+    // Center pleat detail
+    bodyLayer.push(blk(CX, BODY_BOT + 1, 1, SKIRT_H - 1, dk(OC, 0.82)))
   }
 
   // Outfit details

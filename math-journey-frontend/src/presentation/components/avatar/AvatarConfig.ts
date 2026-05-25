@@ -11,6 +11,7 @@ export const BODY_TYPES   = ['slim','normal','athletic','chubby'] as const
 export const HEIGHT_TYPES = ['short','medium','tall'] as const
 export const HAIR_STYLES  = ['curto','medio','longo','cacheado','afro','coque','moicano','tranca'] as const
 export const GENDERS      = ['masculino','feminino'] as const
+export const HAIR_COLORS  = ['preto','castanho-escuro','castanho','loiro','ruivo','grisalho','rosa','azul'] as const
 
 export type SkinTone   = typeof SKIN_TONES[number]
 export type EyeColor   = typeof EYE_COLORS[number]
@@ -22,6 +23,7 @@ export type BodyType   = typeof BODY_TYPES[number]
 export type HeightType = typeof HEIGHT_TYPES[number]
 export type HairStyle  = typeof HAIR_STYLES[number]
 export type Gender     = typeof GENDERS[number]
+export type HairColor  = typeof HAIR_COLORS[number]
 
 export interface AvatarConfig {
   skinTone:   SkinTone
@@ -33,6 +35,7 @@ export interface AvatarConfig {
   bodyType:   BodyType
   heightType: HeightType
   hairStyle:  HairStyle
+  hairColor:  HairColor
   gender:     Gender
 }
 
@@ -46,6 +49,7 @@ export const DEFAULT_AVATAR_CONFIG: AvatarConfig = {
   bodyType:   'normal',
   heightType: 'medium',
   hairStyle:  'curto',
+  hairColor:  'castanho',
   gender:     'masculino',
 }
 
@@ -125,4 +129,26 @@ export const HAIR_STYLE_LABELS: Record<HairStyle, string> = {
 export const GENDER_LABELS: Record<Gender, string> = {
   masculino: '♂ Masculino',
   feminino:  '♀ Feminino',
+}
+
+// ── Cores de cabelo ───────────────────────────────────────────
+export const HAIR_COLOR_HEX: Record<HairColor, string> = {
+  'preto':           '#1A0A04',
+  'castanho-escuro': '#3A1C08',
+  'castanho':        '#7B4A2A',
+  'loiro':           '#D4A848',
+  'ruivo':           '#A03018',
+  'grisalho':        '#8A8A90',
+  'rosa':            '#CC4A88',
+  'azul':            '#2A68C0',
+}
+export const HAIR_COLOR_LABELS: Record<HairColor, string> = {
+  'preto':           'Preto',
+  'castanho-escuro': 'Cast. escuro',
+  'castanho':        'Castanho',
+  'loiro':           'Loiro',
+  'ruivo':           'Ruivo',
+  'grisalho':        'Grisalho',
+  'rosa':            'Rosa',
+  'azul':            'Azul',
 }
