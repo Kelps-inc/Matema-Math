@@ -10,10 +10,11 @@ export function createAudioContext(): AudioContext | null {
 }
 
 /** Ambient drone inspirado no C418 — acorde Am suave com tremolo lento */
-export function startAmbientMusic(ctx: AudioContext): () => void {
+export function startAmbientMusic(ctx: AudioContext, initialVol = 1): { stop: () => void; setVolume: (v: number) => void } {
+  const BASE_GAIN = 0.13
   const master = ctx.createGain()
   master.gain.setValueAtTime(0, ctx.currentTime)
-  master.gain.linearRampToValueAtTime(0.13, ctx.currentTime + 5) // fade-in de 5s
+  master.gain.linearRampToValueAtTime(BASE_GAIN * initialVol, ctx.currentTime + 5) // fade-in de 5s
   master.connect(ctx.destination)
 
   // Delay feedback para sensação de reverb
@@ -59,12 +60,17 @@ export function startAmbientMusic(ctx: AudioContext): () => void {
     lfos.push(lfo)
   })
 
-  return () => {
-    master.gain.linearRampToValueAtTime(0, ctx.currentTime + 2)
-    setTimeout(() => {
-      oscs.forEach(o => { try { o.stop() } catch { /* ignore */ } })
-      lfos.forEach(l => { try { l.stop() } catch { /* ignore */ } })
-    }, 2500)
+  return {
+    stop: () => {
+      master.gain.linearRampToValueAtTime(0, ctx.currentTime + 2)
+      setTimeout(() => {
+        oscs.forEach(o => { try { o.stop() } catch { /* ignore */ } })
+        lfos.forEach(l => { try { l.stop() } catch { /* ignore */ } })
+      }, 2500)
+    },
+    setVolume: (v: number) => {
+      master.gain.linearRampToValueAtTime(BASE_GAIN * v, ctx.currentTime + 0.3)
+    },
   }
 }
 

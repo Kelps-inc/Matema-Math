@@ -3,9 +3,16 @@
 import { useEffect, useRef } from 'react'
 import { createAudioContext, startAmbientMusic } from '@/presentation/lib/audio'
 
+type MusicHandle = { stop: () => void; setVolume: (v: number) => void }
+
+function getVol() {
+  const v = parseFloat(localStorage.getItem('matema_music_volume') ?? '50')
+  return (isNaN(v) ? 50 : v) / 100
+}
+
 export function AudioManager() {
-  const ctxRef  = useRef<AudioContext | null>(null)
-  const stopRef = useRef<(() => void) | null>(null)
+  const ctxRef    = useRef<AudioContext | null>(null)
+  const handleRef = useRef<MusicHandle | null>(null)
 
   useEffect(() => {
     const enabled = localStorage.getItem('matema_music_enabled') === 'true'
@@ -16,13 +23,13 @@ export function AudioManager() {
       const ctx = ctxRef.current
       if (!ctx) return
       if (ctx.state === 'suspended') ctx.resume()
-      stopRef.current?.()
-      stopRef.current = startAmbientMusic(ctx)
+      handleRef.current?.stop()
+      handleRef.current = startAmbientMusic(ctx, getVol())
     }
 
     function stopMusic() {
-      stopRef.current?.()
-      stopRef.current = null
+      handleRef.current?.stop()
+      handleRef.current = null
     }
 
     function handleToggle(e: Event) {
@@ -31,9 +38,16 @@ export function AudioManager() {
       else stopMusic()
     }
 
+    function handleVolume(e: Event) {
+      const { volume } = (e as CustomEvent<{ volume: number }>).detail
+      handleRef.current?.setVolume(volume)
+    }
+
     window.addEventListener('matema:music-toggle', handleToggle)
+    window.addEventListener('matema:music-volume', handleVolume)
     return () => {
       window.removeEventListener('matema:music-toggle', handleToggle)
+      window.removeEventListener('matema:music-volume', handleVolume)
       stopMusic()
     }
   }, [])

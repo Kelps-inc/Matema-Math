@@ -55,9 +55,10 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 }
 
 export function SettingsClient() {
-  const [music,     setMusic]     = useState(false)
-  const [sfx,       setSfx]       = useState(true)
-  const [sfxVolume, setSfxVolume] = useState(50)
+  const [music,        setMusic]        = useState(false)
+  const [musicVolume,  setMusicVolume]  = useState(50)
+  const [sfx,          setSfx]          = useState(true)
+  const [sfxVolume,    setSfxVolume]    = useState(50)
   const [dark,      setDark]      = useState(false)
   const [confirmReset,  setConfirmReset]  = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
@@ -67,6 +68,7 @@ export function SettingsClient() {
   // Lê preferências do localStorage na montagem
   useEffect(() => {
     setMusic(localStorage.getItem('matema_music_enabled') === 'true')
+    setMusicVolume(parseInt(localStorage.getItem('matema_music_volume') ?? '50', 10))
     setSfx(localStorage.getItem('matema_sfx_enabled') !== 'false')
     setSfxVolume(parseInt(localStorage.getItem('matema_sfx_volume') ?? '50', 10))
     setDark(document.documentElement.classList.contains('dark'))
@@ -77,6 +79,12 @@ export function SettingsClient() {
     setMusic(next)
     localStorage.setItem('matema_music_enabled', String(next))
     window.dispatchEvent(new CustomEvent('matema:music-toggle', { detail: { enabled: next } }))
+  }
+
+  function handleMusicVolume(v: number) {
+    setMusicVolume(v)
+    localStorage.setItem('matema_music_volume', String(v))
+    window.dispatchEvent(new CustomEvent('matema:music-volume', { detail: { volume: v / 100 } }))
   }
 
   function toggleSfx() {
@@ -128,6 +136,21 @@ export function SettingsClient() {
           enabled={music}
           onToggle={toggleMusic}
         />
+        {music && (
+          <div className="pb-4 flex items-center gap-4">
+            <span className="text-xs text-matema-muted w-20 flex-shrink-0">
+              Volume: {musicVolume}%
+            </span>
+            <input
+              type="range"
+              min={1}
+              max={100}
+              value={musicVolume}
+              onChange={(e) => handleMusicVolume(Number(e.target.value))}
+              className="flex-1 accent-matema-primary h-1.5 rounded-full cursor-pointer"
+            />
+          </div>
+        )}
         <Toggle
           icon="🔔"
           label="Efeitos sonoros"
