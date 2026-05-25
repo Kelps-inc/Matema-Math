@@ -1,0 +1,45 @@
+'use client'
+
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
+import { cn } from '@/presentation/lib/utils'
+
+const navItems = [
+  { href: '/modulos',       icon: '📚', label: 'Módulos'   },
+  { href: '/loja',          icon: '🛍️',  label: 'Loja'      },
+  { href: '/avatar',        icon: '🎭', label: 'Avatar'    },
+  { href: '/dashboard',     icon: '📊', label: 'Progresso' },
+  { href: '/configuracoes', icon: '⚙️',  label: 'Config'    },
+]
+
+export function MobileBottomNav() {
+  const pathname = usePathname()
+
+  return (
+    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t border-matema-border sm:hidden">
+      <div className="flex items-center justify-around h-16 px-1">
+        {navItems.map(({ href, icon, label }) => {
+          const active = pathname === href || pathname.startsWith(href + '/')
+          return (
+            <Link
+              key={href}
+              href={href}
+              className={cn(
+                'flex flex-col items-center gap-0.5 flex-1 py-2 rounded-xl transition-colors',
+                active ? 'text-matema-primary' : 'text-matema-muted',
+              )}
+            >
+              <span className="text-xl leading-none">{icon}</span>
+              <span className={cn(
+                'text-[10px] font-bold leading-none',
+                active ? 'text-matema-primary' : 'text-matema-muted',
+              )}>
+                {label}
+              </span>
+            </Link>
+          )
+        })}
+      </div>
+    </nav>
+  )
+}

@@ -14,7 +14,7 @@ export default async function ConfiguracoesLayout({ children }: { children: Reac
   return (
     <div className="min-h-screen bg-matema-cream">
       <GameHeader user={profile} />
-      <main className="max-w-2xl mx-auto px-4 py-8">
+      <main className="max-w-2xl mx-auto px-4 py-8 pb-24 sm:pb-8">
         {children}
       </main>
     </div>

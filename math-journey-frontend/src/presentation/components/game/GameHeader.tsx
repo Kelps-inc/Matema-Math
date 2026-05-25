@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { signOut } from '@/app/actions/auth'
 import { ProgressBar } from '@/presentation/components/ui/ProgressBar'
+import { MobileBottomNav } from '@/presentation/components/game/MobileBottomNav'
 import type { User } from '@/domain/user/entities/User'
 
 interface GameHeaderProps {
@@ -9,6 +10,7 @@ interface GameHeaderProps {
 
 export function GameHeader({ user }: GameHeaderProps) {
   return (
+    <>
     <header className="bg-white/90 backdrop-blur-md border-b border-matema-border sticky top-0 z-50">
       <div className="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between gap-4">
         <div className="flex items-center gap-2 font-bold text-matema-dark text-xl select-none">
@@ -72,5 +74,7 @@ export function GameHeader({ user }: GameHeaderProps) {
         </div>
       </div>
     </header>
+    <MobileBottomNav />
+    </>
   )
 }

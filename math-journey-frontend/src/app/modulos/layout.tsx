@@ -17,7 +17,7 @@ export default async function ModulosLayout({ children }: { children: React.Reac
   return (
     <div className="min-h-screen bg-matema-cream">
       <GameHeader user={profile} />
-      <main className="max-w-5xl mx-auto px-4 py-8">
+      <main className="max-w-5xl mx-auto px-4 py-8 pb-24 sm:pb-8">
         {children}
       </main>
     </div>
