@@ -10,7 +10,7 @@ const nunito = Nunito({
 })
 
 export const metadata: Metadata = {
-  title: 'Matema — Aprenda matemática de um jeito que faz sentido',
+  title: 'Matema — Aprenda matemática se divertindo!',
   description: 'Plataforma gamificada de matemática do básico ao ENEM. Aprenda no seu ritmo, ganhe recompensas e evolua.',
   keywords: ['matemática', 'ENEM', 'aprendizado', 'gamificação', 'ensino médio'],
 }
