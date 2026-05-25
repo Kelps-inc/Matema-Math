@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { createClient } from '@/infrastructure/supabase/server'
 import { redirect } from 'next/navigation'
 import { ShopGrid } from '@/presentation/components/shop/ShopGrid'
@@ -42,6 +43,10 @@ export default async function LojaPage() {
 
   return (
     <div className="animate-fade-in">
+      <Link href="/dashboard" className="text-sm text-matema-muted hover:text-matema-dark flex items-center gap-1 mb-6">
+        ← Voltar
+      </Link>
+
       <div className="mb-8 text-center">
         <h1 className="text-2xl font-extrabold text-matema-dark mb-1">Loja</h1>
         <p className="text-sm text-matema-muted">Gaste suas moedas em itens exclusivos</p>
