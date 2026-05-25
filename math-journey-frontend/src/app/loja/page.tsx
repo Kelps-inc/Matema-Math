@@ -11,12 +11,13 @@ export default async function LojaPage() {
 
   const [{ data: items }, { data: profile }, inventoryResult, avatarResult] = await Promise.all([
     (supabase as any).from('shop_items').select('*').eq('is_available', true).order('category').order('price'),
-    (supabase as any).from('user_profiles').select('coins').eq('id', user.id).single(),
+    (supabase as any).from('user_profiles').select('coins, is_admin').eq('id', user.id).single(),
     (supabase as any).from('user_inventory').select('item_id, shop_items(name)').eq('user_id', user.id),
     (supabase as any).from('user_avatar_config').select('*').eq('user_id', user.id).single(),
   ])
 
   const coins = (profile as any)?.coins ?? 0
+  const isAdmin = (profile as any)?.is_admin ?? false
   const ownedItems: { id: string; name: string }[] = (inventoryResult.data ?? []).map((o: any) => ({
     id: o.item_id as string,
     name: o.shop_items?.name ?? '',
@@ -55,6 +56,7 @@ export default async function LojaPage() {
         ownedItems={ownedItems}
         userCoins={coins}
         avatarConfig={avatarConfig}
+        isAdmin={isAdmin}
       />
     </div>
   )

@@ -30,6 +30,7 @@ export class SupabaseUserRepository implements IUserRepository {
       d.streak_days,
       new Date(d.last_active_at),
       new Date(d.created_at),
+      d.is_admin ?? false,
     )
   }
 

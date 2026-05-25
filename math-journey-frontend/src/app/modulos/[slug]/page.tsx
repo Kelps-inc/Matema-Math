@@ -20,7 +20,12 @@ export default async function ModuloDetailPage({ params }: Props) {
 
   const learningRepo = new SupabaseLearningRepository(supabase)
   const useCase = new GetModulesUseCase(learningRepo)
-  const modules = await useCase.execute(user.id)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [modules, adminResult] = await Promise.all([
+    useCase.execute(user.id),
+    (supabase as any).from('user_profiles').select('is_admin').eq('id', user.id).single(),
+  ])
+  const isAdmin: boolean = adminResult.data?.is_admin ?? false
   const module = modules.find((m) => m.slug === slug)
 
   if (!module) notFound()
@@ -56,7 +61,7 @@ export default async function ModuloDetailPage({ params }: Props) {
 
       <div className="space-y-3">
         {module.lessons.map((lesson, index) => {
-          const isAvailable = index === 0 || module.lessons[index - 1].completed
+          const isAvailable = isAdmin || index === 0 || module.lessons[index - 1].completed
           const isCompleted = lesson.completed
 
           return (

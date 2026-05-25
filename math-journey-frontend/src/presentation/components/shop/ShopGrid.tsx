@@ -27,9 +27,10 @@ interface ShopGridProps {
   ownedItems: { id: string; name: string }[]
   userCoins: number
   avatarConfig?: AvatarConfig
+  isAdmin?: boolean
 }
 
-export function ShopGrid({ items, ownedItems, userCoins, avatarConfig = DEFAULT_AVATAR_CONFIG }: ShopGridProps) {
+export function ShopGrid({ items, ownedItems, userCoins, avatarConfig = DEFAULT_AVATAR_CONFIG, isAdmin = false }: ShopGridProps) {
   const [isPending, startTransition] = useTransition()
   const [pendingId, setPendingId] = useState<string | null>(null)
   const [feedback, setFeedback] = useState<{ id: string; ok: boolean; msg: string } | null>(null)
@@ -79,7 +80,7 @@ export function ShopGrid({ items, ownedItems, userCoins, avatarConfig = DEFAULT_
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                 {catItems.map((item) => {
                   const owned = ownedIds.has(item.id)
-                  const canAfford = localCoins >= item.price
+                  const canAfford = isAdmin || localCoins >= item.price
                   const loading = isPending && pendingId === item.id
                   const fb = feedback?.id === item.id ? feedback : null
 

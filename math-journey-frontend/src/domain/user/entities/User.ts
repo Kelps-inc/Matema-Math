@@ -11,6 +11,7 @@ export class User {
     readonly streakDays: number,
     readonly lastActiveAt: Date,
     readonly createdAt: Date,
+    readonly isAdmin: boolean = false,
   ) {}
 
   xpToNextLevel(): number {
