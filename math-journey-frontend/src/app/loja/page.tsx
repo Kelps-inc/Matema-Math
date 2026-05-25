@@ -34,6 +34,7 @@ export default async function LojaPage() {
         bodyType:   avatarRow.body_type,
         heightType: avatarRow.height_type,
         hairStyle:  avatarRow.hair_style  ?? 'curto',
+        hairColor:  avatarRow.hair_color  ?? 'castanho',
         gender:     avatarRow.gender      ?? 'masculino',
       }
     : DEFAULT_AVATAR_CONFIG
