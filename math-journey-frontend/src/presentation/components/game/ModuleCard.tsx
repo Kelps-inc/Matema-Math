@@ -33,11 +33,6 @@ export function ModuleCard({ module, isAdmin = false }: ModuleCardProps) {
           <div className="flex items-center gap-2 mb-1">
             <h3 className="font-bold text-matema-dark text-base leading-tight">{module.title}</h3>
             {isLocked && <span className="text-sm">🔒</span>}
-            {!module.isFree && !isLocked && (
-              <span className="text-xs bg-matema-accent/15 text-purple-700 px-2 py-0.5 rounded-full border border-matema-accent/30">
-                Premium
-              </span>
-            )}
           </div>
           <p className="text-sm text-matema-muted leading-snug line-clamp-2 mb-3">{module.description}</p>
 
