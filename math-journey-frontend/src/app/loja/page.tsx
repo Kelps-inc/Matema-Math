@@ -7,14 +7,17 @@ export default async function LojaPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/entrar')
 
-  const [{ data: items }, { data: profile }, { data: owned }] = await Promise.all([
-    supabase.from('shop_items').select('*').eq('is_available', true).order('category').order('price'),
-    supabase.from('user_profiles').select('coins').eq('id', user.id).single(),
-    supabase.from('user_inventory').select('item_id').eq('user_id', user.id),
+  const [{ data: items }, { data: profile }, inventoryResult] = await Promise.all([
+    (supabase as any).from('shop_items').select('*').eq('is_available', true).order('category').order('price'),
+    (supabase as any).from('user_profiles').select('coins').eq('id', user.id).single(),
+    (supabase as any).from('user_inventory').select('item_id, shop_items(name)').eq('user_id', user.id),
   ])
 
   const coins = (profile as any)?.coins ?? 0
-  const ownedIds = new Set((owned ?? []).map((o: any) => o.item_id as string))
+  const ownedItems: { id: string; name: string }[] = (inventoryResult.data ?? []).map((o: any) => ({
+    id: o.item_id as string,
+    name: o.shop_items?.name ?? '',
+  }))
 
   return (
     <div className="animate-fade-in">
@@ -27,7 +30,11 @@ export default async function LojaPage() {
         </div>
       </div>
 
-      <ShopGrid items={(items ?? []) as any[]} ownedIds={ownedIds} userCoins={coins} />
+      <ShopGrid
+        items={(items ?? []) as any[]}
+        ownedItems={ownedItems}
+        userCoins={coins}
+      />
     </div>
   )
 }
