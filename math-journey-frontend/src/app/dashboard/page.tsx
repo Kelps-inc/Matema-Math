@@ -5,6 +5,8 @@ import { SupabaseLearningRepository } from '@/infrastructure/repositories/Supaba
 import { GetModulesUseCase } from '@/application/use-cases/GetModulesUseCase'
 import { ProgressBar } from '@/presentation/components/ui/ProgressBar'
 import { Avatar } from '@/presentation/components/avatar/Avatar'
+import { DEFAULT_AVATAR_CONFIG } from '@/presentation/components/avatar/AvatarConfig'
+import type { AvatarConfig } from '@/presentation/components/avatar/AvatarConfig'
 import { redirect } from 'next/navigation'
 
 export default async function DashboardPage() {
@@ -12,18 +14,37 @@ export default async function DashboardPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/entrar')
 
-  const [profile, modules, inventoryResult] = await Promise.all([
+  const [profile, modules, inventoryResult, avatarResult] = await Promise.all([
     new SupabaseUserRepository(supabase).findById(user.id),
     new GetModulesUseCase(new SupabaseLearningRepository(supabase)).execute(user.id),
     (supabase as any)
       .from('user_inventory')
       .select('shop_items(name)')
       .eq('user_id', user.id),
+    (supabase as any)
+      .from('user_avatar_config')
+      .select('*')
+      .eq('user_id', user.id)
+      .single(),
   ])
 
   const ownedItemNames: string[] = (inventoryResult.data ?? []).map(
     (row: any) => row.shop_items?.name ?? ''
   ).filter(Boolean)
+
+  const avatarRow = avatarResult.data as any
+  const avatarConfig: AvatarConfig = avatarRow
+    ? {
+        skinTone:   avatarRow.skin_tone,
+        eyeColor:   avatarRow.eye_color,
+        eyeStyle:   avatarRow.eye_style,
+        noseStyle:  avatarRow.nose_style,
+        browStyle:  avatarRow.brow_style,
+        mouthStyle: avatarRow.mouth_style,
+        bodyType:   avatarRow.body_type,
+        heightType: avatarRow.height_type,
+      }
+    : DEFAULT_AVATAR_CONFIG
 
   if (!profile) redirect('/entrar')
 
@@ -48,7 +69,7 @@ export default async function DashboardPage() {
       {/* Avatar + stats */}
       <div className="bg-white rounded-3xl border border-matema-border p-6 mb-6 flex items-center gap-6">
         <div className="flex-shrink-0">
-          <Avatar ownedItemNames={ownedItemNames} size={130} />
+          <Avatar config={avatarConfig} ownedItemNames={ownedItemNames} size={130} />
         </div>
         <div className="flex-1">
           <p className="text-xs text-matema-muted mb-1 font-medium">Seu personagem</p>
@@ -70,11 +91,9 @@ export default async function DashboardPage() {
           {ownedItemNames.length > 0 && (
             <p className="text-xs text-matema-muted mt-2">{ownedItemNames.length} item{ownedItemNames.length !== 1 ? 'ns' : ''} na mochila</p>
           )}
-          {ownedItemNames.length === 0 && (
-            <Link href="/loja" className="text-xs text-matema-primary font-semibold mt-2 inline-block hover:underline">
-              Visitar a loja para personalizar →
-            </Link>
-          )}
+          <Link href="/avatar" className="text-xs text-matema-primary font-semibold mt-2 inline-block hover:underline">
+            Editar avatar →
+          </Link>
         </div>
       </div>
 

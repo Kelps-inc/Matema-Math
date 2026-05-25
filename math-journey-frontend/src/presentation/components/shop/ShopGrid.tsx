@@ -4,6 +4,8 @@ import { useState, useTransition } from 'react'
 import { cn } from '@/presentation/lib/utils'
 import { purchaseItemAction } from '@/app/actions/shop'
 import { Avatar } from '@/presentation/components/avatar/Avatar'
+import type { AvatarConfig } from '@/presentation/components/avatar/AvatarConfig'
+import { DEFAULT_AVATAR_CONFIG } from '@/presentation/components/avatar/AvatarConfig'
 
 export interface ShopItemDTO {
   id: string
@@ -24,9 +26,10 @@ interface ShopGridProps {
   items: ShopItemDTO[]
   ownedItems: { id: string; name: string }[]
   userCoins: number
+  avatarConfig?: AvatarConfig
 }
 
-export function ShopGrid({ items, ownedItems, userCoins }: ShopGridProps) {
+export function ShopGrid({ items, ownedItems, userCoins, avatarConfig = DEFAULT_AVATAR_CONFIG }: ShopGridProps) {
   const [isPending, startTransition] = useTransition()
   const [pendingId, setPendingId] = useState<string | null>(null)
   const [feedback, setFeedback] = useState<{ id: string; ok: boolean; msg: string } | null>(null)
@@ -59,7 +62,7 @@ export function ShopGrid({ items, ownedItems, userCoins }: ShopGridProps) {
       {/* Avatar preview */}
       <div className="bg-white rounded-3xl border border-matema-border p-6 mb-8 flex flex-col items-center">
         <p className="text-xs font-semibold text-matema-muted mb-4 uppercase tracking-wide">Seu personagem</p>
-        <Avatar ownedItemNames={ownedNames} size={150} />
+        <Avatar config={avatarConfig} ownedItemNames={ownedNames} size={150} />
         {ownedNames.length === 0 && (
           <p className="text-xs text-matema-muted mt-3">Compre itens para personalizar seu personagem!</p>
         )}
