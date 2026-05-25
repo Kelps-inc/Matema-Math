@@ -28,6 +28,7 @@ export default async function LicaoPage({ params }: Props) {
     description: result.lesson.description,
     xpReward: result.lesson.xpReward,
     coinReward: result.lesson.coinReward,
+    theory: result.lesson.theory ?? null,
   }
 
   const exercisesDTO: ExerciseDTO[] = result.exercises.map((e) => ({

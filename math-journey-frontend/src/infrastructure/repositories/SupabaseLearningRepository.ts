@@ -75,7 +75,7 @@ export class SupabaseLearningRepository implements ILearningRepository {
     if (ee) throw new Error(ee.message)
 
     return {
-      lesson: new Lesson(l.id, l.module_id, l.slug, l.title, l.description, l.order_index, l.xp_reward, l.coin_reward),
+      lesson: new Lesson(l.id, l.module_id, l.slug, l.title, l.description, l.order_index, l.xp_reward, l.coin_reward, l.theory ?? null),
       exercises: ((exercises ?? []) as any[]).map((e: any) =>
         new Exercise(
           e.id,

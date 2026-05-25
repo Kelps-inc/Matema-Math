@@ -26,6 +26,7 @@ export class Lesson {
     readonly orderIndex: number,
     readonly xpReward: number,
     readonly coinReward: number,
+    readonly theory: string | null = null,
   ) {}
 }
 

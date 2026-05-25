@@ -14,6 +14,7 @@ export interface LessonDTO {
   description: string
   xpReward: number
   coinReward: number
+  theory: string | null
 }
 
 export interface ExerciseDTO {
@@ -237,26 +238,46 @@ function IntroScreen({ lesson, totalQuestions, onStart }: {
   onStart: () => void
 }) {
   return (
-    <div className="max-w-md mx-auto text-center py-8">
-      <div className="text-6xl mb-4">📖</div>
+    <div className="max-w-2xl mx-auto py-6">
+      {/* Header */}
+      <div className="text-center mb-6">
+        <div className="text-5xl mb-3">📖</div>
+        <h2 className="text-2xl font-bold text-matema-dark mb-1">{lesson.title}</h2>
+        <p className="text-matema-muted leading-relaxed">{lesson.description}</p>
+      </div>
 
-      <h2 className="text-2xl font-bold text-matema-dark mb-2">{lesson.title}</h2>
-      <p className="text-matema-muted mb-8 leading-relaxed">{lesson.description}</p>
-
-      <div className="grid grid-cols-3 gap-3 mb-8">
-        <div className="bg-matema-cream rounded-2xl p-4 border border-matema-border">
+      {/* Stats */}
+      <div className="grid grid-cols-3 gap-3 mb-6">
+        <div className="bg-matema-cream rounded-2xl p-4 border border-matema-border text-center">
           <p className="text-xl font-bold text-matema-dark">{totalQuestions}</p>
           <p className="text-xs text-matema-muted mt-0.5">questões</p>
         </div>
-        <div className="bg-matema-cream rounded-2xl p-4 border border-matema-border">
+        <div className="bg-matema-cream rounded-2xl p-4 border border-matema-border text-center">
           <p className="text-xl font-bold text-matema-primary">+{lesson.xpReward}</p>
           <p className="text-xs text-matema-muted mt-0.5">XP</p>
         </div>
-        <div className="bg-matema-cream rounded-2xl p-4 border border-matema-border">
+        <div className="bg-matema-cream rounded-2xl p-4 border border-matema-border text-center">
           <p className="text-xl font-bold text-amber-600">+{lesson.coinReward}</p>
           <p className="text-xs text-matema-muted mt-0.5">moedas</p>
         </div>
       </div>
+
+      {/* Texto explicativo */}
+      {lesson.theory && (
+        <div className="bg-white rounded-3xl border border-matema-border p-6 mb-6">
+          <div className="flex items-center gap-2 mb-4">
+            <span className="text-lg">💡</span>
+            <h3 className="font-bold text-matema-dark">Entenda o conteúdo antes de começar</h3>
+          </div>
+          <div className="text-sm text-matema-dark leading-relaxed space-y-3">
+            {lesson.theory.split('\n\n').map((block, i) => (
+              <p key={i} className={block.startsWith('📌') ? 'font-semibold text-matema-dark mt-4' : 'text-matema-muted'}>
+                {block}
+              </p>
+            ))}
+          </div>
+        </div>
+      )}
 
       <Button onClick={onStart} size="lg" className="w-full">
         Começar lição 🚀
