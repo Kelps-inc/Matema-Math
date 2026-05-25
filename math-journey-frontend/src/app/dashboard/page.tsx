@@ -19,7 +19,7 @@ export default async function DashboardPage() {
     new GetModulesUseCase(new SupabaseLearningRepository(supabase)).execute(user.id),
     (supabase as any)
       .from('user_inventory')
-      .select('shop_items(name)')
+      .select('is_equipped, shop_items(name)')
       .eq('user_id', user.id),
     (supabase as any)
       .from('user_avatar_config')
@@ -28,9 +28,10 @@ export default async function DashboardPage() {
       .single(),
   ])
 
-  const ownedItemNames: string[] = (inventoryResult.data ?? []).map(
-    (row: any) => row.shop_items?.name ?? ''
-  ).filter(Boolean)
+  const ownedItemNames: string[] = (inventoryResult.data ?? [])
+    .filter((row: any) => row.is_equipped !== false)
+    .map((row: any) => row.shop_items?.name ?? '')
+    .filter(Boolean)
 
   const avatarRow = avatarResult.data as any
   const avatarConfig: AvatarConfig = avatarRow
