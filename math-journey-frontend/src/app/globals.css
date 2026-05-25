@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-@theme inline {
+@theme {
   /* Matema — paleta cozy e acolhedora */
   --color-matema-cream:   #FAF8F4;
   --color-matema-warm:    #F3EDE3;
@@ -17,6 +17,24 @@
 
   /* Border radius */
   --radius-4xl: 2rem;
+}
+
+/* ── Tema escuro ─────────────────────────────────── */
+html.dark {
+  --color-matema-cream:  #191410;
+  --color-matema-warm:   #231D17;
+  --color-matema-border: #3A3020;
+  --color-matema-dark:   #F0E8D8;
+  --color-matema-muted:  #9B9188;
+}
+
+html.dark .bg-white {
+  background-color: #2A2018 !important;
+}
+
+html.dark header {
+  background-color: rgba(30, 24, 16, 0.94) !important;
+  border-color: #3A3020 !important;
 }
 
 * {

@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Nunito } from 'next/font/google'
 import './globals.css'
+import { AudioManager } from '@/presentation/components/audio/AudioManager'
 
 const nunito = Nunito({
   subsets: ['latin'],
@@ -18,6 +19,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="pt-BR" className={nunito.variable}>
       <body className="min-h-screen bg-matema-cream text-matema-dark antialiased">
+        {/* Aplica tema escuro antes da hidratação para evitar flash */}
+        <script dangerouslySetInnerHTML={{ __html: `try{if(localStorage.getItem('matema_theme')==='dark')document.documentElement.classList.add('dark')}catch{}` }} />
+        <AudioManager />
         {children}
       </body>
     </html>

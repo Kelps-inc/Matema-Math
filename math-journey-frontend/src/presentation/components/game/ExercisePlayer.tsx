@@ -1,12 +1,13 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState, useTransition, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/presentation/components/ui/Button'
 import { ProgressBar } from '@/presentation/components/ui/ProgressBar'
 import { Badge } from '@/presentation/components/ui/Badge'
 import { cn } from '@/presentation/lib/utils'
 import { completeLessonAction } from '@/app/actions/progress'
+import { createAudioContext, playSfxClick, playSfxCorrect, playSfxWrong } from '@/presentation/lib/audio'
 
 export interface LessonDTO {
   id: string
@@ -41,9 +42,25 @@ function isCorrect(exercise: ExerciseDTO, answer: string): boolean {
   return exercise.correctAnswer.trim().toLowerCase() === answer.trim().toLowerCase()
 }
 
+function useSfx() {
+  const ctxRef = useRef<AudioContext | null>(null)
+  function ctx() {
+    if (!ctxRef.current) ctxRef.current = createAudioContext()
+    if (ctxRef.current?.state === 'suspended') ctxRef.current.resume()
+    return ctxRef.current
+  }
+  const enabled = () => typeof localStorage !== 'undefined' && localStorage.getItem('matema_sfx_enabled') !== 'false'
+  return {
+    click:   () => { const c = ctx(); if (c && enabled()) playSfxClick(c) },
+    correct: () => { const c = ctx(); if (c && enabled()) playSfxCorrect(c) },
+    wrong:   () => { const c = ctx(); if (c && enabled()) playSfxWrong(c) },
+  }
+}
+
 export function ExercisePlayer({ lesson, exercises }: ExercisePlayerProps) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
+  const sfx = useSfx()
 
   const [currentIndex, setCurrentIndex] = useState(0)
   const [selected, setSelected] = useState<string | null>(null)
@@ -62,6 +79,8 @@ export function ExercisePlayer({ lesson, exercises }: ExercisePlayerProps) {
     const answer: AnswerState = { exerciseId: current.id, answer: selected, isCorrect: correct }
     setAnswers((prev) => [...prev, answer])
     setPhase('feedback')
+    if (correct) sfx.correct()
+    else sfx.wrong()
   }
 
   function handleNext() {
@@ -145,7 +164,7 @@ export function ExercisePlayer({ lesson, exercises }: ExercisePlayerProps) {
               return (
                 <button
                   key={option}
-                  onClick={() => phase === 'answering' && setSelected(option)}
+                  onClick={() => { if (phase === 'answering') { setSelected(option); sfx.click() } }}
                   disabled={phase === 'feedback'}
                   className={cn(
                     'w-full text-left p-4 rounded-2xl border-2 transition-all duration-200 font-medium text-matema-dark',
@@ -184,7 +203,7 @@ export function ExercisePlayer({ lesson, exercises }: ExercisePlayerProps) {
               return (
                 <button
                   key={val}
-                  onClick={() => phase === 'answering' && setSelected(val)}
+                  onClick={() => { if (phase === 'answering') { setSelected(val); sfx.click() } }}
                   disabled={phase === 'feedback'}
                   className={cn(
                     'p-4 rounded-2xl border-2 font-semibold transition-all duration-200 text-center',
