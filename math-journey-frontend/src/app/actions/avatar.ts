@@ -25,6 +25,8 @@ export async function saveAvatarConfigAction(
       mouth_style: config.mouthStyle,
       body_type:  config.bodyType,
       height_type: config.heightType,
+      hair_style: config.hairStyle,
+      gender:     config.gender,
       updated_at: new Date().toISOString(),
     },
     { onConflict: 'user_id' },

@@ -13,6 +13,8 @@ import {
   MOUTH_STYLES,
   BODY_TYPES,
   HEIGHT_TYPES,
+  HAIR_STYLES,
+  GENDERS,
   SKIN_HEX,
   EYE_HEX,
   SKIN_LABELS,
@@ -23,6 +25,8 @@ import {
   MOUTH_STYLE_LABELS,
   BODY_TYPE_LABELS,
   HEIGHT_LABELS,
+  HAIR_STYLE_LABELS,
+  GENDER_LABELS,
 } from './AvatarConfig'
 import { cn } from '@/presentation/lib/utils'
 
@@ -143,6 +147,27 @@ export function AvatarEditor({ initialConfig, ownedItemNames = [] }: AvatarEdito
             {/* ── Aparência ── */}
             {tab === 'aparencia' && (
               <>
+                {/* Gênero */}
+                <div>
+                  <p className="text-xs font-bold text-matema-muted uppercase tracking-wide mb-2">Gênero</p>
+                  <div className="flex gap-3">
+                    {GENDERS.map((g) => (
+                      <button
+                        key={g}
+                        onClick={() => set('gender', g)}
+                        className={cn(
+                          'flex-1 py-3 rounded-2xl text-base font-bold border-2 transition-all',
+                          config.gender === g
+                            ? 'border-matema-primary text-matema-primary bg-matema-primary/10'
+                            : 'border-matema-border text-matema-muted hover:border-matema-dark hover:text-matema-dark',
+                        )}
+                      >
+                        {GENDER_LABELS[g]}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
                 {/* Tom de pele */}
                 <div>
                   <p className="text-xs font-bold text-matema-muted uppercase tracking-wide mb-3">
@@ -196,6 +221,13 @@ export function AvatarEditor({ initialConfig, ownedItemNames = [] }: AvatarEdito
             {/* ── Traços ── */}
             {tab === 'tracos' && (
               <>
+                <StylePicker
+                  label="Cabelo"
+                  options={HAIR_STYLES}
+                  labels={HAIR_STYLE_LABELS}
+                  value={config.hairStyle}
+                  onChange={(v) => set('hairStyle', v)}
+                />
                 <StylePicker
                   label="Olhos"
                   options={EYE_STYLES}
