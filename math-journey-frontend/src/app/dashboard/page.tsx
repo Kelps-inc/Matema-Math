@@ -41,7 +41,7 @@ export default async function DashboardPage() {
         <p className="text-matema-muted">
           {completedLessons === 0
             ? 'Pronto para começar sua jornada matemática?'
-            : `Você já completou ${completedLessons} lição${completedLessons !== 1 ? 'ões' : ''}. Continue assim!`}
+            : `Você já completou ${completedLessons} li${completedLessons !== 1 ? 'ções' : 'ção'}. Continue assim!`}
         </p>
       </div>
 
