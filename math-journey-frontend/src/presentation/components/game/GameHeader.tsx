@@ -11,10 +11,10 @@ export function GameHeader({ user }: GameHeaderProps) {
   return (
     <header className="bg-white/90 backdrop-blur-md border-b border-matema-border sticky top-0 z-50">
       <div className="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between gap-4">
-        <Link href="/dashboard" className="flex items-center gap-2 font-bold text-matema-dark text-xl">
+        <div className="flex items-center gap-2 font-bold text-matema-dark text-xl select-none">
           <span className="text-2xl">📐</span>
           <span className="text-matema-primary">Matema</span>
-        </Link>
+        </div>
 
         <nav className="hidden sm:flex items-center gap-1">
           <Link href="/modulos" className="px-4 py-2 text-sm font-medium text-matema-muted hover:text-matema-dark hover:bg-matema-warm rounded-xl transition-colors">
