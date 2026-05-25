@@ -68,24 +68,24 @@ export function startAmbientMusic(ctx: AudioContext): () => void {
   }
 }
 
-/** Clique suave ao selecionar opção */
-export function playSfxClick(ctx: AudioContext) {
+/** Clique discreto ao selecionar opção (vol: 0–1) */
+export function playSfxClick(ctx: AudioContext, vol = 1) {
   const osc = ctx.createOscillator()
   const gain = ctx.createGain()
   osc.type = 'sine'
-  osc.frequency.setValueAtTime(720, ctx.currentTime)
-  osc.frequency.exponentialRampToValueAtTime(480, ctx.currentTime + 0.06)
-  gain.gain.setValueAtTime(0.12, ctx.currentTime)
-  gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.1)
+  osc.frequency.setValueAtTime(640, ctx.currentTime)
+  osc.frequency.exponentialRampToValueAtTime(440, ctx.currentTime + 0.05)
+  gain.gain.setValueAtTime(0.055 * vol, ctx.currentTime)
+  gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.08)
   osc.connect(gain)
   gain.connect(ctx.destination)
   osc.start()
-  osc.stop(ctx.currentTime + 0.12)
+  osc.stop(ctx.currentTime + 0.09)
 }
 
-/** Arpejo ascendente — resposta correta */
-export function playSfxCorrect(ctx: AudioContext) {
-  const notes: [number, number][] = [[523.25, 0], [659.25, 0.11], [783.99, 0.22]]
+/** Arpejo suave ascendente — resposta correta (vol: 0–1) */
+export function playSfxCorrect(ctx: AudioContext, vol = 1) {
+  const notes: [number, number][] = [[523.25, 0], [659.25, 0.1], [783.99, 0.2]]
   notes.forEach(([freq, dt]) => {
     const osc = ctx.createOscillator()
     const gain = ctx.createGain()
@@ -93,33 +93,33 @@ export function playSfxCorrect(ctx: AudioContext) {
     osc.type = 'sine'
     osc.frequency.setValueAtTime(freq, t)
     gain.gain.setValueAtTime(0, t)
-    gain.gain.linearRampToValueAtTime(0.2, t + 0.02)
-    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.45)
+    gain.gain.linearRampToValueAtTime(0.1 * vol, t + 0.015)
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.35)
     osc.connect(gain)
     gain.connect(ctx.destination)
     osc.start(t)
-    osc.stop(t + 0.5)
+    osc.stop(t + 0.38)
   })
 }
 
-/** Dois tons descendentes — resposta errada */
-export function playSfxWrong(ctx: AudioContext) {
-  const notes: [number, number][] = [[311.13, 0], [246.94, 0.18]]
+/** Dois tons suaves descendentes — resposta errada (vol: 0–1) */
+export function playSfxWrong(ctx: AudioContext, vol = 1) {
+  const notes: [number, number][] = [[311.13, 0], [246.94, 0.16]]
   notes.forEach(([freq, dt]) => {
     const osc = ctx.createOscillator()
     const softener = ctx.createGain()
     const gain = ctx.createGain()
     const t = ctx.currentTime + dt
-    osc.type = 'sawtooth'
+    osc.type = 'sine' // sine em vez de sawtooth — mais suave
     osc.frequency.setValueAtTime(freq, t)
-    softener.gain.setValueAtTime(0.35, t)
+    softener.gain.setValueAtTime(1, t)
     gain.gain.setValueAtTime(0, t)
-    gain.gain.linearRampToValueAtTime(0.14, t + 0.02)
-    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.38)
+    gain.gain.linearRampToValueAtTime(0.09 * vol, t + 0.015)
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.32)
     osc.connect(softener)
     softener.connect(gain)
     gain.connect(ctx.destination)
     osc.start(t)
-    osc.stop(t + 0.42)
+    osc.stop(t + 0.35)
   })
 }

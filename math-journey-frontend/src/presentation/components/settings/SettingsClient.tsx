@@ -55,9 +55,10 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 }
 
 export function SettingsClient() {
-  const [music, setMusic]   = useState(false)
-  const [sfx,   setSfx]     = useState(true)
-  const [dark,  setDark]    = useState(false)
+  const [music,     setMusic]     = useState(false)
+  const [sfx,       setSfx]       = useState(true)
+  const [sfxVolume, setSfxVolume] = useState(50)
+  const [dark,      setDark]      = useState(false)
   const [confirmReset,  setConfirmReset]  = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [resetDone, setResetDone] = useState(false)
@@ -66,7 +67,8 @@ export function SettingsClient() {
   // Lê preferências do localStorage na montagem
   useEffect(() => {
     setMusic(localStorage.getItem('matema_music_enabled') === 'true')
-    setSfx(localStorage.getItem('matema_sfx_enabled') !== 'false') // default true
+    setSfx(localStorage.getItem('matema_sfx_enabled') !== 'false')
+    setSfxVolume(parseInt(localStorage.getItem('matema_sfx_volume') ?? '50', 10))
     setDark(document.documentElement.classList.contains('dark'))
   }, [])
 
@@ -81,6 +83,11 @@ export function SettingsClient() {
     const next = !sfx
     setSfx(next)
     localStorage.setItem('matema_sfx_enabled', String(next))
+  }
+
+  function handleSfxVolume(v: number) {
+    setSfxVolume(v)
+    localStorage.setItem('matema_sfx_volume', String(v))
   }
 
   function toggleTheme() {
@@ -128,6 +135,21 @@ export function SettingsClient() {
           enabled={sfx}
           onToggle={toggleSfx}
         />
+        {sfx && (
+          <div className="pb-4 flex items-center gap-4">
+            <span className="text-xs text-matema-muted w-20 flex-shrink-0">
+              Volume: {sfxVolume}%
+            </span>
+            <input
+              type="range"
+              min={1}
+              max={100}
+              value={sfxVolume}
+              onChange={(e) => handleSfxVolume(Number(e.target.value))}
+              className="flex-1 accent-matema-primary h-1.5 rounded-full cursor-pointer"
+            />
+          </div>
+        )}
       </Section>
 
       {/* Tema */}

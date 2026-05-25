@@ -50,10 +50,14 @@ function useSfx() {
     return ctxRef.current
   }
   const enabled = () => typeof localStorage !== 'undefined' && localStorage.getItem('matema_sfx_enabled') !== 'false'
+  const vol = () => {
+    const v = parseFloat(localStorage.getItem('matema_sfx_volume') ?? '50')
+    return (isNaN(v) ? 50 : v) / 100
+  }
   return {
-    click:   () => { const c = ctx(); if (c && enabled()) playSfxClick(c) },
-    correct: () => { const c = ctx(); if (c && enabled()) playSfxCorrect(c) },
-    wrong:   () => { const c = ctx(); if (c && enabled()) playSfxWrong(c) },
+    click:   () => { const c = ctx(); if (c && enabled()) playSfxClick(c, vol()) },
+    correct: () => { const c = ctx(); if (c && enabled()) playSfxCorrect(c, vol()) },
+    wrong:   () => { const c = ctx(); if (c && enabled()) playSfxWrong(c, vol()) },
   }
 }
 
