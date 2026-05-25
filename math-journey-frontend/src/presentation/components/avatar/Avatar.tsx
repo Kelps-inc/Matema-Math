@@ -1,7 +1,16 @@
 'use client'
 
 import { SKIN_HEX, EYE_HEX, DEFAULT_AVATAR_CONFIG } from './AvatarConfig'
-import type { AvatarConfig, EyeColor, EyeStyle, NoseStyle, BrowStyle, MouthStyle, BodyType, HeightType } from './AvatarConfig'
+import type {
+  AvatarConfig,
+  EyeColor,
+  EyeStyle,
+  NoseStyle,
+  BrowStyle,
+  MouthStyle,
+  BodyType,
+  HeightType,
+} from './AvatarConfig'
 
 export interface AvatarProps {
   config?: AvatarConfig
@@ -10,7 +19,7 @@ export interface AvatarProps {
   className?: string
 }
 
-// ─── Helpers de cor ─────────────────────────────────────────
+// ─── Color helpers ───────────────────────────────────────────
 
 function darken(hex: string, factor = 0.82): string {
   const r = parseInt(hex.slice(1, 3), 16)
@@ -27,204 +36,191 @@ function hairColor(skin: string): string {
   return '#100805'
 }
 
-// ─── Dimensões por tipo ──────────────────────────────────────
+// ─── Dimension tables ────────────────────────────────────────
 
-const BODY_W: Record<BodyType, number> = { slim: 36, normal: 50, athletic: 58, chubby: 66 }
-const BODY_H: Record<BodyType, number> = { slim: 56, normal: 64, athletic: 61, chubby: 74 }
-const CHEEK_RX: Record<BodyType, number> = { slim: 13, normal: 18, athletic: 15, chubby: 24 }
-const CHEEK_RY: Record<BodyType, number> = { slim: 8,  normal: 12, athletic: 10, chubby: 16 }
-const HEAD_RX: Record<BodyType, number> = { slim: 76, normal: 80, athletic: 78, chubby: 84 }
-const HEAD_RY: Record<BodyType, number> = { slim: 80, normal: 84, athletic: 82, chubby: 90 }
-
-const BODY_Y: Record<HeightType, number>  = { short: 218, medium: 240, tall: 264 }
-const ARM_Y: Record<HeightType, number>   = { short: 214, medium: 236, tall: 260 }
-const ARM_H: Record<HeightType, number>   = { short: 40,  medium: 46,  tall: 54  }
-const VIEW_H: Record<HeightType, number>  = { short: 270, medium: 298, tall: 332 }
+const HEAD_W:   Record<BodyType, number> = { slim: 108, normal: 122, athletic: 116, chubby: 134 }
+const HEAD_H:   Record<BodyType, number> = { slim:  96, normal: 108, athletic: 104, chubby: 120 }
+const BODY_W:   Record<BodyType, number> = { slim:  46, normal:  62, athletic:  72, chubby:  84 }
+const BODY_H:   Record<BodyType, number> = { slim:  58, normal:  68, athletic:  66, chubby:  80 }
+const ARM_W:    Record<BodyType, number> = { slim:  18, normal:  22, athletic:  27, chubby:  25 }
+const ARM_H:    Record<BodyType, number> = { slim:  60, normal:  64, athletic:  62, chubby:  68 }
+const LEG_W:    Record<BodyType, number> = { slim:  16, normal:  20, athletic:  22, chubby:  26 }
+const FOOT_RX:  Record<BodyType, number> = { slim:  18, normal:  22, athletic:  24, chubby:  28 }
+const LEG_H:    Record<HeightType, number> = { short: 46, medium: 64, tall: 86 }
 
 const STROKE = '#111'
-const SW = 2.5
+const SW = 3
 
-// ─── Partes do rosto ────────────────────────────────────────
+// ─── Eyes ────────────────────────────────────────────────────
 
-function Eyes({ style, color }: { style: EyeStyle; color: EyeColor }) {
-  const EY = 78
-  const c = EYE_HEX[color] ?? EYE_HEX.brown
+function Eyes({
+  style, color, lx, rx, ey,
+}: { style: EyeStyle; color: EyeColor; lx: number; rx: number; ey: number }) {
+  const c = EYE_HEX[color]
+  const shapes: Record<EyeStyle, { erx: number; ery: number }> = {
+    round:  { erx: 22, ery: 18 },
+    almond: { erx: 23, ery: 14 },
+    narrow: { erx: 24, ery: 10 },
+    large:  { erx: 26, ery: 24 },
+  }
+  const { erx, ery } = shapes[style]
+  const ir = Math.round(ery * 0.72)
+  const pr = Math.round(ery * 0.44)
+  const sr = Math.max(2, Math.round(ery * 0.22))
+  const shineOX = Math.round(ery * 0.22)
+  const shineOY = Math.round(ery * 0.18)
 
-  if (style === 'narrow') return (
-    <>
-      <ellipse cx={70} cy={EY} rx={22} ry={10} fill="white" stroke={STROKE} strokeWidth={SW - 0.5} />
-      <ellipse cx={71} cy={EY + 1} rx={13} ry={7} fill={c} />
-      <ellipse cx={72} cy={EY + 1} rx={8} ry={4.5} fill="#111" />
-      <ellipse cx={76} cy={EY - 3} rx={3.5} ry={2} fill="white" />
-      <ellipse cx={130} cy={EY} rx={22} ry={10} fill="white" stroke={STROKE} strokeWidth={SW - 0.5} />
-      <ellipse cx={129} cy={EY + 1} rx={13} ry={7} fill={c} />
-      <ellipse cx={128} cy={EY + 1} rx={8} ry={4.5} fill="#111" />
-      <ellipse cx={124} cy={EY - 3} rx={3.5} ry={2} fill="white" />
-    </>
-  )
-
-  if (style === 'almond') return (
-    <>
-      <ellipse cx={70} cy={EY} rx={21} ry={14} fill="white" stroke={STROKE} strokeWidth={SW - 0.5} />
-      <circle cx={71} cy={EY + 1} r={10} fill={c} />
-      <circle cx={72} cy={EY + 1} r={6.5} fill="#111" />
-      <circle cx={76} cy={EY - 3} r={2.5} fill="white" />
-      <ellipse cx={130} cy={EY} rx={21} ry={14} fill="white" stroke={STROKE} strokeWidth={SW - 0.5} />
-      <circle cx={129} cy={EY + 1} r={10} fill={c} />
-      <circle cx={128} cy={EY + 1} r={6.5} fill="#111" />
-      <circle cx={124} cy={EY - 3} r={2.5} fill="white" />
-    </>
-  )
-
-  if (style === 'large') return (
-    <>
-      <ellipse cx={70} cy={EY} rx={21} ry={24} fill="white" stroke={STROKE} strokeWidth={SW - 0.5} />
-      <circle cx={71} cy={EY + 2} r={15} fill={c} />
-      <circle cx={72} cy={EY + 3} r={10} fill="#111" />
-      <circle cx={77} cy={EY - 5} r={5} fill="white" />
-      <ellipse cx={130} cy={EY} rx={21} ry={24} fill="white" stroke={STROKE} strokeWidth={SW - 0.5} />
-      <circle cx={129} cy={EY + 2} r={15} fill={c} />
-      <circle cx={128} cy={EY + 3} r={10} fill="#111" />
-      <circle cx={123} cy={EY - 5} r={5} fill="white" />
-    </>
-  )
-
-  // round — estilo Padrinhos Mágicos padrão
   return (
     <>
-      <ellipse cx={70} cy={EY} rx={18} ry={21} fill="white" stroke={STROKE} strokeWidth={SW - 0.5} />
-      <circle cx={71} cy={EY + 2} r={13} fill={c} />
-      <circle cx={72} cy={EY + 3} r={8.5} fill="#111" />
-      <circle cx={76} cy={EY - 4} r={3.5} fill="white" />
-      <ellipse cx={130} cy={EY} rx={18} ry={21} fill="white" stroke={STROKE} strokeWidth={SW - 0.5} />
-      <circle cx={129} cy={EY + 2} r={13} fill={c} />
-      <circle cx={128} cy={EY + 3} r={8.5} fill="#111" />
-      <circle cx={124} cy={EY - 4} r={3.5} fill="white" />
+      {/* Left */}
+      <ellipse cx={lx} cy={ey} rx={erx} ry={ery} fill="white" stroke={STROKE} strokeWidth={SW - 0.5} />
+      <circle cx={lx} cy={ey + 1} r={ir} fill={c} />
+      <circle cx={lx + 1} cy={ey + 2} r={pr} fill="#111" />
+      <circle cx={lx + shineOX} cy={ey - shineOY} r={sr} fill="white" />
+      {/* Right */}
+      <ellipse cx={rx} cy={ey} rx={erx} ry={ery} fill="white" stroke={STROKE} strokeWidth={SW - 0.5} />
+      <circle cx={rx} cy={ey + 1} r={ir} fill={c} />
+      <circle cx={rx - 1} cy={ey + 2} r={pr} fill="#111" />
+      <circle cx={rx - shineOX} cy={ey - shineOY} r={sr} fill="white" />
     </>
   )
 }
 
-function Brows({ style, hColor }: { style: BrowStyle; hColor: string }) {
-  const BY = 63
+// ─── Eyebrows ────────────────────────────────────────────────
+
+function Brows({
+  style, hColor, lx, rx, by,
+}: { style: BrowStyle; hColor: string; lx: number; rx: number; by: number }) {
   if (style === 'thick') return (
     <>
-      <path d={`M 56 ${BY + 2} Q 70 ${BY - 10} 86 ${BY + 2}`} stroke={hColor} strokeWidth={9} fill="none" strokeLinecap="round" />
-      <path d={`M 114 ${BY + 2} Q 130 ${BY - 10} 144 ${BY + 2}`} stroke={hColor} strokeWidth={9} fill="none" strokeLinecap="round" />
+      <path d={`M ${lx-18} ${by+3} Q ${lx} ${by-12} ${lx+18} ${by+3}`} stroke={hColor} strokeWidth={9}   fill="none" strokeLinecap="round" />
+      <path d={`M ${rx-18} ${by+3} Q ${rx} ${by-12} ${rx+18} ${by+3}`} stroke={hColor} strokeWidth={9}   fill="none" strokeLinecap="round" />
     </>
   )
   if (style === 'thin') return (
     <>
-      <path d={`M 58 ${BY} Q 70 ${BY - 7} 84 ${BY}`} stroke={hColor} strokeWidth={2.5} fill="none" strokeLinecap="round" />
-      <path d={`M 116 ${BY} Q 130 ${BY - 7} 142 ${BY}`} stroke={hColor} strokeWidth={2.5} fill="none" strokeLinecap="round" />
+      <path d={`M ${lx-17} ${by} Q ${lx} ${by-7} ${lx+17} ${by}`} stroke={hColor} strokeWidth={2.5} fill="none" strokeLinecap="round" />
+      <path d={`M ${rx-17} ${by} Q ${rx} ${by-7} ${rx+17} ${by}`} stroke={hColor} strokeWidth={2.5} fill="none" strokeLinecap="round" />
     </>
   )
   if (style === 'angular') return (
     <>
-      <path d={`M 57 ${BY + 5} L 86 ${BY - 3}`} stroke={hColor} strokeWidth={6} strokeLinecap="round" />
-      <path d={`M 114 ${BY - 3} L 143 ${BY + 5}`} stroke={hColor} strokeWidth={6} strokeLinecap="round" />
+      <path d={`M ${lx-17} ${by+5} L ${lx+17} ${by-4}`} stroke={hColor} strokeWidth={6} strokeLinecap="round" />
+      <path d={`M ${rx-17} ${by-4} L ${rx+17} ${by+5}`} stroke={hColor} strokeWidth={6} strokeLinecap="round" />
     </>
   )
   return (
     <>
-      <path d={`M 57 ${BY + 2} Q 70 ${BY - 8} 85 ${BY + 2}`} stroke={hColor} strokeWidth={5} fill="none" strokeLinecap="round" />
-      <path d={`M 115 ${BY + 2} Q 130 ${BY - 8} 143 ${BY + 2}`} stroke={hColor} strokeWidth={5} fill="none" strokeLinecap="round" />
+      <path d={`M ${lx-17} ${by+2} Q ${lx} ${by-9} ${lx+17} ${by+2}`} stroke={hColor} strokeWidth={5}   fill="none" strokeLinecap="round" />
+      <path d={`M ${rx-17} ${by+2} Q ${rx} ${by-9} ${rx+17} ${by+2}`} stroke={hColor} strokeWidth={5}   fill="none" strokeLinecap="round" />
     </>
   )
 }
 
-function Nose({ style, skin }: { style: NoseStyle; skin: string }) {
-  const NY = 106
+// ─── Nose ────────────────────────────────────────────────────
+
+function Nose({ style, skin, nx, ny }: { style: NoseStyle; skin: string; nx: number; ny: number }) {
   const nc = darken(skin, 0.78)
-  if (style === 'wide') return <ellipse cx={100} cy={NY} rx={13} ry={7} fill={nc} stroke={STROKE} strokeWidth={1.5} />
-  if (style === 'thin')  return <ellipse cx={100} cy={NY} rx={5}  ry={9} fill={nc} stroke={STROKE} strokeWidth={1.5} />
-  if (style === 'dots')  return (
+  if (style === 'wide') return (
     <>
-      <circle cx={93} cy={NY + 2} r={4} fill={nc} stroke={STROKE} strokeWidth={1.5} />
-      <circle cx={107} cy={NY + 2} r={4} fill={nc} stroke={STROKE} strokeWidth={1.5} />
+      <ellipse cx={nx - 7} cy={ny} rx={5} ry={4} fill={nc} stroke={STROKE} strokeWidth={1.5} />
+      <ellipse cx={nx + 7} cy={ny} rx={5} ry={4} fill={nc} stroke={STROKE} strokeWidth={1.5} />
     </>
   )
-  return <circle cx={100} cy={NY} r={9} fill={nc} stroke={STROKE} strokeWidth={1.5} />
+  if (style === 'thin') return <ellipse cx={nx} cy={ny} rx={4} ry={7} fill={nc} stroke={STROKE} strokeWidth={1.5} />
+  if (style === 'dots') return (
+    <>
+      <circle cx={nx - 5} cy={ny} r={3} fill={nc} />
+      <circle cx={nx + 5} cy={ny} r={3} fill={nc} />
+    </>
+  )
+  return <circle cx={nx} cy={ny} r={7} fill={nc} stroke={STROKE} strokeWidth={1.5} />
 }
 
-function Mouth({ style }: { style: MouthStyle }) {
-  const MY = 124
+// ─── Mouth ───────────────────────────────────────────────────
+
+function Mouth({ style, mx, my }: { style: MouthStyle; mx: number; my: number }) {
   if (style === 'wide') return (
-    <path d={`M 60 ${MY} Q 100 ${MY + 24} 140 ${MY}`} stroke={STROKE} strokeWidth={3} fill="none" strokeLinecap="round" />
+    <path d={`M ${mx-32} ${my} Q ${mx} ${my+22} ${mx+32} ${my}`} stroke={STROKE} strokeWidth={3} fill="none" strokeLinecap="round" />
   )
   if (style === 'toothed') return (
     <>
-      <path d={`M 68 ${MY} Q 100 ${MY + 22} 132 ${MY}`} stroke={STROKE} strokeWidth={2.5} fill="white" />
-      <path d={`M 68 ${MY} Q 100 ${MY + 22} 132 ${MY}`} stroke={STROKE} strokeWidth={2.5} fill="none" strokeLinecap="round" />
-      <line x1={82} y1={MY + 2} x2={82} y2={MY + 14} stroke={STROKE} strokeWidth={1.5} opacity={0.5} />
-      <line x1={100} y1={MY + 2} x2={100} y2={MY + 19} stroke={STROKE} strokeWidth={1.5} opacity={0.5} />
-      <line x1={118} y1={MY + 2} x2={118} y2={MY + 14} stroke={STROKE} strokeWidth={1.5} opacity={0.5} />
+      <path d={`M ${mx-26} ${my} Q ${mx} ${my+20} ${mx+26} ${my}`} fill="white" stroke={STROKE} strokeWidth={2.5} />
+      <line x1={mx-10} y1={my+2} x2={mx-10} y2={my+13} stroke={STROKE} strokeWidth={1.5} opacity={0.5} />
+      <line x1={mx}    y1={my+2} x2={mx}    y2={my+18} stroke={STROKE} strokeWidth={1.5} opacity={0.5} />
+      <line x1={mx+10} y1={my+2} x2={mx+10} y2={my+13} stroke={STROKE} strokeWidth={1.5} opacity={0.5} />
     </>
   )
   if (style === 'small') return (
-    <path d={`M 84 ${MY} Q 100 ${MY + 12} 116 ${MY}`} stroke={STROKE} strokeWidth={2.5} fill="none" strokeLinecap="round" />
+    <path d={`M ${mx-16} ${my} Q ${mx} ${my+12} ${mx+16} ${my}`} stroke={STROKE} strokeWidth={2.5} fill="none" strokeLinecap="round" />
   )
   return (
-    <path d={`M 72 ${MY} Q 100 ${MY + 20} 128 ${MY}`} stroke={STROKE} strokeWidth={3} fill="none" strokeLinecap="round" />
+    <path d={`M ${mx-24} ${my} Q ${mx} ${my+18} ${mx+24} ${my}`} stroke={STROKE} strokeWidth={3} fill="none" strokeLinecap="round" />
   )
 }
 
-// ─── Acessórios da loja ──────────────────────────────────────
+// ─── Accessories ─────────────────────────────────────────────
 
-function Glasses() {
-  const EY = 78
+function Glasses({ lx, rx, ey }: { lx: number; rx: number; ey: number }) {
   return (
     <>
-      <circle cx={70} cy={EY} r={21} fill="none" stroke={STROKE} strokeWidth={3} opacity={0.85} />
-      <circle cx={130} cy={EY} r={21} fill="none" stroke={STROKE} strokeWidth={3} opacity={0.85} />
-      <path d={`M 91 ${EY} L 109 ${EY}`} stroke={STROKE} strokeWidth={2.5} />
-      <path d={`M 30 ${EY} L 49 ${EY}`} stroke={STROKE} strokeWidth={2.5} />
-      <path d={`M 151 ${EY} L 170 ${EY}`} stroke={STROKE} strokeWidth={2.5} />
+      <rect x={lx-24} y={ey-18} width={48} height={36} rx={10} fill="none" stroke={STROKE} strokeWidth={3} opacity={0.85} />
+      <rect x={rx-24} y={ey-18} width={48} height={36} rx={10} fill="none" stroke={STROKE} strokeWidth={3} opacity={0.85} />
+      <path d={`M ${lx+24} ${ey} L ${rx-24} ${ey}`}     stroke={STROKE} strokeWidth={2.5} />
+      <path d={`M ${lx-24} ${ey-4} L ${lx-40} ${ey+10}`} stroke={STROKE} strokeWidth={2.5} />
+      <path d={`M ${rx+24} ${ey-4} L ${rx+40} ${ey+10}`} stroke={STROKE} strokeWidth={2.5} />
     </>
   )
 }
 
-function Crown({ hcx, hcy, hrx, hry }: { hcx: number; hcy: number; hrx: number; hry: number }) {
-  const baseY = hcy - hry + 14
+function Crown({ hcx, headTop, headW }: { hcx: number; headTop: number; headW: number }) {
+  const by = headTop + 6
+  const hw = Math.round(headW * 0.44)
   return (
     <>
-      <rect x={hcx - hrx + 8} y={baseY + 2} width={(hrx - 8) * 2} height={18} rx={5} fill="#F0B429" stroke={STROKE} strokeWidth={2} />
+      <rect x={hcx-hw} y={by-2} width={hw*2} height={18} rx={5} fill="#F0B429" stroke={STROKE} strokeWidth={2} />
       <polygon
-        points={`${hcx - hrx + 8},${baseY + 2} ${hcx - hrx + 22},${baseY - 20} ${hcx - hrx + 38},${baseY - 2} ${hcx},${baseY - 24} ${hcx + hrx - 38},${baseY - 2} ${hcx + hrx - 22},${baseY - 20} ${hcx + hrx - 8},${baseY + 2}`}
+        points={`${hcx-hw},${by-2} ${hcx-hw+14},${by-22} ${hcx-hw+30},${by-4} ${hcx},${by-26} ${hcx+hw-30},${by-4} ${hcx+hw-14},${by-22} ${hcx+hw},${by-2}`}
         fill="#F0B429" stroke={STROKE} strokeWidth={2}
       />
-      <circle cx={hcx} cy={baseY - 14} r={6} fill="#E53E3E" />
-      <circle cx={hcx - 28} cy={baseY - 4} r={4.5} fill="#38A169" />
-      <circle cx={hcx + 28} cy={baseY - 4} r={4.5} fill="#3182CE" />
+      <circle cx={hcx}    cy={by-16} r={6}   fill="#E53E3E" />
+      <circle cx={hcx-26} cy={by-6}  r={4.5} fill="#38A169" />
+      <circle cx={hcx+26} cy={by-6}  r={4.5} fill="#3182CE" />
     </>
   )
 }
 
-function Capelo({ hcx, hcy, hrx, hry }: { hcx: number; hcy: number; hrx: number; hry: number }) {
-  const baseY = hcy - hry + 12
+function Capelo({ hcx, headTop, headW }: { hcx: number; headTop: number; headW: number }) {
+  const by = headTop + 8
   return (
     <>
-      <ellipse cx={hcx} cy={baseY} rx={hrx + 10} ry={16} fill="#2C2418" stroke={STROKE} strokeWidth={2} />
-      <rect x={hcx - 28} y={baseY - 32} width={56} height={34} rx={7} fill="#2C2418" stroke={STROKE} strokeWidth={2} />
-      <line x1={hcx + hrx + 10} y1={baseY} x2={hcx + hrx + 18} y2={baseY + 34} stroke="#F0B429" strokeWidth={3} />
-      <circle cx={hcx + hrx + 18} cy={baseY + 39} r={6} fill="#F0B429" />
+      <ellipse cx={hcx} cy={by} rx={headW/2+10} ry={14} fill="#2C2418" stroke={STROKE} strokeWidth={2} />
+      <rect x={hcx-28} y={by-34} width={56} height={36} rx={7} fill="#2C2418" stroke={STROKE} strokeWidth={2} />
+      <line x1={hcx+headW/2+10} y1={by} x2={hcx+headW/2+18} y2={by+36} stroke="#F0B429" strokeWidth={3} />
+      <circle cx={hcx+headW/2+18} cy={by+41} r={6} fill="#F0B429" />
     </>
   )
 }
 
-function Cartola({ hcx, hcy, hrx, hry }: { hcx: number; hcy: number; hrx: number; hry: number }) {
-  const baseY = hcy - hry + 12
+function Cartola({ hcx, headTop, headW }: { hcx: number; headTop: number; headW: number }) {
+  const by = headTop + 8
   return (
     <>
-      <rect x={hcx - 40} y={baseY - 66} width={80} height={66} rx={8} fill="#1A1A2E" stroke={STROKE} strokeWidth={2} />
-      <rect x={hcx - hrx + 4} y={baseY - 8} width={(hrx - 4) * 2} height={18} rx={6} fill="#1A1A2E" stroke={STROKE} strokeWidth={2} />
-      <rect x={hcx - 40} y={baseY - 16} width={80} height={12} rx={4} fill="#D4845A" opacity={0.75} />
+      <rect x={hcx-40} y={by-72} width={80} height={70} rx={8} fill="#1A1A2E" stroke={STROKE} strokeWidth={2} />
+      <rect x={hcx-headW/2+4} y={by-8} width={headW-8} height={20} rx={7} fill="#1A1A2E" stroke={STROKE} strokeWidth={2} />
+      <rect x={hcx-40} y={by-18} width={80} height={12} rx={4} fill="#D4845A" opacity={0.75} />
     </>
   )
 }
 
-// ─── Componente principal ────────────────────────────────────
+// ─── Main component ──────────────────────────────────────────
 
-export function Avatar({ config = DEFAULT_AVATAR_CONFIG, ownedItemNames = [], size = 200, className }: AvatarProps) {
+export function Avatar({
+  config = DEFAULT_AVATAR_CONFIG,
+  ownedItemNames = [],
+  size = 200,
+  className,
+}: AvatarProps) {
   const owned = new Set(ownedItemNames.map((n) => n.toLowerCase()))
 
   const isNinja     = owned.has('ninja da matemática')
@@ -237,108 +233,200 @@ export function Avatar({ config = DEFAULT_AVATAR_CONFIG, ownedItemNames = [], si
   const hasCartola  = owned.has('cartola')
   const hat = hasCrown ? 'crown' : hasCapelo ? 'capelo' : hasCartola ? 'cartola' : null
 
-  const bodyColor = isMage ? '#8B7CC4' : isAstronaut ? '#DADADA' : isScientist ? '#6B9E7A' : isNinja ? '#2C3333' : '#D4845A'
+  const bodyColor = isMage ? '#8B7CC4'
+    : isAstronaut ? '#DADADA'
+    : isScientist ? '#6B9E7A'
+    : isNinja     ? '#2C3333'
+    : '#D4845A'
 
-  const S    = SKIN_HEX[config.skinTone] ?? SKIN_HEX.medium
-  const HAIR = hairColor(S)
+  const S     = SKIN_HEX[config.skinTone] ?? SKIN_HEX.medium
+  const HAIR  = hairColor(S)
   const CHEEK = darken(S, 0.88)
 
-  const bW = BODY_W[config.bodyType]
-  const bH = BODY_H[config.bodyType]
-  const hrx = HEAD_RX[config.bodyType]
-  const hry = HEAD_RY[config.bodyType]
-  const HCX = 100
-  const HCY = 92
+  // ── Resolved dimensions ──
+  const headW  = HEAD_W[config.bodyType]
+  const headH  = HEAD_H[config.bodyType]
+  const bodyW  = BODY_W[config.bodyType]
+  const bodyH  = BODY_H[config.bodyType]
+  const armW   = ARM_W[config.bodyType]
+  const armH   = ARM_H[config.bodyType]
+  const legW   = LEG_W[config.bodyType]
+  const footRx = FOOT_RX[config.bodyType]
+  const legH   = LEG_H[config.heightType]
 
-  const bodyY = BODY_Y[config.heightType]
-  const armY  = ARM_Y[config.heightType]
-  const armH  = ARM_H[config.heightType]
-  const viewH = VIEW_H[config.heightType]
+  // ── Layout coordinates ──
+  const HCX      = 100
+  const HEAD_TOP = 28
+  const HCY      = HEAD_TOP + headH / 2
+  const HEAD_BOT = HEAD_TOP + headH
 
-  // Ajuste sutil: chubby tem cabeça ligeiramente mais baixa
-  const headCY = config.bodyType === 'chubby' ? HCY + 4 : HCY
+  const BODY_TOP = HEAD_BOT + 12
+  const BODY_BOT = BODY_TOP + bodyH
+
+  const ARM_TOP  = BODY_TOP + 4
+  const ARM_LX   = HCX - bodyW / 2 - armW - 2
+  const ARM_RX   = HCX + bodyW / 2 + 2
+  const HAND_R   = Math.round(armW * 0.68)
+  const HAND_Y   = ARM_TOP + armH
+
+  const LEG_TOP  = BODY_BOT - 8
+  const LEG_LX   = HCX - bodyW * 0.3 - legW
+  const LEG_RX   = HCX + bodyW * 0.3
+  const FOOT_Y   = LEG_TOP + legH
+  const FOOT_RY  = 11
+
+  const VIEW_H   = FOOT_Y + FOOT_RY + 22
+
+  // ── Face feature positions ──
+  const EYE_Y   = HCY - Math.round(headH * 0.04)
+  const EYE_LX  = HCX - Math.round(headW * 0.27)
+  const EYE_RX  = HCX + Math.round(headW * 0.27)
+  const BROW_Y  = EYE_Y - 22
+  const NOSE_Y  = HCY + Math.round(headH * 0.12)
+  const MOUTH_Y = HCY + Math.round(headH * 0.27)
 
   return (
     <svg
       width={size}
-      height={Math.round(size * viewH / 200)}
-      viewBox={`0 0 200 ${viewH}`}
+      height={Math.round((size * VIEW_H) / 200)}
+      viewBox={`0 0 200 ${VIEW_H}`}
       className={className}
       aria-hidden
     >
-      {/* Sombra chão */}
-      <ellipse cx={100} cy={viewH - 4} rx={52} ry={8} fill="#00000018" />
+      {/* Ground shadow */}
+      <ellipse cx={100} cy={VIEW_H - 5} rx={55} ry={8} fill="#00000018" />
 
-      {/* ── BRAÇOS ── */}
-      <ellipse cx={34} cy={armY} rx={20} ry={armH} fill={bodyColor} stroke={STROKE} strokeWidth={SW} transform={`rotate(-8 34 ${armY})`} />
-      <circle cx={29} cy={armY + armH + 10} r={15} fill={S} stroke={STROKE} strokeWidth={SW} />
-      <ellipse cx={166} cy={armY} rx={20} ry={armH} fill={bodyColor} stroke={STROKE} strokeWidth={SW} transform={`rotate(8 166 ${armY})`} />
-      <circle cx={171} cy={armY + armH + 10} r={15} fill={S} stroke={STROKE} strokeWidth={SW} />
+      {/* ── LEGS ── */}
+      <rect x={LEG_LX} y={LEG_TOP} width={legW} height={legH} rx={legW / 2} fill={bodyColor} stroke={STROKE} strokeWidth={SW} />
+      <rect x={LEG_RX} y={LEG_TOP} width={legW} height={legH} rx={legW / 2} fill={bodyColor} stroke={STROKE} strokeWidth={SW} />
 
-      {/* ── CORPO ── */}
-      <ellipse cx={100} cy={bodyY} rx={bW} ry={bH} fill={bodyColor} stroke={STROKE} strokeWidth={SW} />
+      {/* ── FEET ── */}
+      <ellipse cx={LEG_LX + legW / 2 - 5} cy={FOOT_Y} rx={footRx} ry={FOOT_RY} fill={darken(S, 0.62)} stroke={STROKE} strokeWidth={SW} />
+      <ellipse cx={LEG_RX + legW / 2 + 5} cy={FOOT_Y} rx={footRx} ry={FOOT_RY} fill={darken(S, 0.62)} stroke={STROKE} strokeWidth={SW} />
 
-      {/* Detalhes de roupa */}
-      {isScientist && <path d={`M ${100 - bW * 0.48} ${bodyY - bH * 0.44} L 100 ${bodyY - bH * 0.08} L ${100 + bW * 0.48} ${bodyY - bH * 0.44}`} fill="white" opacity={0.52} />}
-      {isAstronaut && <rect x={80} y={bodyY - 22} width={40} height={30} rx={10} fill="white" opacity={0.22} />}
-      {isMage && <>
-        <text x={58} y={bodyY + 12} fontSize={16}>⭐</text>
-        <text x={120} y={bodyY + 32} fontSize={12}>✨</text>
-      </>}
-      {isNinja && <rect x={100 - bW} y={bodyY - 5} width={bW * 2} height={10} rx={4} fill="#8B0000" opacity={0.85} />}
+      {/* ── ARMS ── */}
+      <rect x={ARM_LX} y={ARM_TOP} width={armW} height={armH} rx={armW / 2} fill={bodyColor} stroke={STROKE} strokeWidth={SW} />
+      <rect x={ARM_RX} y={ARM_TOP} width={armW} height={armH} rx={armW / 2} fill={bodyColor} stroke={STROKE} strokeWidth={SW} />
 
-      {/* ── PESCOÇO ── */}
-      <rect x={83} y={headCY + hry - 12} width={34} height={24} rx={8} fill={S} />
+      {/* ── HANDS ── */}
+      <circle cx={ARM_LX + armW / 2} cy={HAND_Y + HAND_R} r={HAND_R} fill={S} stroke={STROKE} strokeWidth={SW} />
+      <circle cx={ARM_RX + armW / 2} cy={HAND_Y + HAND_R} r={HAND_R} fill={S} stroke={STROKE} strokeWidth={SW} />
 
-      {/* ── ORELHAS ── */}
-      <circle cx={HCX - hrx + 10} cy={headCY + 6} r={19} fill={S} stroke={STROKE} strokeWidth={SW} />
-      <circle cx={HCX + hrx - 10} cy={headCY + 6} r={19} fill={S} stroke={STROKE} strokeWidth={SW} />
-      <circle cx={HCX - hrx + 10} cy={headCY + 6} r={11} fill={CHEEK} opacity={0.4} />
-      <circle cx={HCX + hrx - 10} cy={headCY + 6} r={11} fill={CHEEK} opacity={0.4} />
+      {/* ── BODY ── */}
+      <rect
+        x={HCX - bodyW / 2} y={BODY_TOP}
+        width={bodyW} height={bodyH}
+        rx={14}
+        fill={bodyColor} stroke={STROKE} strokeWidth={SW}
+      />
 
-      {/* ── CABEÇA ── */}
-      <ellipse cx={HCX} cy={headCY} rx={hrx} ry={hry} fill={S} stroke={STROKE} strokeWidth={SW} />
+      {/* Outfit details */}
+      {isScientist && (
+        <path
+          d={`M ${HCX - bodyW * 0.45} ${BODY_TOP + 6} L ${HCX} ${BODY_TOP + bodyH * 0.5} L ${HCX + bodyW * 0.45} ${BODY_TOP + 6}`}
+          fill="white" opacity={0.5}
+        />
+      )}
+      {isAstronaut && (
+        <rect x={HCX - 16} y={BODY_TOP + 8} width={32} height={24} rx={8} fill="white" opacity={0.22} />
+      )}
+      {isMage && (
+        <>
+          <text x={HCX - bodyW / 2}     y={BODY_TOP + bodyH * 0.6}  fontSize={14}>⭐</text>
+          <text x={HCX + bodyW / 2 - 14} y={BODY_TOP + bodyH * 0.88} fontSize={10}>✨</text>
+        </>
+      )}
+      {isNinja && (
+        <rect
+          x={HCX - bodyW / 2} y={BODY_TOP + bodyH / 2 - 5}
+          width={bodyW} height={10} rx={4}
+          fill="#8B0000" opacity={0.85}
+        />
+      )}
 
-      {/* ── CABELO ── */}
-      {!isNinja && !hat && <>
-        <ellipse cx={HCX} cy={headCY - hry + 20} rx={hrx} ry={32} fill={HAIR} />
-        <ellipse cx={HCX} cy={headCY - hry + 8} rx={hrx - 10} ry={22} fill={HAIR} />
-        <ellipse cx={HCX - hrx + 14} cy={headCY - 8} rx={15} ry={28} fill={HAIR} />
-        <ellipse cx={HCX + hrx - 14} cy={headCY - 8} rx={15} ry={28} fill={HAIR} />
-      </>}
-      {/* Capelo/cartola escondem o cabelo do topo */}
-      {!isNinja && hat && <>
-        <ellipse cx={HCX - hrx + 14} cy={headCY - 8} rx={15} ry={28} fill={HAIR} />
-        <ellipse cx={HCX + hrx - 14} cy={headCY - 8} rx={15} ry={28} fill={HAIR} />
-      </>}
-      {isNinja && <>
-        <ellipse cx={HCX} cy={headCY - 50} rx={hrx + 4} ry={38} fill="#1E2424" />
-        <rect x={HCX - hrx} y={headCY + 6} width={hrx * 2} height={20} rx={7} fill="#1E2424" />
-      </>}
+      {/* ── NECK ── */}
+      <rect x={HCX - 14} y={HEAD_BOT - 10} width={28} height={24} rx={8} fill={S} />
 
-      {/* ── BOCHECHAS ── */}
-      <ellipse cx={HCX - 32} cy={115} rx={CHEEK_RX[config.bodyType]} ry={CHEEK_RY[config.bodyType]} fill={CHEEK} opacity={0.55} />
-      <ellipse cx={HCX + 32} cy={115} rx={CHEEK_RX[config.bodyType]} ry={CHEEK_RY[config.bodyType]} fill={CHEEK} opacity={0.55} />
+      {/* ── EARS (before head so head covers inner portion) ── */}
+      <ellipse cx={HCX - headW / 2 + 2} cy={HCY + 6} rx={13} ry={16} fill={S} stroke={STROKE} strokeWidth={SW} />
+      <ellipse cx={HCX + headW / 2 - 2} cy={HCY + 6} rx={13} ry={16} fill={S} stroke={STROKE} strokeWidth={SW} />
+      <ellipse cx={HCX - headW / 2 + 2} cy={HCY + 6} rx={7} ry={9} fill={CHEEK} opacity={0.35} />
+      <ellipse cx={HCX + headW / 2 - 2} cy={HCY + 6} rx={7} ry={9} fill={CHEEK} opacity={0.35} />
 
-      {/* ── SOBRANCELHAS ── */}
-      <Brows style={config.browStyle} hColor={isNinja ? '#DDD' : HAIR} />
+      {/* ── HEAD — rounded rectangle, FOP style ── */}
+      <rect
+        x={HCX - headW / 2} y={HEAD_TOP}
+        width={headW} height={headH}
+        rx={Math.round(headW * 0.22)}
+        fill={S} stroke={STROKE} strokeWidth={SW}
+      />
 
-      {/* ── OLHOS ── */}
-      <Eyes style={config.eyeStyle} color={config.eyeColor} />
+      {/* ── HAIR ── */}
+      {isNinja ? (
+        <>
+          {/* Ninja hood covers the top */}
+          <rect
+            x={HCX - headW / 2 - 4} y={HEAD_TOP - 34}
+            width={headW + 8} height={Math.round(headH * 0.58)}
+            rx={Math.round(headW * 0.22)}
+            fill="#1E2424"
+          />
+          {/* Lower face wrap */}
+          <rect
+            x={HCX - headW / 2} y={HEAD_BOT - 22}
+            width={headW} height={24} rx={6}
+            fill="#1E2424"
+          />
+        </>
+      ) : (
+        <>
+          {/* Main block — covers top of head */}
+          <rect
+            x={HCX - headW / 2 - 2} y={HEAD_TOP - 4}
+            width={headW + 4} height={Math.round(headH * 0.4)}
+            rx={Math.round(headW * 0.22)}
+            fill={HAIR}
+          />
+          {/* Left side tuft */}
+          <rect
+            x={HCX - headW / 2 - 2}
+            y={HEAD_TOP + Math.round(headH * 0.14)}
+            width={14} height={Math.round(headH * 0.54)}
+            rx={7} fill={HAIR}
+          />
+          {/* Right side tuft */}
+          <rect
+            x={HCX + headW / 2 - 12}
+            y={HEAD_TOP + Math.round(headH * 0.14)}
+            width={14} height={Math.round(headH * 0.54)}
+            rx={7} fill={HAIR}
+          />
+        </>
+      )}
 
-      {/* ── NARIZ ── */}
-      <Nose style={config.noseStyle} skin={S} />
+      {/* ── CHEEKS ── */}
+      <ellipse cx={EYE_LX - 12} cy={MOUTH_Y - 10} rx={14} ry={9} fill={CHEEK} opacity={0.5} />
+      <ellipse cx={EYE_RX + 12} cy={MOUTH_Y - 10} rx={14} ry={9} fill={CHEEK} opacity={0.5} />
 
-      {/* ── BOCA ── */}
-      <Mouth style={config.mouthStyle} />
+      {/* ── EYEBROWS ── */}
+      <Brows style={config.browStyle} hColor={isNinja ? '#DDD' : HAIR} lx={EYE_LX} rx={EYE_RX} by={BROW_Y} />
 
-      {/* ── ÓCULOS ── */}
-      {hasGlasses && <Glasses />}
+      {/* ── EYES ── */}
+      <Eyes style={config.eyeStyle} color={config.eyeColor} lx={EYE_LX} rx={EYE_RX} ey={EYE_Y} />
 
-      {/* ── CHAPÉU ── */}
-      {hat === 'crown'  && <Crown  hcx={HCX} hcy={headCY} hrx={hrx} hry={hry} />}
-      {hat === 'capelo' && <Capelo hcx={HCX} hcy={headCY} hrx={hrx} hry={hry} />}
-      {hat === 'cartola' && <Cartola hcx={HCX} hcy={headCY} hrx={hrx} hry={hry} />}
+      {/* ── NOSE ── */}
+      <Nose style={config.noseStyle} skin={S} nx={HCX} ny={NOSE_Y} />
+
+      {/* ── MOUTH ── */}
+      <Mouth style={config.mouthStyle} mx={HCX} my={MOUTH_Y} />
+
+      {/* ── GLASSES ── */}
+      {hasGlasses && <Glasses lx={EYE_LX} rx={EYE_RX} ey={EYE_Y} />}
+
+      {/* ── HAT ── */}
+      {hat === 'crown'   && <Crown   hcx={HCX} headTop={HEAD_TOP} headW={headW} />}
+      {hat === 'capelo'  && <Capelo  hcx={HCX} headTop={HEAD_TOP} headW={headW} />}
+      {hat === 'cartola' && <Cartola hcx={HCX} headTop={HEAD_TOP} headW={headW} />}
     </svg>
   )
 }
