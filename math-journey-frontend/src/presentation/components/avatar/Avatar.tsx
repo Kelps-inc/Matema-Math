@@ -1,7 +1,7 @@
 'use client'
 
 import { SKIN_HEX, EYE_HEX, DEFAULT_AVATAR_CONFIG } from './AvatarConfig'
-import type { AvatarConfig, EyeStyle, NoseStyle, BrowStyle, MouthStyle, BodyType, HeightType } from './AvatarConfig'
+import type { AvatarConfig, EyeColor, EyeStyle, NoseStyle, BrowStyle, MouthStyle, BodyType, HeightType } from './AvatarConfig'
 
 export interface AvatarProps {
   config?: AvatarConfig
