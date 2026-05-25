@@ -5,10 +5,11 @@ import type { ModuleWithProgress } from '@/application/use-cases/GetModulesUseCa
 
 interface ModuleCardProps {
   module: ModuleWithProgress
+  isAdmin?: boolean
 }
 
-export function ModuleCard({ module }: ModuleCardProps) {
-  const isLocked = !module.isFree && module.completedCount === 0
+export function ModuleCard({ module, isAdmin = false }: ModuleCardProps) {
+  const isLocked = !isAdmin && !module.isFree && module.completedCount === 0
 
   return (
     <Link

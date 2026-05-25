@@ -9,8 +9,12 @@ export default async function ModulosPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/entrar')
 
-  const useCase = new GetModulesUseCase(new SupabaseLearningRepository(supabase))
-  const modules = await useCase.execute(user.id)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [modules, adminResult] = await Promise.all([
+    new GetModulesUseCase(new SupabaseLearningRepository(supabase)).execute(user.id),
+    (supabase as any).from('user_profiles').select('is_admin').eq('id', user.id).single(),
+  ])
+  const isAdmin: boolean = adminResult.data?.is_admin ?? false
 
   return (
     <div className="animate-fade-in">
@@ -23,7 +27,7 @@ export default async function ModulosPage() {
 
       <div className="grid sm:grid-cols-2 gap-4">
         {modules.map((module) => (
-          <ModuleCard key={module.id} module={module} />
+          <ModuleCard key={module.id} module={module} isAdmin={isAdmin} />
         ))}
       </div>
     </div>
