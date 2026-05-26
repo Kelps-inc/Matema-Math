@@ -22,17 +22,18 @@ export default async function LicaoPage({ params }: Props) {
   if (!result) notFound()
 
   // Busca a próxima lição do mesmo módulo (order_index imediatamente superior)
-  const { data: nextLessonData } = await supabase
+  const { data: nextLessons } = await supabase
     .from('lessons')
     .select('id, title')
     .eq('module_id', result.lesson.moduleId)
     .gt('order_index', result.lesson.orderIndex)
     .order('order_index')
     .limit(1)
-    .maybeSingle()
 
-  const nextLesson = nextLessonData
-    ? { id: nextLessonData.id as string, title: nextLessonData.title as string }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const first = (nextLessons as any[])?.[0]
+  const nextLesson: { id: string; title: string } | null = first
+    ? { id: first.id as string, title: first.title as string }
     : null
 
   // Converter entidades de domínio para plain objects serializáveis (RSC → Client boundary)
