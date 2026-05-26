@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Nunito } from 'next/font/google'
 import './globals.css'
+import 'katex/dist/katex.min.css'
 import { AudioManager } from '@/presentation/components/audio/AudioManager'
 
 const nunito = Nunito({

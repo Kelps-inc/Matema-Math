@@ -8,6 +8,7 @@ import { Badge } from '@/presentation/components/ui/Badge'
 import { cn } from '@/presentation/lib/utils'
 import { completeLessonAction } from '@/app/actions/progress'
 import { createAudioContext, playSfxClick, playSfxCorrect, playSfxWrong } from '@/presentation/lib/audio'
+import { MathText } from '@/presentation/components/ui/MathText'
 
 export interface LessonDTO {
   id: string
@@ -239,7 +240,7 @@ export function ExercisePlayer({ lesson, exercises, nextLesson }: ExercisePlayer
               {isCorrect(current, selected!) ? 'Correto!' : 'Quase lá!'}
             </p>
           </div>
-          <p className="text-sm text-matema-dark leading-relaxed">{current.explanation}</p>
+          <p className="text-sm text-matema-dark leading-relaxed"><MathText>{current.explanation}</MathText></p>
         </div>
       )}
 
@@ -298,7 +299,7 @@ function IntroScreen({ lesson, totalQuestions, onStart }: {
           <div className="text-sm text-matema-dark leading-relaxed space-y-3">
             {lesson.theory.split('\n\n').map((block, i) => (
               <p key={i} className={block.startsWith('📌') ? 'font-semibold text-matema-dark mt-4' : 'text-matema-muted'}>
-                {block}
+                <MathText>{block}</MathText>
               </p>
             ))}
           </div>
