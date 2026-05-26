@@ -298,9 +298,11 @@ function IntroScreen({ lesson, totalQuestions, onStart }: {
           </div>
           <div className="text-sm text-matema-dark leading-relaxed space-y-3">
             {lesson.theory.split('\n\n').map((block, i) => (
-              <p key={i} className={block.startsWith('📌') ? 'font-semibold text-matema-dark mt-4' : 'text-matema-muted'}>
-                <MathText>{block}</MathText>
-              </p>
+              <div key={i} className={block.startsWith('📌') ? 'font-semibold text-matema-dark mt-4' : 'text-matema-muted'}>
+                {block.split('\n').map((line, j) => (
+                  <div key={j}><MathText>{line}</MathText></div>
+                ))}
+              </div>
             ))}
           </div>
         </div>
