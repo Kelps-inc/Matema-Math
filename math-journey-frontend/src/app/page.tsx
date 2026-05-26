@@ -75,7 +75,7 @@ export default function LandingPage() {
           <h1 className="text-4xl md:text-[3.75rem] font-extrabold text-matema-dark leading-tight mb-6 tracking-tight">
             Aprenda matemática<br />
             <span style={{ backgroundImage: 'linear-gradient(135deg,#D4845A 0%,#8B7CC4 55%,#6B9E7A 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
-              do jeito que faz sentido
+              se divertindo!
             </span>
           </h1>
 
