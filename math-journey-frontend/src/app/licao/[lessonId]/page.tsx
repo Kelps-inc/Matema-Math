@@ -21,6 +21,20 @@ export default async function LicaoPage({ params }: Props) {
 
   if (!result) notFound()
 
+  // Busca a próxima lição do mesmo módulo (order_index imediatamente superior)
+  const { data: nextLessonData } = await supabase
+    .from('lessons')
+    .select('id, title')
+    .eq('module_id', result.lesson.moduleId)
+    .gt('order_index', result.lesson.orderIndex)
+    .order('order_index')
+    .limit(1)
+    .maybeSingle()
+
+  const nextLesson = nextLessonData
+    ? { id: nextLessonData.id as string, title: nextLessonData.title as string }
+    : null
+
   // Converter entidades de domínio para plain objects serializáveis (RSC → Client boundary)
   const lessonDTO: LessonDTO = {
     id: result.lesson.id,
@@ -55,7 +69,7 @@ export default async function LicaoPage({ params }: Props) {
           Nenhum exercício disponível nesta lição ainda.
         </div>
       ) : (
-        <ExercisePlayer lesson={lessonDTO} exercises={exercisesDTO} />
+        <ExercisePlayer lesson={lessonDTO} exercises={exercisesDTO} nextLesson={nextLesson} />
       )}
     </div>
   )

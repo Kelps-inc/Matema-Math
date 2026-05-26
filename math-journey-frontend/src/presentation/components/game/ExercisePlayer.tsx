@@ -33,6 +33,7 @@ export interface ExerciseDTO {
 interface ExercisePlayerProps {
   lesson: LessonDTO
   exercises: ExerciseDTO[]
+  nextLesson: { id: string; title: string } | null
 }
 
 type AnswerState = { exerciseId: string; answer: string; isCorrect: boolean }
@@ -61,7 +62,7 @@ function useSfx() {
   }
 }
 
-export function ExercisePlayer({ lesson, exercises }: ExercisePlayerProps) {
+export function ExercisePlayer({ lesson, exercises, nextLesson }: ExercisePlayerProps) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const sfx = useSfx()
@@ -130,7 +131,9 @@ export function ExercisePlayer({ lesson, exercises }: ExercisePlayerProps) {
         total={exercises.length}
         result={completionResult}
         error={actionError}
+        nextLesson={nextLesson}
         onContinue={() => router.push('/modulos')}
+        onNextLesson={nextLesson ? () => router.push(`/licao/${nextLesson.id}`) : undefined}
       />
     )
   }
@@ -310,14 +313,16 @@ function IntroScreen({ lesson, totalQuestions, onStart }: {
 }
 
 function CompletionScreen({
-  lesson, correctCount, total, result, error, onContinue,
+  lesson, correctCount, total, result, error, nextLesson, onContinue, onNextLesson,
 }: {
   lesson: LessonDTO
   correctCount: number
   total: number
   result: { newXp: number; newLevel: number; newCoins: number; leveledUp: boolean } | null
   error: string | null
+  nextLesson: { id: string; title: string } | null
   onContinue: () => void
+  onNextLesson?: () => void
 }) {
   const percent = Math.round((correctCount / total) * 100)
 
@@ -356,9 +361,24 @@ function CompletionScreen({
         </div>
       </div>
 
-      <Button onClick={onContinue} size="lg" className="w-full">
-        Ver todos os módulos
-      </Button>
+      <div className="flex flex-col gap-3">
+        {nextLesson && onNextLesson && (
+          <Button onClick={onNextLesson} size="lg" className="w-full">
+            Próxima lição: {nextLesson.title} →
+          </Button>
+        )}
+        <button
+          onClick={onContinue}
+          className={cn(
+            'w-full py-3 rounded-2xl text-sm font-semibold transition-colors',
+            nextLesson
+              ? 'text-matema-muted hover:text-matema-dark hover:bg-matema-border bg-matema-warm border border-matema-border'
+              : 'bg-matema-primary text-white hover:opacity-90 font-bold text-base py-4 rounded-3xl',
+          )}
+        >
+          Ver todos os módulos
+        </button>
+      </div>
     </div>
   )
 }
