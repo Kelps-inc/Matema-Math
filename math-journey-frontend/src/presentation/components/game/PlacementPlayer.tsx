@@ -137,8 +137,8 @@ export function PlacementPlayer({ questions }: PlacementPlayerProps) {
           </div>
 
           <div className="text-xs text-matema-muted mb-6 space-y-1">
-            <p>⚡ Precisão tem peso de 85% na classificação</p>
-            <p>⏱️ Velocidade tem peso de 15% na classificação</p>
+            <p>⚡ Precisão tem peso de 95% na classificação</p>
+            <p>⏱️ Velocidade tem peso de 5% na classificação</p>
           </div>
 
           <button

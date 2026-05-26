@@ -51,7 +51,7 @@ function calculateElo(answers: PlacementAnswer[]): EloCalc {
   const targetSeconds = 60
   const timeBonus = Math.max(0, Math.min(100, (1 - avgTimeSeconds / targetSeconds) * 100))
 
-  const score = accuracy * 0.85 + timeBonus * 0.15
+  const score = accuracy * 0.95 + timeBonus * 0.05
 
   let tier: EloTier
   let division: number

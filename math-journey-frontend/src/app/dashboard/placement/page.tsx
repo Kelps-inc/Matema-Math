@@ -73,8 +73,8 @@ export default async function PlacementResultPage() {
         </div>
 
         <div className="mt-4 pt-4 border-t border-matema-border flex gap-6 text-xs text-matema-muted">
-          <span>⚡ Precisão: <strong className="text-matema-dark">{result.accuracy}% × 85%</strong></span>
-          <span>⏱️ Velocidade: <strong className="text-matema-dark">{result.timeBonus}% × 15%</strong></span>
+          <span>⚡ Precisão: <strong className="text-matema-dark">{result.accuracy}% × 95%</strong></span>
+          <span>⏱️ Velocidade: <strong className="text-matema-dark">{result.timeBonus}% × 5%</strong></span>
         </div>
       </div>
 
