@@ -1,6 +1,7 @@
 import { createClient } from '@/infrastructure/supabase/server'
 import { SupabaseUserRepository } from '@/infrastructure/repositories/SupabaseUserRepository'
 import { GameHeader } from '@/presentation/components/game/GameHeader'
+import { GameBackground } from '@/presentation/components/game/GameBackground'
 import { redirect } from 'next/navigation'
 
 export default async function AvatarLayout({ children }: { children: React.ReactNode }) {
@@ -16,8 +17,9 @@ export default async function AvatarLayout({ children }: { children: React.React
 
   return (
     <div className="min-h-screen bg-matema-cream">
+      <GameBackground />
       <GameHeader user={profile} />
-      <main className="max-w-5xl mx-auto px-4 py-8 pb-24 sm:pb-8">{children}</main>
+      <main className="max-w-5xl mx-auto px-4 py-8 pb-24 sm:pb-8 relative z-10">{children}</main>
     </div>
   )
 }
