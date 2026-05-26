@@ -155,8 +155,12 @@ export function ExercisePlayer({ lesson, exercises, nextLesson }: ExercisePlayer
 
       <div className="bg-white rounded-3xl border border-matema-border p-6 md:p-8 mb-4">
         {current.context && (
-          <div className="bg-matema-cream rounded-2xl p-4 mb-5 border border-matema-border">
-            <p className="text-sm text-matema-muted leading-relaxed">{current.context}</p>
+          <div className="bg-matema-cream rounded-2xl p-4 mb-5 border border-matema-border overflow-hidden">
+            {current.context.trimStart().startsWith('<svg') ? (
+              <div dangerouslySetInnerHTML={{ __html: current.context }} />
+            ) : (
+              <p className="text-sm text-matema-muted leading-relaxed">{current.context}</p>
+            )}
           </div>
         )}
 
