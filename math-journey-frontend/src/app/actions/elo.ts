@@ -2,7 +2,6 @@
 
 import { createClient } from '@/infrastructure/supabase/server'
 import { revalidatePath } from 'next/cache'
-import { redirect } from 'next/navigation'
 import type { EloTier } from '@/domain/user/entities/User'
 
 export interface PlacementAnswer {
@@ -12,7 +11,31 @@ export interface PlacementAnswer {
   timeMs: number
 }
 
-interface EloResult {
+export interface PlacementResultAnswer {
+  questionId: string
+  question: string
+  topic: string
+  difficulty: string
+  answer: string
+  correctAnswer: string
+  explanation: string
+  isCorrect: boolean
+  timeMs: number
+}
+
+export interface PlacementResult {
+  score: number
+  accuracy: number
+  timeBonus: number
+  totalTimeMs: number
+  correct: number
+  total: number
+  tier: EloTier
+  division: number
+  answers: PlacementResultAnswer[]
+}
+
+interface EloCalc {
   tier: EloTier
   division: number
   score: number
@@ -20,11 +43,10 @@ interface EloResult {
   timeBonus: number
 }
 
-function calculateElo(answers: PlacementAnswer[]): EloResult {
+function calculateElo(answers: PlacementAnswer[]): EloCalc {
   const correct = answers.filter((a) => a.isCorrect).length
   const accuracy = (correct / answers.length) * 100
 
-  // Time bonus: target is 60 s per question. Score 0–100.
   const avgTimeSeconds = answers.reduce((sum, a) => sum + a.timeMs, 0) / answers.length / 1000
   const targetSeconds = 60
   const timeBonus = Math.max(0, Math.min(100, (1 - avgTimeSeconds / targetSeconds) * 100))
@@ -35,28 +57,27 @@ function calculateElo(answers: PlacementAnswer[]): EloResult {
   let division: number
 
   if (score >= 90) {
-    tier = 'mestre'
-    division = 1
+    tier = 'mestre'; division = 1
   } else if (score >= 75) {
     tier = 'diamante'
-    const range = score - 75 // 0–14.99
-    division = range < 3.75 ? 4 : range < 7.5 ? 3 : range < 11.25 ? 2 : 1
+    const r = score - 75
+    division = r < 3.75 ? 4 : r < 7.5 ? 3 : r < 11.25 ? 2 : 1
   } else if (score >= 60) {
     tier = 'platina'
-    const range = score - 60 // 0–14.99
-    division = range < 3.75 ? 4 : range < 7.5 ? 3 : range < 11.25 ? 2 : 1
+    const r = score - 60
+    division = r < 3.75 ? 4 : r < 7.5 ? 3 : r < 11.25 ? 2 : 1
   } else if (score >= 45) {
     tier = 'ouro'
-    const range = score - 45 // 0–14.99
-    division = range < 3.75 ? 4 : range < 7.5 ? 3 : range < 11.25 ? 2 : 1
+    const r = score - 45
+    division = r < 3.75 ? 4 : r < 7.5 ? 3 : r < 11.25 ? 2 : 1
   } else if (score >= 25) {
     tier = 'prata'
-    const range = score - 25 // 0–19.99
-    division = range < 5 ? 4 : range < 10 ? 3 : range < 15 ? 2 : 1
+    const r = score - 25
+    division = r < 5 ? 4 : r < 10 ? 3 : r < 15 ? 2 : 1
   } else {
     tier = 'bronze'
-    const range = score // 0–24.99
-    division = range < 6.25 ? 4 : range < 12.5 ? 3 : range < 18.75 ? 2 : 1
+    const r = score
+    division = r < 6.25 ? 4 : r < 12.5 ? 3 : r < 18.75 ? 2 : 1
   }
 
   return { tier, division, score, accuracy, timeBonus }
@@ -67,18 +88,57 @@ export async function savePlacementAction(answers: PlacementAnswer[]) {
   const { data: { user }, error: authError } = await supabase.auth.getUser()
 
   if (authError || !user) return { error: 'Não autenticado' }
-
   if (!answers || answers.length === 0) return { error: 'Respostas inválidas' }
 
-  const result = calculateElo(answers)
+  const elo = calculateElo(answers)
+
+  // Fetch question details to build the full result
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const supabaseAny = supabase as any
+  const questionIds = answers.map((a) => a.questionId)
+  const { data: questions } = await supabaseAny
+    .from('placement_questions')
+    .select('id, question, correct_answer, explanation, topic, difficulty')
+    .in('id', questionIds)
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { error } = await (supabase as any)
+  const questionMap = new Map((questions ?? []).map((q: any) => [q.id, q]))
+
+  const richAnswers: PlacementResultAnswer[] = answers.map((a) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const q = questionMap.get(a.questionId) as any
+    return {
+      questionId: a.questionId,
+      question: q?.question ?? '—',
+      topic: q?.topic ?? '—',
+      difficulty: q?.difficulty ?? '—',
+      answer: a.answer,
+      correctAnswer: q?.correct_answer ?? '—',
+      explanation: q?.explanation ?? '—',
+      isCorrect: a.isCorrect,
+      timeMs: a.timeMs,
+    }
+  })
+
+  const placementResult: PlacementResult = {
+    score: Math.round(elo.score),
+    accuracy: Math.round(elo.accuracy),
+    timeBonus: Math.round(elo.timeBonus),
+    totalTimeMs: answers.reduce((s, a) => s + a.timeMs, 0),
+    correct: answers.filter((a) => a.isCorrect).length,
+    total: answers.length,
+    tier: elo.tier,
+    division: elo.division,
+    answers: richAnswers,
+  }
+
+  const { error } = await supabaseAny
     .from('user_profiles')
     .update({
-      elo_tier: result.tier,
-      elo_division: result.division,
+      elo_tier: elo.tier,
+      elo_division: elo.division,
       placement_completed: true,
+      placement_result: placementResult,
       updated_at: new Date().toISOString(),
     })
     .eq('id', user.id)
@@ -90,10 +150,10 @@ export async function savePlacementAction(answers: PlacementAnswer[]) {
 
   return {
     success: true,
-    tier: result.tier,
-    division: result.division,
-    score: Math.round(result.score),
-    accuracy: Math.round(result.accuracy),
-    timeBonus: Math.round(result.timeBonus),
+    tier: elo.tier,
+    division: elo.division,
+    score: Math.round(elo.score),
+    accuracy: Math.round(elo.accuracy),
+    timeBonus: Math.round(elo.timeBonus),
   }
 }

@@ -8,6 +8,7 @@ import { Avatar } from '@/presentation/components/avatar/Avatar'
 import { DEFAULT_AVATAR_CONFIG } from '@/presentation/components/avatar/AvatarConfig'
 import type { AvatarConfig } from '@/presentation/components/avatar/AvatarConfig'
 import { redirect } from 'next/navigation'
+import { ELO_TIER_ICONS, ELO_TIER_LABELS, type EloTier } from '@/domain/user/entities/User'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -98,6 +99,30 @@ export default async function DashboardPage() {
           </Link>
         </div>
       </div>
+
+      {/* Elo + Placement */}
+      {profile.placementCompleted && (
+        <div className="bg-white rounded-3xl border border-matema-border p-6 mb-6 flex items-center gap-5">
+          <div className="text-5xl">{ELO_TIER_ICONS[profile.eloTier as EloTier]}</div>
+          <div className="flex-1">
+            <p className="text-xs text-matema-muted uppercase tracking-wide font-medium mb-0.5">Elo Ranqueada</p>
+            <p className="text-xl font-extrabold text-matema-dark leading-none">
+              {ELO_TIER_LABELS[profile.eloTier as EloTier]}
+              {profile.eloTier !== 'mestre' && (
+                <span className="text-matema-muted font-semibold ml-1">
+                  {['', 'I', 'II', 'III', 'IV'][profile.eloDivision] ?? profile.eloDivision}
+                </span>
+              )}
+            </p>
+          </div>
+          <Link
+            href="/dashboard/placement"
+            className="shrink-0 text-xs font-semibold text-matema-primary bg-matema-primary/10 hover:bg-matema-primary/20 transition-colors px-4 py-2.5 rounded-2xl text-center leading-tight"
+          >
+            Placement test<br />resultado →
+          </Link>
+        </div>
+      )}
 
       <div className="grid md:grid-cols-3 gap-5 mb-8">
         {/* Card de progresso */}
