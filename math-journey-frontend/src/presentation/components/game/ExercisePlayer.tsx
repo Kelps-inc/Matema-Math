@@ -298,7 +298,7 @@ function IntroScreen({ lesson, totalQuestions, onStart }: {
         <div className="bg-white rounded-3xl border border-matema-border p-6 mb-6">
           <div className="flex items-center gap-2 mb-4">
             <span className="text-lg">💡</span>
-            <h3 className="font-bold text-matema-dark">Entenda o conteúdo antes de começar</h3>
+            <h3 className="font-bold text-matema-dark">Relembre o conteúdo antes de começar</h3>
           </div>
           <div className="text-sm text-matema-dark leading-relaxed space-y-3">
             {lesson.theory.split('\n\n').map((block, i) => (
