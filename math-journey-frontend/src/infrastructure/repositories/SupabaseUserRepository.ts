@@ -31,6 +31,9 @@ export class SupabaseUserRepository implements IUserRepository {
       new Date(d.last_active_at),
       new Date(d.created_at),
       d.is_admin ?? false,
+      d.elo_tier ?? 'bronze',
+      d.elo_division ?? 4,
+      d.placement_completed ?? false,
     )
   }
 

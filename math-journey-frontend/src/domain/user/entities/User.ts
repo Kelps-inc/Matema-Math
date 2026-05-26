@@ -1,3 +1,23 @@
+export type EloTier = 'bronze' | 'prata' | 'ouro' | 'platina' | 'diamante' | 'mestre'
+
+export const ELO_TIER_LABELS: Record<EloTier, string> = {
+  bronze: 'Bronze',
+  prata: 'Prata',
+  ouro: 'Ouro',
+  platina: 'Platina',
+  diamante: 'Diamante',
+  mestre: 'Mestre',
+}
+
+export const ELO_TIER_ICONS: Record<EloTier, string> = {
+  bronze: '🥉',
+  prata: '🥈',
+  ouro: '🥇',
+  platina: '💎',
+  diamante: '💠',
+  mestre: '🔮',
+}
+
 export class User {
   constructor(
     readonly id: string,
@@ -12,6 +32,9 @@ export class User {
     readonly lastActiveAt: Date,
     readonly createdAt: Date,
     readonly isAdmin: boolean = false,
+    readonly eloTier: EloTier = 'bronze',
+    readonly eloDivision: number = 4,
+    readonly placementCompleted: boolean = false,
   ) {}
 
   xpToNextLevel(): number {

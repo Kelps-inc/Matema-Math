@@ -11,6 +11,7 @@ export class SupabaseLearningRepository implements ILearningRepository {
     const { data: modules, error } = await this.supabase
       .from('modules')
       .select('*, lessons(id, module_id, slug, title, description, order_index, xp_reward, coin_reward)')
+      .eq('is_ranked', false)
       .order('order_index')
 
     if (error) throw new Error(error.message)

@@ -22,6 +22,9 @@ export function GameHeader({ user }: GameHeaderProps) {
           <Link href="/modulos" className="px-4 py-2 text-sm font-medium text-matema-muted hover:text-matema-dark hover:bg-matema-warm rounded-xl transition-colors">
             Tutorial
           </Link>
+          <Link href="/ranqueada" className="px-4 py-2 text-sm font-medium text-matema-muted hover:text-matema-dark hover:bg-matema-warm rounded-xl transition-colors">
+            🏆 Ranqueada
+          </Link>
           <Link href="/loja" className="px-4 py-2 text-sm font-medium text-matema-muted hover:text-matema-dark hover:bg-matema-warm rounded-xl transition-colors">
             Loja
           </Link>
@@ -29,7 +32,7 @@ export function GameHeader({ user }: GameHeaderProps) {
             Avatar
           </Link>
           <Link href="/dashboard" className="px-4 py-2 text-sm font-medium text-matema-muted hover:text-matema-dark hover:bg-matema-warm rounded-xl transition-colors">
-            Progresso atual
+            Progresso
           </Link>
         </nav>
 

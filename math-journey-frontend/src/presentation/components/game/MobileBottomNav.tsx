@@ -5,11 +5,11 @@ import { usePathname } from 'next/navigation'
 import { cn } from '@/presentation/lib/utils'
 
 const navItems = [
-  { href: '/modulos',       icon: '📚', label: 'Tutorial'  },
-  { href: '/loja',          icon: '🛍️',  label: 'Loja'      },
-  { href: '/avatar',        icon: '🎭', label: 'Avatar'    },
-  { href: '/dashboard',     icon: '📊', label: 'Progresso' },
-  { href: '/configuracoes', icon: '⚙️',  label: 'Config'    },
+  { href: '/modulos',   icon: '📚', label: 'Tutorial'  },
+  { href: '/ranqueada', icon: '🏆', label: 'Ranqueada' },
+  { href: '/loja',      icon: '🛍️',  label: 'Loja'      },
+  { href: '/avatar',    icon: '🎭', label: 'Avatar'    },
+  { href: '/dashboard', icon: '📊', label: 'Progresso' },
 ]
 
 export function MobileBottomNav() {

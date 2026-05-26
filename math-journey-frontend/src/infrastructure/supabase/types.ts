@@ -19,6 +19,10 @@ export interface Database {
           last_active_at: string
           created_at: string
           updated_at: string
+          is_admin: boolean
+          elo_tier: string
+          elo_division: number
+          placement_completed: boolean
         }
         Insert: Omit<Database['public']['Tables']['user_profiles']['Row'], 'created_at' | 'updated_at'>
         Update: Partial<Database['public']['Tables']['user_profiles']['Insert']>
