@@ -168,14 +168,14 @@ export function ExercisePlayer({ lesson, exercises, nextLesson }: ExercisePlayer
 
         {current.type === 'multiple_choice' && current.options && (
           <div className="grid gap-3">
-            {current.options.map((option) => {
+            {current.options.map((option, optionIndex) => {
               const sel = selected === option
               const isCorrectAnswer = phase === 'feedback' && option === current.correctAnswer
               const isWrong = phase === 'feedback' && sel && option !== current.correctAnswer
 
               return (
                 <button
-                  key={option}
+                  key={`${current.id}-${optionIndex}`}
                   onClick={() => { if (phase === 'answering') { setSelected(option); sfx.click() } }}
                   disabled={phase === 'feedback'}
                   className={cn(
