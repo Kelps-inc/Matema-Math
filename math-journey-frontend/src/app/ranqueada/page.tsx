@@ -52,33 +52,14 @@ export default async function RanqueadaPage() {
         </p>
       </div>
 
-      {/* Ranked modes */}
-      <div className="grid sm:grid-cols-3 gap-4 mb-8">
-        <RankedModeCard
-          href="/ranqueada/jogar?difficulty=easy"
-          icon="🌱"
-          label="Fácil"
-          description="30 questões acessíveis"
-          color="bg-green-50 border-green-200 hover:border-green-400"
-          labelColor="text-green-700"
-        />
-        <RankedModeCard
-          href="/ranqueada/jogar?difficulty=medium"
-          icon="⚡"
-          label="Médio"
-          description="20 questões desafiadoras"
-          color="bg-amber-50 border-amber-200 hover:border-amber-400"
-          labelColor="text-amber-700"
-        />
-        <RankedModeCard
-          href="/ranqueada/jogar?difficulty=hard"
-          icon="🔥"
-          label="Difícil"
-          description="10 questões nível ENEM"
-          color="bg-red-50 border-red-200 hover:border-red-400"
-          labelColor="text-red-700"
-        />
-      </div>
+      {/* Play button */}
+      <Link
+        href="/ranqueada/jogar"
+        className="flex flex-col items-center justify-center w-full bg-matema-primary text-white rounded-3xl py-8 mb-8 hover:opacity-90 active:scale-[0.98] transition-all shadow-md"
+      >
+        <span className="text-2xl font-extrabold mb-1">⚔️ Jogar Ranqueada</span>
+        <span className="text-sm opacity-80">60 primeiras questões</span>
+      </Link>
 
       {/* Elo ladder */}
       <div className="bg-white rounded-3xl border border-matema-border p-6">
@@ -113,29 +94,3 @@ export default async function RanqueadaPage() {
   )
 }
 
-function RankedModeCard({
-  href,
-  icon,
-  label,
-  description,
-  color,
-  labelColor,
-}: {
-  href: string
-  icon: string
-  label: string
-  description: string
-  color: string
-  labelColor: string
-}) {
-  return (
-    <Link
-      href={href}
-      className={`block border-2 rounded-3xl p-6 text-center transition-colors ${color}`}
-    >
-      <div className="text-4xl mb-2">{icon}</div>
-      <div className={`font-bold text-lg mb-1 ${labelColor}`}>{label}</div>
-      <div className="text-xs text-matema-muted">{description}</div>
-    </Link>
-  )
-}

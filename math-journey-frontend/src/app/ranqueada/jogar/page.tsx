@@ -4,29 +4,10 @@ import { redirect } from 'next/navigation'
 import { RankedPlayer } from '@/presentation/components/game/RankedPlayer'
 import type { EloTier } from '@/domain/user/entities/User'
 
-// Lesson IDs for each difficulty level
-const LESSON_SLUG: Record<string, string> = {
-  easy:   'ranqueada-facil',
-  medium: 'ranqueada-medio',
-  hard:   'ranqueada-dificil',
-}
+const RANKED_LESSON_SLUGS = ['ranqueada-facil', 'ranqueada-medio', 'ranqueada-dificil']
+const QUESTIONS_PER_GAME = 10
 
-const QUESTIONS_PER_GAME: Record<string, number> = {
-  easy:   10,
-  medium: 10,
-  hard:   10,
-}
-
-export default async function RanqueadaJogarPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ difficulty?: string }>
-}) {
-  const params = await searchParams
-  const difficulty = params.difficulty ?? 'easy'
-
-  if (!['easy', 'medium', 'hard'].includes(difficulty)) redirect('/ranqueada')
-
+export default async function RanqueadaJogarPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/entrar')
@@ -39,28 +20,28 @@ export default async function RanqueadaJogarPage({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const supabaseAny = supabase as any
 
-  // Find the lesson by slug
-  const { data: lesson } = await supabaseAny
+  // Fetch all ranked lessons
+  const { data: lessons } = await supabaseAny
     .from('lessons')
     .select('id')
-    .eq('slug', LESSON_SLUG[difficulty])
-    .single()
+    .in('slug', RANKED_LESSON_SLUGS)
 
-  if (!lesson) redirect('/ranqueada')
+  if (!lessons || lessons.length === 0) redirect('/ranqueada')
 
-  // Fetch exercises for that lesson
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const lessonIds = (lessons as any[]).map((l: any) => l.id)
+
+  // Fetch all exercises from those lessons
   const { data: allExercises } = await supabaseAny
     .from('exercises')
     .select('id, question, context, type, options, correct_answer, explanation, difficulty')
-    .eq('lesson_id', lesson.id)
+    .in('lesson_id', lessonIds)
 
-  // Pick random subset
   function pickRandom<T>(arr: T[], n: number): T[] {
     return [...(arr ?? [])].sort(() => Math.random() - 0.5).slice(0, n)
   }
 
-  const count = QUESTIONS_PER_GAME[difficulty] ?? 10
-  const selected = pickRandom(allExercises ?? [], count)
+  const selected = pickRandom(allExercises ?? [], QUESTIONS_PER_GAME)
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const exercises = selected.map((e: any) => ({
@@ -74,7 +55,7 @@ export default async function RanqueadaJogarPage({
     <div className="animate-fade-in">
       <RankedPlayer
         exercises={exercises}
-        difficulty={difficulty}
+        difficulty="mixed"
         currentTier={profile.eloTier as EloTier}
         currentDivision={profile.eloDivision}
       />
