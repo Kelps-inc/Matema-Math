@@ -8,8 +8,9 @@ interface Part {
 
 function parseMath(text: string): Part[] {
   const parts: Part[] = []
-  // Matches $$...$$ (display) first, then $...$ (inline)
-  const regex = /\$\$([^$]*?)\$\$|\$([^$\n]+?)\$/g
+  // Matches $$...$$ (display) first, then $...$ (inline).
+  // Negative lookbehind (?<![A-Za-z]) prevents matching currency symbols like R$1.200.
+  const regex = /\$\$([^$]*?)\$\$|(?<![A-Za-z])\$([^$\n]+?)\$/g
   let lastIndex = 0
   let match
 
