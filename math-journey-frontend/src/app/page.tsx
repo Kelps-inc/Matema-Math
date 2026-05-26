@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { LandingBackground } from '@/presentation/components/landing/LandingBackground'
 
 const modules = [
   { icon: '🔢', title: 'Números e Operações', color: '#D4845A', bg: '#D4845A18', desc: 'MMC, MDC, frações, potências' },
@@ -25,7 +26,8 @@ const tiers = [
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen overflow-x-hidden" style={{ background: '#FAF8F4' }}>
+    <div className="min-h-screen overflow-x-hidden relative" style={{ background: '#FAF8F4' }}>
+      <LandingBackground />
 
       {/* ── NAV ─────────────────────────────────────────────────────────── */}
       <nav className="sticky top-0 z-50 border-b border-matema-border" style={{ background: 'rgba(250,248,244,0.88)', backdropFilter: 'blur(12px)' }}>
