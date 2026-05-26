@@ -170,6 +170,60 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* ELO / RANKING */}
+      <section className="bg-matema-warm border-y border-matema-border py-16">
+        <div className="max-w-5xl mx-auto px-4">
+          <div className="text-center mb-10">
+            <h2 className="text-2xl md:text-3xl font-extrabold text-matema-dark mb-3">
+              Sistema de Elos 🏆
+            </h2>
+            <p className="text-matema-muted max-w-xl mx-auto">
+              Faça o teste de classificação e descubra seu elo. Jogue partidas ranqueadas com questões estilo ENEM para subir de divisão.
+            </p>
+          </div>
+
+          <div className="flex flex-wrap justify-center gap-3 mb-10">
+            {[
+              { icon: '🥉', label: 'Bronze',   color: 'border-orange-200 bg-orange-50'  },
+              { icon: '🥈', label: 'Prata',    color: 'border-slate-200  bg-slate-50'   },
+              { icon: '🥇', label: 'Ouro',     color: 'border-yellow-200 bg-yellow-50'  },
+              { icon: '💎', label: 'Platina',  color: 'border-cyan-200   bg-cyan-50'    },
+              { icon: '💠', label: 'Diamante', color: 'border-blue-200   bg-blue-50'    },
+              { icon: '🔮', label: 'Mestre',   color: 'border-purple-200 bg-purple-50'  },
+            ].map((tier) => (
+              <div key={tier.label} className={`flex flex-col items-center gap-1 border-2 rounded-2xl px-5 py-4 ${tier.color}`}>
+                <span className="text-3xl">{tier.icon}</span>
+                <span className="text-xs font-bold text-matema-dark">{tier.label}</span>
+              </div>
+            ))}
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-4 max-w-3xl mx-auto text-sm">
+            <div className="bg-white rounded-2xl border border-matema-border p-5 flex gap-3">
+              <span className="text-2xl">🎯</span>
+              <div>
+                <p className="font-bold text-matema-dark mb-1">Teste de classificação</p>
+                <p className="text-matema-muted text-xs">15 questões que definem seu elo inicial. Precisão vale 95% da nota.</p>
+              </div>
+            </div>
+            <div className="bg-white rounded-2xl border border-matema-border p-5 flex gap-3">
+              <span className="text-2xl">⚔️</span>
+              <div>
+                <p className="font-bold text-matema-dark mb-1">Partidas ranqueadas</p>
+                <p className="text-matema-muted text-xs">Questões nível ENEM. Acerte mais e suba de divisão — seu elo nunca cai.</p>
+              </div>
+            </div>
+            <div className="bg-white rounded-2xl border border-matema-border p-5 flex gap-3">
+              <span className="text-2xl">📈</span>
+              <div>
+                <p className="font-bold text-matema-dark mb-1">Evolução contínua</p>
+                <p className="text-matema-muted text-xs">De Bronze IV a Mestre. Cada divisão conquistada mostra seu crescimento real.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* CTA */}
       <section className="bg-matema-primary mx-4 mb-16 rounded-4xl py-14 px-6 text-center max-w-5xl md:mx-auto">
         <h2 className="text-2xl md:text-4xl font-extrabold text-white mb-4">
