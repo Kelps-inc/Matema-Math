@@ -6,6 +6,7 @@ import type { EloTier } from '@/domain/user/entities/User'
 
 const RANKED_LESSON_SLUGS = ['ranqueada-facil', 'ranqueada-medio', 'ranqueada-dificil']
 const QUESTIONS_PER_GAME = 10
+const COOLDOWN_DAYS = 20
 
 export default async function RanqueadaJogarPage() {
   const supabase = await createClient()
@@ -31,11 +32,55 @@ export default async function RanqueadaJogarPage() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const lessonIds = (lessons as any[]).map((l: any) => l.id)
 
-  // Fetch all exercises from those lessons
-  const { data: allExercises } = await supabaseAny
+  // Find exercise IDs the user answered in the last COOLDOWN_DAYS days
+  const cooldownSince = new Date(Date.now() - COOLDOWN_DAYS * 24 * 60 * 60 * 1000).toISOString()
+  const { data: recentAnswers } = await supabaseAny
+    .from('user_exercise_answers')
+    .select('exercise_id')
+    .eq('user_id', user.id)
+    .eq('is_ranked', true)
+    .gte('answered_at', cooldownSince)
+
+  const recentIds: string[] = [
+    ...new Set((recentAnswers ?? []).map((a: any) => a.exercise_id as string)),
+  ]
+
+  // Fetch eligible (fresh) exercises, excluding recently answered ones
+  const baseQuery = supabaseAny
     .from('exercises')
     .select('id, question, context, type, options, correct_answer, explanation, difficulty')
     .in('lesson_id', lessonIds)
+
+  const freshQuery = recentIds.length > 0
+    ? baseQuery.not('id', 'in', `(${recentIds.map((id) => `"${id}"`).join(',')})`)
+    : baseQuery
+
+  const { data: freshExercises } = await freshQuery
+
+  // Fallback: if not enough fresh questions, pad with the least-recently answered ones
+  let allExercises = freshExercises ?? []
+  if (allExercises.length < QUESTIONS_PER_GAME && recentIds.length > 0) {
+    const needed = QUESTIONS_PER_GAME - allExercises.length
+    const { data: oldestAnswered } = await supabaseAny
+      .from('user_exercise_answers')
+      .select('exercise_id')
+      .eq('user_id', user.id)
+      .eq('is_ranked', true)
+      .order('answered_at', { ascending: true })
+      .limit(needed * 3) // fetch extra to deduplicate
+
+    const oldestIds: string[] = [
+      ...new Set((oldestAnswered ?? []).map((a: any) => a.exercise_id as string)),
+    ].slice(0, needed)
+
+    if (oldestIds.length > 0) {
+      const { data: fallbackExercises } = await supabaseAny
+        .from('exercises')
+        .select('id, question, context, type, options, correct_answer, explanation, difficulty')
+        .in('id', oldestIds)
+      allExercises = [...allExercises, ...(fallbackExercises ?? [])]
+    }
+  }
 
   function pickRandom<T>(arr: T[], n: number): T[] {
     return [...(arr ?? [])].sort(() => Math.random() - 0.5).slice(0, n)
