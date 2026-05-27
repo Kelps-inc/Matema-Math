@@ -36,6 +36,7 @@ export class User {
     readonly eloDivision: number = 4,
     readonly placementCompleted: boolean = false,
     readonly eloLp: number = 0,
+    readonly placementCompletedAt: Date | null = null,
   ) {}
 
   xpToNextLevel(): number {

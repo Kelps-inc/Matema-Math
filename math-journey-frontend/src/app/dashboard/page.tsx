@@ -16,7 +16,7 @@ export default async function DashboardPage() {
   if (!user) redirect('/entrar')
 
   const learningRepo = new SupabaseLearningRepository(supabase)
-  const [profile, modules, inventoryResult, avatarResult, rankedStats] = await Promise.all([
+  const [profile, modules, inventoryResult, avatarResult, rankedStats, tutorialProgressResult] = await Promise.all([
     new SupabaseUserRepository(supabase).findById(user.id),
     new GetModulesUseCase(learningRepo).execute(user.id),
     (supabase as any)
@@ -29,6 +29,13 @@ export default async function DashboardPage() {
       .eq('user_id', user.id)
       .single(),
     learningRepo.findRankedLessonStats(user.id),
+    (supabase as any)
+      .from('user_lesson_progress')
+      .select('completed_at')
+      .eq('user_id', user.id)
+      .order('completed_at', { ascending: false })
+      .limit(1)
+      .single(),
   ])
 
   const ownedItemNames: string[] = (inventoryResult.data ?? [])
@@ -54,6 +61,20 @@ export default async function DashboardPage() {
     : DEFAULT_AVATAR_CONFIG
 
   if (!profile) redirect('/entrar')
+
+  function fmtDate(d: Date | string | null | undefined): string {
+    if (!d) return ''
+    const dt = typeof d === 'string' ? new Date(d) : d
+    return dt.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })
+  }
+
+  const tutorialCompletedAt: Date | null = tutorialProgressResult.data?.completed_at
+    ? new Date(tutorialProgressResult.data.completed_at)
+    : null
+
+  const rankedAccuracy = rankedStats.total > 0
+    ? Math.round((rankedStats.correct / rankedStats.total) * 100)
+    : null
 
   const totalLessons = modules.reduce((s, m) => s + m.totalCount, 0)
   const completedLessons = modules.reduce((s, m) => s + m.completedCount, 0)
@@ -150,9 +171,14 @@ export default async function DashboardPage() {
               <h2 className="font-bold text-matema-dark text-lg">Seu progresso</h2>
               <p className="text-sm text-matema-muted">
                 {completedLessons === totalLessons && totalLessons === 16
-                  ? '16/16 - Tutorial Completo ✅'
+                  ? <>16/16 - Tutorial Completo{tutorialCompletedAt && <span className="text-matema-muted"> em {fmtDate(tutorialCompletedAt)}</span>} ✅</>
                   : `Tutorial: ${completedLessons} de ${totalLessons} lições concluídas`}
               </p>
+              {profile.placementCompleted && (
+                <p className="text-sm text-matema-muted mt-0.5">
+                  Placement test completo{profile.placementCompletedAt && <span> em {fmtDate(profile.placementCompletedAt)}</span>}
+                </p>
+              )}
             </div>
             <div className="w-14 h-14 bg-matema-primary/10 rounded-2xl flex items-center justify-center">
               <span className="text-2xl font-extrabold text-matema-primary">{profile.level}</span>
@@ -210,7 +236,9 @@ export default async function DashboardPage() {
       {/* Lições Ranqueadas */}
       <div className="bg-white rounded-3xl border border-matema-border p-6">
         <h2 className="font-bold text-matema-dark text-lg mb-4">Lições Ranqueadas</h2>
-        <div className="flex items-center justify-between">
+
+        {/* Difficulty breakdown */}
+        <div className="flex items-center justify-between mb-4">
           <div className="flex flex-wrap gap-6">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center">
@@ -244,6 +272,30 @@ export default async function DashboardPage() {
             <p className="text-sm text-matema-muted mb-1">Total</p>
             <p className="text-2xl font-extrabold text-matema-primary">{rankedStats.total}</p>
           </div>
+        </div>
+
+        {/* Correct / wrong / accuracy */}
+        <div className="border-t border-matema-border pt-4 flex items-center gap-6">
+          <div className="flex items-center gap-2">
+            <span className="text-green-500 text-lg">✔</span>
+            <div>
+              <p className="text-xs text-matema-muted">Acertos</p>
+              <p className="text-base font-extrabold text-matema-dark">{rankedStats.correct}</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-red-400 text-lg">✘</span>
+            <div>
+              <p className="text-xs text-matema-muted">Erros</p>
+              <p className="text-base font-extrabold text-matema-dark">{rankedStats.wrong}</p>
+            </div>
+          </div>
+          {rankedAccuracy !== null && (
+            <div className="ml-auto text-right">
+              <p className="text-xs text-matema-muted">Precisão</p>
+              <p className="text-xl font-extrabold text-matema-primary">{rankedAccuracy}%</p>
+            </div>
+          )}
         </div>
       </div>
 

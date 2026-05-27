@@ -104,33 +104,32 @@ export class SupabaseLearningRepository implements ILearningRepository {
     return ((data ?? []) as any[]).map((d: any) => d.lesson_id as string)
   }
 
-  async findRankedLessonStats(userId: string): Promise<{ easy: number; medium: number; hard: number; total: number }> {
-    // Join user_exercise_answers (is_ranked=true) with exercises to get difficulty counts
+  async findRankedLessonStats(userId: string): Promise<{
+    easy: number; medium: number; hard: number; total: number
+    correct: number; wrong: number
+  }> {
     const { data, error } = await (this.supabase as any)
       .from('user_exercise_answers')
-      .select('exercises(difficulty)')
+      .select('is_correct, exercises(difficulty)')
       .eq('user_id', userId)
       .eq('is_ranked', true)
 
-    if (error) return { easy: 0, medium: 0, hard: 0, total: 0 }
+    if (error) return { easy: 0, medium: 0, hard: 0, total: 0, correct: 0, wrong: 0 }
 
     const rows = (data ?? []) as any[]
     const counts = rows.reduce(
       (acc, row: any) => {
         const diff = row.exercises?.difficulty
-        if (diff === 'easy')   acc.easy++
+        if (diff === 'easy')        acc.easy++
         else if (diff === 'medium') acc.medium++
         else if (diff === 'hard')   acc.hard++
+        if (row.is_correct) acc.correct++
+        else                acc.wrong++
         return acc
       },
-      { easy: 0, medium: 0, hard: 0 },
+      { easy: 0, medium: 0, hard: 0, correct: 0, wrong: 0 },
     )
 
-    return {
-      easy:   counts.easy,
-      medium: counts.medium,
-      hard:   counts.hard,
-      total:  rows.length,
-    }
+    return { ...counts, total: rows.length }
   }
 }

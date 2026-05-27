@@ -139,6 +139,7 @@ export async function savePlacementAction(answers: PlacementAnswer[]) {
       elo_division: elo.division,
       elo_lp: 0,
       placement_completed: true,
+      placement_completed_at: new Date().toISOString(),
       placement_result: placementResult,
       updated_at: new Date().toISOString(),
     })

@@ -35,6 +35,7 @@ export class SupabaseUserRepository implements IUserRepository {
       d.elo_division ?? 4,
       d.placement_completed ?? false,
       d.elo_lp ?? 0,
+      d.placement_completed_at ? new Date(d.placement_completed_at) : null,
     )
   }
 
