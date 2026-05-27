@@ -88,7 +88,7 @@ export async function saveRankedGameAction(answers: RankedAnswer[]) {
 
   const { data: profile } = await supabaseAny
     .from('user_profiles')
-    .select('elo_tier, elo_division, elo_lp, placement_completed')
+    .select('elo_tier, elo_division, elo_lp, placement_completed, xp, coins, level')
     .eq('id', user.id)
     .single()
 
@@ -114,6 +114,21 @@ export async function saveRankedGameAction(answers: RankedAnswer[]) {
   const demoted  = rankValue(newElo.tier, newElo.division) < rankValue(current.tier, current.division)
   const changed  = newElo.tier !== current.tier || newElo.division !== current.division || newElo.lp !== current.lp
 
+  // --- XP & coins reward -------------------------------------------------
+  // 15 XP + 5 coins per correct answer, plus accuracy bonus
+  const xpPerCorrect   = 15
+  const coinsPerCorrect = 5
+  const accuracyBonus  = accuracy >= 90 ? 50 : accuracy >= 75 ? 25 : accuracy >= 60 ? 10 : 0
+  const xpEarned   = correct * xpPerCorrect + accuracyBonus
+  const coinsEarned = correct * coinsPerCorrect
+
+  // Level formula: xpForLevel(n) = (n-1)² × 50  →  level = floor(√(xp/50)) + 1
+  const newXp    = (profile.xp ?? 0) + xpEarned
+  const newCoins = (profile.coins ?? 0) + coinsEarned
+  const newLevel = Math.floor(Math.sqrt(newXp / 50)) + 1
+  const leveledUp = newLevel > (profile.level ?? 1)
+  // -----------------------------------------------------------------------
+
   // Persist each individual answer so the dashboard can show ranked stats
   const answerRows = answers.map((a) => ({
     user_id:     user.id,
@@ -126,17 +141,20 @@ export async function saveRankedGameAction(answers: RankedAnswer[]) {
   }))
   await supabaseAny.from('user_exercise_answers').insert(answerRows)
 
-  if (changed) {
-    await supabaseAny
-      .from('user_profiles')
-      .update({
+  await supabaseAny
+    .from('user_profiles')
+    .update({
+      xp:           newXp,
+      coins:        newCoins,
+      level:        newLevel,
+      ...(changed ? {
         elo_tier:     newElo.tier,
         elo_division: newElo.division,
         elo_lp:       newElo.lp,
-        updated_at:   new Date().toISOString(),
-      })
-      .eq('id', user.id)
-  }
+      } : {}),
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', user.id)
 
   revalidatePath('/ranqueada')
   revalidatePath('/dashboard')
@@ -153,5 +171,10 @@ export async function saveRankedGameAction(answers: RankedAnswer[]) {
     newDivision: newElo.division,
     promoted,
     demoted,
+    xpEarned,
+    coinsEarned,
+    newXp,
+    newLevel,
+    leveledUp,
   }
 }
