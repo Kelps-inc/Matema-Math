@@ -293,7 +293,7 @@ export function RankedPlayer({ exercises, difficulty, currentTier, currentDivisi
           <div className="bg-white rounded-3xl p-6 max-w-sm w-full shadow-xl animate-fade-in">
             <p className="text-xl font-extrabold text-matema-dark mb-2">⚠️ Saindo cedo</p>
             <p className="text-sm text-matema-muted mb-5 leading-relaxed">
-              Você respondeu apenas <strong>{answers.length}</strong> questão{answers.length !== 1 ? 'ão' : ''}.
+              Você respondeu apenas <strong>{answers.length}</strong> quest{answers.length === 1 ? 'ão' : 'ões'}.
               Encerrar agora custará <strong className="text-red-500">−2 PDL</strong>.
             </p>
             <div className="flex gap-3">
