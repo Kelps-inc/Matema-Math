@@ -82,6 +82,7 @@ export function AudioManager() {
     }
 
     function handleClickSfx(e: MouseEvent) {
+      if (localStorage.getItem('matema_sfx_enabled') === 'false') return
       const target = e.target as HTMLElement
       if (!target.closest('button, a, [role="button"]')) return
       if (!ctxRef.current) ctxRef.current = createAudioContext()
