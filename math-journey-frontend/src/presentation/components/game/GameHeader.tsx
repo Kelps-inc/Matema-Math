@@ -64,7 +64,7 @@ export function GameHeader({ user }: GameHeaderProps) {
             href="/configuracoes"
             className="text-xs text-matema-muted hover:text-matema-dark px-3 py-2 rounded-xl hover:bg-matema-warm transition-colors"
           >
-            ⚙️ Config
+            Config ⚙️
           </Link>
 
           <form action={signOut}>
