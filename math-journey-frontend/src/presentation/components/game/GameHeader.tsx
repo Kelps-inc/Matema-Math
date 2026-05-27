@@ -12,7 +12,7 @@ export function GameHeader({ user }: GameHeaderProps) {
     <>
     <header
       className="border-b border-white/10 sticky top-0 z-50"
-      style={{ backgroundImage: 'url(/header-bg.png)', backgroundSize: 'cover', backgroundPosition: 'center' }}
+      style={{ backgroundImage: 'url(/header-bg.png)', backgroundSize: 'cover', backgroundPosition: 'left center' }}
     >
       <div className="max-w-5xl mx-auto px-4 h-20 flex items-center justify-between gap-4">
 
