@@ -290,6 +290,13 @@ export default async function DashboardPage() {
               <p className="text-base font-extrabold text-matema-dark">{rankedStats.wrong}</p>
             </div>
           </div>
+          <div className="flex items-center gap-2">
+            <span className="text-amber-400 text-lg">⏭</span>
+            <div>
+              <p className="text-xs text-matema-muted">Puladas</p>
+              <p className="text-base font-extrabold text-matema-dark">{rankedStats.skipped}</p>
+            </div>
+          </div>
           {rankedAccuracy !== null && (
             <div className="ml-auto text-right">
               <p className="text-xs text-matema-muted">Precisão</p>

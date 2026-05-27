@@ -36,7 +36,7 @@ export function RankedPlayer({ exercises, difficulty, currentTier, currentDivisi
   const [current, setCurrent] = useState(0)
   const [selected, setSelected] = useState<string | null>(null)
   const [answers, setAnswers] = useState<RankedAnswer[]>([])
-  const [skippedCount, setSkippedCount] = useState(0)
+  const [skippedIds, setSkippedIds] = useState<string[]>([])
   const [showExitWarning, setShowExitWarning] = useState(false)
   const [elapsedMs, setElapsedMs] = useState(0)
   const [result, setResult] = useState<{
@@ -65,11 +65,11 @@ export function RankedPlayer({ exercises, difficulty, currentTier, currentDivisi
   // ── shared save helper ────────────────────────────────────────────────────
   const saveGame = useCallback(async (
     answersToSave: RankedAnswer[],
-    skips: number,
+    skippedIdsArg: string[],
     earlyExitPenalty = false,
   ) => {
     setPhase('saving')
-    const res = await saveRankedGameAction(answersToSave, { skippedCount: skips, earlyExitPenalty })
+    const res = await saveRankedGameAction(answersToSave, { skippedExerciseIds: skippedIdsArg, earlyExitPenalty })
     if (res.error) { setError(res.error); return }
     setResult({
       score:       res.score!,
@@ -109,14 +109,14 @@ export function RankedPlayer({ exercises, difficulty, currentTier, currentDivisi
       setSelected(null)
       setPhase('playing')
     } else {
-      await saveGame(newAnswers, skippedCount)
+      await saveGame(newAnswers, skippedIds)
     }
-  }, [selected, exercise, answers, current, exercises.length, skippedCount, saveGame])
+  }, [selected, exercise, answers, current, exercises.length, skippedIds, saveGame])
 
   const handleSkip = useCallback(async () => {
-    if (phase !== 'playing') return
-    const newSkips = skippedCount + 1
-    setSkippedCount(newSkips)
+    if (phase !== 'playing' || !exercise) return
+    const newSkippedIds = [...skippedIds, exercise.id]
+    setSkippedIds(newSkippedIds)
 
     if (current + 1 < exercises.length) {
       setCurrent((c) => c + 1)
@@ -124,9 +124,9 @@ export function RankedPlayer({ exercises, difficulty, currentTier, currentDivisi
       setPhase('playing')
     } else {
       // Skipped last question — save what we have
-      await saveGame(answers, newSkips)
+      await saveGame(answers, newSkippedIds)
     }
-  }, [phase, current, exercises.length, skippedCount, answers, saveGame])
+  }, [phase, exercise, current, exercises.length, skippedIds, answers, saveGame])
 
   const handleExit = useCallback(() => {
     const answeredCount = answers.length + (phase === 'answered' ? 1 : 0)
@@ -145,8 +145,8 @@ export function RankedPlayer({ exercises, difficulty, currentTier, currentDivisi
       return
     }
 
-    saveGame(exitAnswers, skippedCount)
-  }, [phase, selected, exercise, answers, skippedCount, saveGame])
+    saveGame(exitAnswers, skippedIds)
+  }, [phase, selected, exercise, answers, skippedIds, saveGame])
 
   const confirmEarlyExit = useCallback(() => {
     setShowExitWarning(false)
@@ -158,8 +158,8 @@ export function RankedPlayer({ exercises, difficulty, currentTier, currentDivisi
           timeMs: Date.now() - questionStartRef.current,
         }]
       : answers
-    saveGame(exitAnswers, skippedCount, true)
-  }, [phase, selected, exercise, answers, skippedCount, saveGame])
+    saveGame(exitAnswers, skippedIds, true)
+  }, [phase, selected, exercise, answers, skippedIds, saveGame])
 
   // ── SAVING ─────────────────────────────────────────────────────────────────
   if (phase === 'saving') {

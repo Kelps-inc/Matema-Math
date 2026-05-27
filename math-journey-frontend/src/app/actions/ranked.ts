@@ -80,7 +80,7 @@ export interface RankedAnswer {
 
 export async function saveRankedGameAction(
   answers: RankedAnswer[],
-  opts: { skippedCount?: number; earlyExitPenalty?: boolean } = {},
+  opts: { skippedExerciseIds?: string[]; earlyExitPenalty?: boolean } = {},
 ) {
   const supabase = await createClient()
   const { data: { user }, error: authError } = await supabase.auth.getUser()
@@ -97,6 +97,9 @@ export async function saveRankedGameAction(
 
   if (!profile?.placement_completed) return { error: 'Complete o teste de classificação primeiro' }
 
+  const skippedIds = opts.skippedExerciseIds ?? []
+  const skippedCount = skippedIds.length
+
   const correct = answers.filter((a) => a.isCorrect).length
   const accuracy  = answers.length > 0 ? (correct / answers.length) * 100 : 0
   const avgTimeMs = answers.length > 0 ? answers.reduce((s, a) => s + a.timeMs, 0) / answers.length : 60000
@@ -106,7 +109,7 @@ export async function saveRankedGameAction(
   // Early exit with < 2 answered questions → flat -2 PDL penalty
   const change = opts.earlyExitPenalty
     ? -2
-    : lpChangeFromScore(score) - (opts.skippedCount ?? 0)
+    : lpChangeFromScore(score) - skippedCount
 
   const current = {
     tier: (profile.elo_tier ?? 'bronze') as EloTier,
@@ -135,7 +138,7 @@ export async function saveRankedGameAction(
   const leveledUp = newLevel > (profile.level ?? 1)
   // -----------------------------------------------------------------------
 
-  // Persist each individual answer so the dashboard can show ranked stats
+  // Persist answered questions
   const answerRows = answers.map((a) => ({
     user_id:     user.id,
     exercise_id: a.exerciseId,
@@ -143,9 +146,23 @@ export async function saveRankedGameAction(
     is_correct:  a.isCorrect,
     time_ms:     a.timeMs,
     is_ranked:   true,
+    is_skipped:  false,
     answered_at: new Date().toISOString(),
   }))
-  await supabaseAny.from('user_exercise_answers').insert(answerRows)
+
+  // Persist skipped questions
+  const skippedRows = skippedIds.map((id) => ({
+    user_id:     user.id,
+    exercise_id: id,
+    answer:      '',
+    is_correct:  false,
+    time_ms:     0,
+    is_ranked:   true,
+    is_skipped:  true,
+    answered_at: new Date().toISOString(),
+  }))
+
+  await supabaseAny.from('user_exercise_answers').insert([...answerRows, ...skippedRows])
 
   await supabaseAny
     .from('user_profiles')

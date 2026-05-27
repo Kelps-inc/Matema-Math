@@ -106,19 +106,20 @@ export class SupabaseLearningRepository implements ILearningRepository {
 
   async findRankedLessonStats(userId: string): Promise<{
     easy: number; medium: number; hard: number; total: number
-    correct: number; wrong: number
+    correct: number; wrong: number; skipped: number
   }> {
     const { data, error } = await (this.supabase as any)
       .from('user_exercise_answers')
-      .select('is_correct, exercises(difficulty)')
+      .select('is_correct, is_skipped, exercises(difficulty)')
       .eq('user_id', userId)
       .eq('is_ranked', true)
 
-    if (error) return { easy: 0, medium: 0, hard: 0, total: 0, correct: 0, wrong: 0 }
+    if (error) return { easy: 0, medium: 0, hard: 0, total: 0, correct: 0, wrong: 0, skipped: 0 }
 
     const rows = (data ?? []) as any[]
     const counts = rows.reduce(
       (acc, row: any) => {
+        if (row.is_skipped) { acc.skipped++; return acc }
         const diff = row.exercises?.difficulty
         if (diff === 'easy')        acc.easy++
         else if (diff === 'medium') acc.medium++
@@ -127,9 +128,9 @@ export class SupabaseLearningRepository implements ILearningRepository {
         else                acc.wrong++
         return acc
       },
-      { easy: 0, medium: 0, hard: 0, correct: 0, wrong: 0 },
+      { easy: 0, medium: 0, hard: 0, correct: 0, wrong: 0, skipped: 0 },
     )
 
-    return { ...counts, total: rows.length }
+    return { ...counts, total: rows.length - counts.skipped }
   }
 }
