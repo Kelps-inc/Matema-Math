@@ -262,20 +262,22 @@ export function RankedPlayer({ exercises, difficulty, currentTier, currentDivisi
 
   return (
     <div className="max-w-xl mx-auto animate-fade-in">
-      {/* Header row */}
+      {/* Encerrar gameplay — centrado no topo */}
+      <div className="flex justify-center mb-3">
+        <button
+          onClick={handleExit}
+          title={answers.length < MIN_QUESTIONS_TO_SAVE ? 'Sair sem salvar' : 'Salvar e sair'}
+          className="px-6 py-2 text-sm font-bold text-matema-muted bg-white border-2 border-matema-border hover:border-red-300 hover:text-red-500 hover:bg-red-50 rounded-2xl transition-colors shadow-sm"
+        >
+          Encerrar gameplay
+        </button>
+      </div>
+
+      {/* Tier + dificuldade */}
       <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-3">
-          <button
-            onClick={handleExit}
-            className="text-xs text-matema-muted hover:text-matema-dark transition-colors flex items-center gap-1"
-            title={answers.length < MIN_QUESTIONS_TO_SAVE ? 'Sair sem salvar' : 'Salvar e sair'}
-          >
-            ✕ Sair
-          </button>
-          <span className="text-sm font-semibold text-matema-muted">
-            {currTierIcon} {currTierLabel}{currDivLabel}
-          </span>
-        </div>
+        <span className="text-sm font-semibold text-matema-muted">
+          {currTierIcon} {currTierLabel}{currDivLabel}
+        </span>
         <span className={cn('text-xs font-semibold px-2 py-0.5 rounded-full border', DIFF_COLOR[exercise.difficulty])}>
           {DIFF_LABEL[exercise.difficulty]}
         </span>
