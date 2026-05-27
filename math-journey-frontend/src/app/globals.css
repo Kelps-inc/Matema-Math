@@ -13,7 +13,7 @@
   --color-matema-muted:   #8B8178;
 
   /* Fonts */
-  --font-sans:    var(--font-nunito);
+  --font-sans:     var(--font-orbitron-var), sans-serif;
   --font-orbitron: var(--font-orbitron-var), sans-serif;
 
   /* Border radius */
@@ -51,7 +51,16 @@ body {
   min-height: 100vh;
   font-family: var(--font-sans), system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
+  font-size: 1.0625rem;   /* 17px — Orbitron renders compact, needs a nudge */
+  letter-spacing: 0.035em;
 }
+
+/* Small text needs extra breathing room with Orbitron */
+.text-xs  { letter-spacing: 0.06em; }
+.text-sm  { letter-spacing: 0.05em; }
+
+/* Headings pop more with wider tracking */
+h1, h2, h3 { letter-spacing: 0.06em; }
 
 /* Scrollbar cozy */
 ::-webkit-scrollbar {
