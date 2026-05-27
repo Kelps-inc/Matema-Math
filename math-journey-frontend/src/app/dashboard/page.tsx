@@ -176,7 +176,7 @@ export default async function DashboardPage() {
               </p>
               {profile.placementCompleted && (
                 <p className="text-sm text-matema-muted mt-0.5">
-                  Placement test completo{profile.placementCompletedAt && <span> em {fmtDate(profile.placementCompletedAt)}</span>}
+                  Placement test completo{profile.placementCompletedAt && <span> em {fmtDate(profile.placementCompletedAt)}</span>} ✅
                 </p>
               )}
             </div>
