@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
-import { createAudioContext, startAmbientMusic } from '@/presentation/lib/audio'
+import { createAudioContext, startAmbientMusic, playSfxClick } from '@/presentation/lib/audio'
 
 type MusicHandle = { stop: () => void; setVolume: (v: number) => void }
 
@@ -43,11 +43,23 @@ export function AudioManager() {
       handleRef.current?.setVolume(volume)
     }
 
+    function handleClickSfx(e: MouseEvent) {
+      const target = e.target as HTMLElement
+      if (!target.closest('button, a, [role="button"]')) return
+      if (!ctxRef.current) ctxRef.current = createAudioContext()
+      const ctx = ctxRef.current
+      if (!ctx) return
+      if (ctx.state === 'suspended') ctx.resume()
+      playSfxClick(ctx, 0.6)
+    }
+
     window.addEventListener('matema:music-toggle', handleToggle)
     window.addEventListener('matema:music-volume', handleVolume)
+    document.addEventListener('click', handleClickSfx, true)
     return () => {
       window.removeEventListener('matema:music-toggle', handleToggle)
       window.removeEventListener('matema:music-volume', handleVolume)
+      document.removeEventListener('click', handleClickSfx, true)
       stopMusic()
     }
   }, [])
