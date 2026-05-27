@@ -248,10 +248,10 @@ export function RankedPlayer({ exercises, difficulty, currentTier, currentDivisi
 
           <div className="flex gap-3">
             <button
-              onClick={() => router.push('/ranqueada')}
+              onClick={() => router.push('/dashboard')}
               className="flex-1 border-2 border-matema-border text-matema-dark font-bold py-3 rounded-2xl hover:bg-matema-warm transition-colors"
             >
-              Meu perfil
+              Sair
             </button>
             <button
               onClick={() => router.push('/ranqueada/jogar')}

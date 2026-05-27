@@ -20,7 +20,7 @@ export function GameHeader({ user }: GameHeaderProps) {
         <img src="/matema-logo.png" alt="Matema" style={{ height: '65px', width: 'auto', display: 'block' }} />
       </Link>
 
-      <div className="max-w-5xl mx-auto px-4 h-20 flex items-center justify-between gap-4">
+      <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between gap-4">
 
         {/* Espaço reservado para a logo não sobrepor o nav */}
         <div className="shrink-0 w-20" />
