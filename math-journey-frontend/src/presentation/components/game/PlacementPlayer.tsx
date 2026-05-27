@@ -180,7 +180,21 @@ export function PlacementPlayer({ questions }: PlacementPlayerProps) {
           <h2 className="text-3xl font-extrabold text-matema-dark mb-1">
             {tierLabel}{divisionLabel}
           </h2>
-          <p className="text-matema-muted mb-6 text-sm">Pontuação geral: <strong className="text-matema-dark">{result.score}/100</strong></p>
+          <p className="text-matema-muted mb-4 text-sm">Pontuação geral: <strong className="text-matema-dark">{result.score}/100</strong></p>
+
+          {/* PDL inicial */}
+          {result.tier !== 'mestre' && (
+            <div className="mb-6 max-w-xs mx-auto">
+              <div className="flex justify-between text-xs text-matema-muted mb-1.5">
+                <span className="font-semibold">0 PDL</span>
+                <span>100 PDL para avançar</span>
+              </div>
+              <div className="h-2.5 bg-matema-border rounded-full overflow-hidden">
+                <div className="h-full w-0 bg-matema-primary rounded-full" />
+              </div>
+              <p className="text-xs text-matema-muted mt-1.5">Jogue partidas ranqueadas para ganhar PDL e subir de divisão!</p>
+            </div>
+          )}
 
           <div className="grid grid-cols-2 gap-3 mb-8 text-sm">
             <div className="bg-matema-cream border border-matema-border rounded-2xl p-4">
