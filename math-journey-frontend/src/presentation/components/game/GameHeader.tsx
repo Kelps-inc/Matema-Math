@@ -12,10 +12,10 @@ export function GameHeader({ user }: GameHeaderProps) {
   return (
     <>
     <header className="bg-white/90 backdrop-blur-md border-b border-matema-border sticky top-0 z-50">
-      <div className="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between gap-4">
+      <div className="max-w-5xl mx-auto px-4 h-20 flex items-center justify-between gap-4">
         <Link href="/dashboard" className="flex items-center select-none shrink-0">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/matema-logo.png" alt="Matema" style={{ height: '48px', width: 'auto', display: 'block' }} />
+          <img src="/matema-logo.png" alt="Matema" style={{ height: '80px', width: 'auto', display: 'block' }} />
         </Link>
 
         <nav className="hidden sm:flex items-center gap-1">
