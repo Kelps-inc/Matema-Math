@@ -158,7 +158,7 @@ export default async function DashboardPage() {
             href="/dashboard/placement"
             className="shrink-0 text-xs font-semibold text-matema-primary bg-matema-primary/10 hover:bg-matema-primary/20 transition-colors px-4 py-2.5 rounded-2xl text-center leading-tight"
           >
-            Placement test<br />resultado →
+            Teste de nivelamento<br />resultado →
           </Link>
         </div>
       )}
@@ -176,7 +176,7 @@ export default async function DashboardPage() {
               </p>
               {profile.placementCompleted && (
                 <p className="text-sm text-matema-muted mt-0.5">
-                  Placement test completo{profile.placementCompletedAt && <span> em {fmtDate(profile.placementCompletedAt)}</span>} ✅
+                  Teste de nivelamento completo{profile.placementCompletedAt && <span> em {fmtDate(profile.placementCompletedAt)}</span>} ✅
                 </p>
               )}
             </div>

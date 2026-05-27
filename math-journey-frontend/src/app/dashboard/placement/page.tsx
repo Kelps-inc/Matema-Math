@@ -53,7 +53,7 @@ export default async function PlacementResultPage() {
         ← Voltar ao Progresso
       </Link>
 
-      <h1 className="text-2xl font-extrabold text-matema-dark mb-6">Resultado do Placement Test</h1>
+      <h1 className="text-2xl font-extrabold text-matema-dark mb-6">Resultado do Teste de Nivelamento</h1>
 
       {/* Summary card */}
       <div className="bg-white rounded-3xl border border-matema-border p-6 mb-6">
