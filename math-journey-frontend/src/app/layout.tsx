@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { Nunito } from 'next/font/google'
+import { Nunito, Orbitron } from 'next/font/google'
 import './globals.css'
 import 'katex/dist/katex.min.css'
 import { AudioManager } from '@/presentation/components/audio/AudioManager'
@@ -7,6 +7,13 @@ import { AudioManager } from '@/presentation/components/audio/AudioManager'
 const nunito = Nunito({
   subsets: ['latin'],
   variable: '--font-nunito',
+  display: 'swap',
+})
+
+const orbitron = Orbitron({
+  subsets: ['latin'],
+  weight: ['400', '600', '700', '800'],
+  variable: '--font-orbitron-var',
   display: 'swap',
 })
 
@@ -18,7 +25,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="pt-BR" className={nunito.variable}>
+    <html lang="pt-BR" className={`${nunito.variable} ${orbitron.variable}`}>
       <body className="min-h-screen bg-matema-cream text-matema-dark antialiased">
         {/* Aplica tema escuro antes da hidratação para evitar flash */}
         <script dangerouslySetInnerHTML={{ __html: `try{if(localStorage.getItem('matema_theme')==='dark')document.documentElement.classList.add('dark')}catch{}` }} />

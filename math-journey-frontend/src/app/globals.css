@@ -12,8 +12,9 @@
   --color-matema-dark:    #2C2418;
   --color-matema-muted:   #8B8178;
 
-  /* Font */
-  --font-sans: var(--font-nunito);
+  /* Fonts */
+  --font-sans:    var(--font-nunito);
+  --font-orbitron: var(--font-orbitron-var), sans-serif;
 
   /* Border radius */
   --radius-4xl: 2rem;

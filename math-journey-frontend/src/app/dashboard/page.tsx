@@ -168,14 +168,14 @@ export default async function DashboardPage() {
         <div className="md:col-span-2 bg-white rounded-3xl border border-matema-border p-6">
           <div className="flex items-center justify-between mb-5">
             <div>
-              <h2 className="font-bold text-matema-dark text-lg">Seu progresso</h2>
-              <p className="text-sm text-matema-muted">
+              <h2 className="font-extrabold text-matema-dark text-lg font-orbitron tracking-wide">Seu progresso</h2>
+              <p className="text-sm text-matema-muted font-orbitron tracking-tight" style={{ fontSize: '0.72rem' }}>
                 {completedLessons === totalLessons && totalLessons === 16
-                  ? <>16/16 - Tutorial Completo{tutorialCompletedAt && <span className="text-matema-muted"> em {fmtDate(tutorialCompletedAt)}</span>} ✅</>
+                  ? <>16/16 · Tutorial Completo{tutorialCompletedAt && <span className="text-matema-muted"> em {fmtDate(tutorialCompletedAt)}</span>} ✅</>
                   : `Tutorial: ${completedLessons} de ${totalLessons} lições concluídas`}
               </p>
               {profile.placementCompleted && (
-                <p className="text-sm text-matema-muted mt-0.5">
+                <p className="text-matema-muted mt-0.5 font-orbitron tracking-tight" style={{ fontSize: '0.72rem' }}>
                   Teste de nivelamento completo{profile.placementCompletedAt && <span> em {fmtDate(profile.placementCompletedAt)}</span>} ✅
                 </p>
               )}
