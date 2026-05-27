@@ -149,7 +149,7 @@ export function SettingsClient() {
         <Toggle
           icon="🎵"
           label="Música ambiente"
-          description="Trilha sonora calma enquanto você estuda"
+          description="Trilha sonora animada enquanto você estuda"
           enabled={music}
           onToggle={toggleMusic}
         />
