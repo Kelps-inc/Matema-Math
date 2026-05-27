@@ -78,9 +78,7 @@ export default async function RanqueadaJogarModePage({
       .order('answered_at', { ascending: true })
       .limit(needed * 3)
 
-    const oldestIds: string[] = [
-      ...new Set((oldestAnswered ?? []).map((a: any) => a.exercise_id as string)),
-    ].slice(0, needed)
+    const oldestIds = Array.from(new Set<string>((oldestAnswered ?? []).map((a: any) => a.exercise_id as string))).slice(0, needed)
 
     if (oldestIds.length > 0) {
       const { data: fallbackExercises } = await supabaseAny
