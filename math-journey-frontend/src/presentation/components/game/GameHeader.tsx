@@ -15,7 +15,7 @@ export function GameHeader({ user }: GameHeaderProps) {
     <header className="bg-white/90 backdrop-blur-md border-b border-matema-border sticky top-0 z-50">
       <div className="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between gap-4">
         <div className="flex items-center select-none">
-          <Image src="/logo.png" alt="Matema" width={160} height={54} className="h-12 w-auto" style={{ mixBlendMode: 'multiply' }} priority />
+          <Image src="/logo.png" alt="Matema" width={160} height={54} className="h-12 w-auto" priority />
         </div>
 
         <nav className="hidden sm:flex items-center gap-1">
