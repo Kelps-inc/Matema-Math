@@ -35,6 +35,7 @@ export class User {
     readonly eloTier: EloTier = 'bronze',
     readonly eloDivision: number = 4,
     readonly placementCompleted: boolean = false,
+    readonly eloLp: number = 0,
   ) {}
 
   xpToNextLevel(): number {

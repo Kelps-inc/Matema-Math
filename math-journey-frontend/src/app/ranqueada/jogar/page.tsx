@@ -58,6 +58,7 @@ export default async function RanqueadaJogarPage() {
         difficulty="mixed"
         currentTier={profile.eloTier as EloTier}
         currentDivision={profile.eloDivision}
+        currentLp={profile.eloLp}
       />
     </div>
   )

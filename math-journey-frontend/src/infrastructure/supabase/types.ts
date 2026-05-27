@@ -22,6 +22,7 @@ export interface Database {
           is_admin: boolean
           elo_tier: string
           elo_division: number
+          elo_lp: number
           placement_completed: boolean
         }
         Insert: Omit<Database['public']['Tables']['user_profiles']['Row'], 'created_at' | 'updated_at'>

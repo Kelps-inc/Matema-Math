@@ -116,6 +116,22 @@ export default async function DashboardPage() {
                 </span>
               )}
             </p>
+            {profile.eloTier !== 'mestre' ? (
+              <div className="mt-2 max-w-[160px]">
+                <div className="flex justify-between text-xs text-matema-muted mb-1">
+                  <span className="font-semibold">{profile.eloLp} PDL</span>
+                  <span>100</span>
+                </div>
+                <div className="h-1.5 bg-matema-border rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-matema-primary rounded-full"
+                    style={{ width: `${profile.eloLp}%` }}
+                  />
+                </div>
+              </div>
+            ) : (
+              <p className="text-xs text-matema-muted mt-1">{profile.eloLp} PDL</p>
+            )}
           </div>
           <Link
             href="/dashboard/placement"

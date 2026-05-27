@@ -23,11 +23,12 @@ interface RankedPlayerProps {
   difficulty: string
   currentTier: EloTier
   currentDivision: number
+  currentLp: number
 }
 
 type Phase = 'playing' | 'answered' | 'saving' | 'result'
 
-export function RankedPlayer({ exercises, difficulty, currentTier, currentDivision }: RankedPlayerProps) {
+export function RankedPlayer({ exercises, difficulty, currentTier, currentDivision, currentLp }: RankedPlayerProps) {
   const router = useRouter()
   const [phase, setPhase] = useState<Phase>('playing')
   const [current, setCurrent] = useState(0)
@@ -36,7 +37,8 @@ export function RankedPlayer({ exercises, difficulty, currentTier, currentDivisi
   const [elapsedMs, setElapsedMs] = useState(0)
   const [result, setResult] = useState<{
     score: number; accuracy: number; correct: number; total: number
-    divisionsAdvanced: number; newTier: EloTier; newDivision: number; advanced: boolean
+    lpChange: number; newLp: number; newTier: EloTier; newDivision: number
+    promoted: boolean; demoted: boolean
   } | null>(null)
   const [error, setError] = useState<string | null>(null)
 
@@ -83,14 +85,16 @@ export function RankedPlayer({ exercises, difficulty, currentTier, currentDivisi
       const res = await saveRankedGameAction(newAnswers)
       if (res.error) { setError(res.error); return }
       setResult({
-        score: res.score!,
-        accuracy: res.accuracy!,
-        correct: res.correct!,
-        total: res.total!,
-        divisionsAdvanced: res.divisionsAdvanced!,
-        newTier: res.newTier as EloTier,
+        score:       res.score!,
+        accuracy:    res.accuracy!,
+        correct:     res.correct!,
+        total:       res.total!,
+        lpChange:    res.lpChange!,
+        newLp:       res.newLp!,
+        newTier:     res.newTier as EloTier,
         newDivision: res.newDivision!,
-        advanced: res.advanced!,
+        promoted:    res.promoted!,
+        demoted:     res.demoted!,
       })
       setPhase('result')
     }
@@ -109,31 +113,62 @@ export function RankedPlayer({ exercises, difficulty, currentTier, currentDivisi
 
   // ── RESULT ─────────────────────────────────────────────────────────────────
   if (phase === 'result' && result) {
-    const tierIcon = ELO_TIER_ICONS[result.newTier]
+    const tierIcon  = ELO_TIER_ICONS[result.newTier]
     const tierLabel = ELO_TIER_LABELS[result.newTier]
-    const divLabel = result.newTier === 'mestre' ? '' : ` ${['', 'I', 'II', 'III', 'IV'][result.newDivision] ?? result.newDivision}`
+    const divLabel  = result.newTier === 'mestre' ? '' : ` ${['', 'I', 'II', 'III', 'IV'][result.newDivision] ?? result.newDivision}`
+    const lpSign    = result.lpChange >= 0 ? '+' : ''
+    const lpColor   = result.lpChange >= 0 ? 'text-green-600' : 'text-red-500'
 
     return (
       <div className="max-w-xl mx-auto animate-fade-in">
         <div className="bg-white rounded-3xl border border-matema-border p-8 text-center shadow-sm">
-          {result.advanced ? (
+          {result.promoted ? (
             <>
               <div className="text-4xl mb-2">🎉</div>
-              <h2 className="text-xl font-extrabold text-matema-dark mb-1">Subiu de elo!</h2>
-              <p className="text-matema-muted text-sm mb-4">
-                +{result.divisionsAdvanced} divisão{result.divisionsAdvanced > 1 ? 'ões' : ''}
-              </p>
+              <h2 className="text-xl font-extrabold text-matema-dark mb-1">Promovido!</h2>
+              <p className="text-matema-muted text-sm mb-4">Você subiu de divisão!</p>
+            </>
+          ) : result.demoted ? (
+            <>
+              <div className="text-4xl mb-2">📉</div>
+              <h2 className="text-xl font-extrabold text-matema-dark mb-1">Rebaixado</h2>
+              <p className="text-matema-muted text-sm mb-4">Você desceu de divisão.</p>
             </>
           ) : (
             <>
               <div className="text-4xl mb-2">💪</div>
               <h2 className="text-xl font-extrabold text-matema-dark mb-1">Partida concluída</h2>
-              <p className="text-matema-muted text-sm mb-4">Continue jogando para subir de elo!</p>
+              <p className="text-matema-muted text-sm mb-4">Continue jogando para subir!</p>
             </>
           )}
 
           <div className="text-6xl mb-2">{tierIcon}</div>
-          <p className="text-2xl font-extrabold text-matema-dark mb-6">{tierLabel}{divLabel}</p>
+          <p className="text-2xl font-extrabold text-matema-dark">{tierLabel}{divLabel}</p>
+
+          {/* LP display */}
+          {result.newTier !== 'mestre' ? (
+            <div className="mt-3 mb-6">
+              <div className="flex justify-between text-xs text-matema-muted mb-1.5">
+                <span className={cn('font-bold text-sm', lpColor)}>
+                  {lpSign}{result.lpChange} PDL
+                </span>
+                <span>{result.newLp} / 100 PDL</span>
+              </div>
+              <div className="h-2.5 bg-matema-border rounded-full overflow-hidden">
+                <div
+                  className={cn(
+                    'h-full rounded-full transition-all duration-700',
+                    result.promoted ? 'bg-green-500' : result.demoted ? 'bg-red-400' : 'bg-matema-primary',
+                  )}
+                  style={{ width: `${result.newLp}%` }}
+                />
+              </div>
+            </div>
+          ) : (
+            <p className={cn('text-sm font-bold mt-2 mb-6', lpColor)}>
+              {lpSign}{result.lpChange} PDL &middot; {result.newLp} PDL total
+            </p>
+          )}
 
           <div className="grid grid-cols-3 gap-3 mb-8 text-sm">
             <div className="bg-matema-cream border border-matema-border rounded-2xl p-3">
@@ -185,14 +220,14 @@ export function RankedPlayer({ exercises, difficulty, currentTier, currentDivisi
   }
   const DIFF_LABEL: Record<string, string> = { easy: 'Fácil', medium: 'Médio', hard: 'Difícil' }
 
-  const currTierIcon = ELO_TIER_ICONS[currentTier]
+  const currTierIcon  = ELO_TIER_ICONS[currentTier]
   const currTierLabel = ELO_TIER_LABELS[currentTier]
-  const currDivLabel = currentTier === 'mestre' ? '' : ` ${['', 'I', 'II', 'III', 'IV'][currentDivision] ?? currentDivision}`
+  const currDivLabel  = currentTier === 'mestre' ? '' : ` ${['', 'I', 'II', 'III', 'IV'][currentDivision] ?? currentDivision}`
 
   return (
     <div className="max-w-xl mx-auto animate-fade-in">
       {/* Header row */}
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-3">
         <span className="text-sm font-semibold text-matema-muted">
           {currTierIcon} {currTierLabel}{currDivLabel}
         </span>
@@ -200,6 +235,22 @@ export function RankedPlayer({ exercises, difficulty, currentTier, currentDivisi
           {DIFF_LABEL[exercise.difficulty]}
         </span>
       </div>
+
+      {/* LP bar */}
+      {currentTier !== 'mestre' && (
+        <div className="mb-3">
+          <div className="flex justify-between text-xs text-matema-muted mb-1">
+            <span className="font-semibold">{currentLp} PDL</span>
+            <span>100 PDL</span>
+          </div>
+          <div className="h-2 bg-matema-border rounded-full overflow-hidden">
+            <div
+              className="h-full bg-matema-primary/60 rounded-full transition-all"
+              style={{ width: `${currentLp}%` }}
+            />
+          </div>
+        </div>
+      )}
 
       {/* Progress */}
       <div className="mb-4">

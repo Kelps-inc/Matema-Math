@@ -47,7 +47,23 @@ export default async function RanqueadaPage() {
         <p className="text-sm font-medium text-matema-muted uppercase tracking-wide mb-2">Seu elo atual</p>
         <div className="text-7xl mb-3">{tierIcon}</div>
         <h2 className="text-3xl font-extrabold text-matema-dark">{tierLabel}{divisionLabel}</h2>
-        <p className="text-sm text-matema-muted mt-2">
+        {tier !== 'mestre' ? (
+          <div className="mt-4 max-w-xs mx-auto">
+            <div className="flex justify-between text-xs text-matema-muted mb-1.5">
+              <span className="font-semibold">{profile.eloLp} PDL</span>
+              <span>100 PDL</span>
+            </div>
+            <div className="h-3 bg-white/50 rounded-full overflow-hidden border border-white/40">
+              <div
+                className="h-full bg-matema-primary rounded-full transition-all duration-500"
+                style={{ width: `${profile.eloLp}%` }}
+              />
+            </div>
+          </div>
+        ) : (
+          <p className="text-sm text-matema-muted mt-2 font-semibold">{profile.eloLp} PDL</p>
+        )}
+        <p className="text-xs text-matema-muted mt-3">
           Complete partidas ranqueadas para subir de elo!
         </p>
       </div>
