@@ -57,6 +57,8 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 export function SettingsClient() {
   const [music,        setMusic]        = useState(false)
   const [musicVolume,  setMusicVolume]  = useState(50)
+  const [rain,         setRain]         = useState(false)
+  const [rainVolume,   setRainVolume]   = useState(50)
   const [sfx,          setSfx]          = useState(true)
   const [sfxVolume,    setSfxVolume]    = useState(50)
   const [dark,      setDark]      = useState(false)
@@ -69,6 +71,8 @@ export function SettingsClient() {
   useEffect(() => {
     setMusic(localStorage.getItem('matema_music_enabled') === 'true')
     setMusicVolume(parseInt(localStorage.getItem('matema_music_volume') ?? '50', 10))
+    setRain(localStorage.getItem('matema_rain_enabled') === 'true')
+    setRainVolume(parseInt(localStorage.getItem('matema_rain_volume') ?? '50', 10))
     setSfx(localStorage.getItem('matema_sfx_enabled') !== 'false')
     setSfxVolume(parseInt(localStorage.getItem('matema_sfx_volume') ?? '50', 10))
     setDark(document.documentElement.classList.contains('dark'))
@@ -85,6 +89,19 @@ export function SettingsClient() {
     setMusicVolume(v)
     localStorage.setItem('matema_music_volume', String(v))
     window.dispatchEvent(new CustomEvent('matema:music-volume', { detail: { volume: v / 100 } }))
+  }
+
+  function toggleRain() {
+    const next = !rain
+    setRain(next)
+    localStorage.setItem('matema_rain_enabled', String(next))
+    window.dispatchEvent(new CustomEvent('matema:rain-toggle', { detail: { enabled: next } }))
+  }
+
+  function handleRainVolume(v: number) {
+    setRainVolume(v)
+    localStorage.setItem('matema_rain_volume', String(v))
+    window.dispatchEvent(new CustomEvent('matema:rain-volume', { detail: { volume: v / 100 } }))
   }
 
   function toggleSfx() {
@@ -147,6 +164,28 @@ export function SettingsClient() {
               max={100}
               value={musicVolume}
               onChange={(e) => handleMusicVolume(Number(e.target.value))}
+              className="flex-1 accent-matema-primary h-1.5 rounded-full cursor-pointer"
+            />
+          </div>
+        )}
+        <Toggle
+          icon="🌧️"
+          label="Som de chuva"
+          description="Som relaxante de chuva para estudar"
+          enabled={rain}
+          onToggle={toggleRain}
+        />
+        {rain && (
+          <div className="pb-4 flex items-center gap-4">
+            <span className="text-xs text-matema-muted w-20 flex-shrink-0">
+              Volume: {rainVolume}%
+            </span>
+            <input
+              type="range"
+              min={1}
+              max={100}
+              value={rainVolume}
+              onChange={(e) => handleRainVolume(Number(e.target.value))}
               className="flex-1 accent-matema-primary h-1.5 rounded-full cursor-pointer"
             />
           </div>

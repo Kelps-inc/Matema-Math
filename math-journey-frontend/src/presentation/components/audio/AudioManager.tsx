@@ -1,23 +1,26 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
-import { createAudioContext, startAmbientMusic } from '@/presentation/lib/audio'
+import { createAudioContext, startAmbientMusic, startRainSound } from '@/presentation/lib/audio'
 
-type MusicHandle = { stop: () => void; setVolume: (v: number) => void }
+type AudioHandle = { stop: () => void; setVolume: (v: number) => void }
 
-function getVol() {
-  const v = parseFloat(localStorage.getItem('matema_music_volume') ?? '50')
+function getVol(key: string) {
+  const v = parseFloat(localStorage.getItem(key) ?? '50')
   return (isNaN(v) ? 50 : v) / 100
 }
 
 export function AudioManager() {
-  const ctxRef    = useRef<AudioContext | null>(null)
-  const handleRef = useRef<MusicHandle | null>(null)
+  const ctxRef      = useRef<AudioContext | null>(null)
+  const handleRef   = useRef<AudioHandle | null>(null)
+  const rainRef     = useRef<AudioHandle | null>(null)
   const clickBufRef = useRef<AudioBuffer | null>(null)
 
   useEffect(() => {
-    const enabled = localStorage.getItem('matema_music_enabled') === 'true'
-    if (enabled) startMusic()
+    const musicEnabled = localStorage.getItem('matema_music_enabled') === 'true'
+    const rainEnabled  = localStorage.getItem('matema_rain_enabled')  === 'true'
+    if (musicEnabled) startMusic()
+    if (rainEnabled)  startRain()
 
     function startMusic() {
       if (!ctxRef.current) ctxRef.current = createAudioContext()
@@ -25,12 +28,26 @@ export function AudioManager() {
       if (!ctx) return
       if (ctx.state === 'suspended') ctx.resume()
       handleRef.current?.stop()
-      handleRef.current = startAmbientMusic(ctx, getVol())
+      handleRef.current = startAmbientMusic(ctx, getVol('matema_music_volume'))
     }
 
     function stopMusic() {
       handleRef.current?.stop()
       handleRef.current = null
+    }
+
+    function startRain() {
+      if (!ctxRef.current) ctxRef.current = createAudioContext()
+      const ctx = ctxRef.current
+      if (!ctx) return
+      if (ctx.state === 'suspended') ctx.resume()
+      rainRef.current?.stop()
+      rainRef.current = startRainSound(ctx, getVol('matema_rain_volume'))
+    }
+
+    function stopRain() {
+      rainRef.current?.stop()
+      rainRef.current = null
     }
 
     function handleToggle(e: Event) {
@@ -42,6 +59,17 @@ export function AudioManager() {
     function handleVolume(e: Event) {
       const { volume } = (e as CustomEvent<{ volume: number }>).detail
       handleRef.current?.setVolume(volume)
+    }
+
+    function handleRainToggle(e: Event) {
+      const detail = (e as CustomEvent<{ enabled: boolean }>).detail
+      if (detail.enabled) startRain()
+      else stopRain()
+    }
+
+    function handleRainVolume(e: Event) {
+      const { volume } = (e as CustomEvent<{ volume: number }>).detail
+      rainRef.current?.setVolume(volume)
     }
 
     async function loadClickSound(ctx: AudioContext) {
@@ -77,12 +105,17 @@ export function AudioManager() {
 
     window.addEventListener('matema:music-toggle', handleToggle)
     window.addEventListener('matema:music-volume', handleVolume)
+    window.addEventListener('matema:rain-toggle',  handleRainToggle)
+    window.addEventListener('matema:rain-volume',  handleRainVolume)
     document.addEventListener('click', handleClickSfx, true)
     return () => {
       window.removeEventListener('matema:music-toggle', handleToggle)
       window.removeEventListener('matema:music-volume', handleVolume)
+      window.removeEventListener('matema:rain-toggle',  handleRainToggle)
+      window.removeEventListener('matema:rain-volume',  handleRainVolume)
       document.removeEventListener('click', handleClickSfx, true)
       stopMusic()
+      stopRain()
     }
   }, [])
 

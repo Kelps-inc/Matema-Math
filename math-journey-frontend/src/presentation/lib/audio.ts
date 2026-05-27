@@ -95,6 +95,7 @@ export function startAmbientMusic(
   // ── song definitions ─────────────────────────────────────────────────────
   type Song = { bpm: number; mel: [number, number][]; bas: [number, number][] }
 
+  // Songs in DESCENDING BPM order: 150 → 138 → 120 → 105
   const songs: Song[] = [
 
     // ── Song 1 · 150 BPM · C major · I-V-vi-IV ──────────────────────────
@@ -136,83 +137,7 @@ export function startAmbientMusic(
       ],
     },
 
-    // ── Song 2 · 120 BPM · G major · I-V-vi-IV ──────────────────────────
-    {
-      bpm: 120,
-      mel: [
-        // Frase A — G
-        [N.G4,.5],[N.B4,.5],[N.D5,.5],[N.B4,.5],
-        [N.G5,1 ],[N.Fs5,.5],[N.G5,.5],
-        // Frase B — D
-        [N.Fs5,.5],[N.D5,.5],[N.A4,.5],[N.D5,.5],
-        [N.Fs5,1 ],[N.R,1],
-        // Frase C — Em
-        [N.E5,.5],[N.G5,.5],[N.B5,.5],[N.A5,.5],
-        [N.G5,1 ],[N.E5,.5],[N.D5,.5],
-        // Frase D — C
-        [N.C5,.5],[N.B4,.5],[N.A4,.5],[N.G4,.5],
-        [N.E4,2 ],
-        // Frase E — G (corrida ascendente)
-        [N.D5,.25],[N.B4,.25],[N.G4,.25],[N.D4,.25],
-        [N.G4,.5 ],[N.B4,.5 ],
-        [N.D5,.5 ],[N.G5,.5 ],[N.B5,1],
-        // Frase F — D (descida)
-        [N.A5,.25],[N.Fs5,.25],[N.D5,.25],[N.A4,.25],
-        [N.Fs4,.5],[N.A4,.5 ],
-        [N.D5,.5 ],[N.Fs5,.5],[N.D5,1],
-        // Frase G — Em (ondulação)
-        [N.E5,.5],[N.Fs5,.5],[N.G5,.5],[N.A5,.5],
-        [N.G5,.5],[N.E5,.5 ],[N.B4,1],
-        // Frase H — C → G (cadência)
-        [N.C5,.5],[N.B4,.5],[N.A4,.5],[N.G4,.5],
-        [N.D5,.5],[N.G4,.5],[N.R,1],
-      ],
-      bas: [
-        ...[0,1].flatMap(() => [[N.G3,.5],[N.D4,.5],[N.G4,.5],[N.D4,.5]] as [number,number][]),
-        ...[0,1].flatMap(() => [[N.D3,.5],[N.A3,.5],[N.Fs4,.5],[N.A3,.5]] as [number,number][]),
-        ...[0,1].flatMap(() => [[N.E3,.5],[N.B3,.5],[N.E4,.5],[N.B3,.5]] as [number,number][]),
-        ...[0,1].flatMap(() => [[N.C3,.5],[N.G3,.5],[N.E4,.5],[N.G3,.5]] as [number,number][]),
-      ],
-    },
-
-    // ── Song 3 · 105 BPM · A minor · i-VI-III-VII ────────────────────────
-    {
-      bpm: 105,
-      mel: [
-        // Frase A — Am (ascendente, misterioso)
-        [N.E5,.5],[N.C5,.5],[N.A4,.5],[N.C5,.5],
-        [N.E5,1 ],[N.G5,.5],[N.R,.5],
-        // Frase B — F (suave)
-        [N.F5,.5],[N.A5,.5],[N.C5,.5],[N.A4,.5],
-        [N.F4,2 ],
-        // Frase C — C
-        [N.G5,.5],[N.E5,.5],[N.C5,.5],[N.E5,.5],
-        [N.G5,1 ],[N.A5,.5],[N.G5,.5],
-        // Frase D — G
-        [N.D5,.5],[N.B4,.5],[N.G4,.5],[N.D5,.5],
-        [N.G5,1 ],[N.R,1],
-        // Frase E — Am (descendente)
-        [N.A5,.5],[N.G5,.5],[N.E5,.5],[N.C5,.5],
-        [N.A4,1 ],[N.G4,.5],[N.A4,.5],
-        // Frase F — F (arpejo)
-        [N.F4,.25],[N.A4,.25],[N.C5,.25],[N.F5,.25],
-        [N.E5,.5 ],[N.C5,.5 ],[N.A4,1],[N.G4,.5],[N.R,.5],
-        // Frase G — C → Am
-        [N.C5,.5],[N.E5,.5],[N.G5,.5],[N.E5,.5],
-        [N.D5,.5],[N.C5,.5],[N.E5,1],
-        // Frase H — G → Am (resolução)
-        [N.D5,.5],[N.B4,.5],[N.G4,.5],[N.E5,.5],
-        [N.A4,2 ],
-      ],
-      bas: [
-        ...[0,1].flatMap(() => [[N.A3,.5],[N.E4,.5],[N.A4,.5],[N.E4,.5]] as [number,number][]),
-        ...[0,1].flatMap(() => [[N.F3,.5],[N.C4,.5],[N.F4,.5],[N.C4,.5]] as [number,number][]),
-        ...[0,1].flatMap(() => [[N.C3,.5],[N.G3,.5],[N.E4,.5],[N.G3,.5]] as [number,number][]),
-        ...[0,1].flatMap(() => [[N.G3,.5],[N.D4,.5],[N.G4,.5],[N.D4,.5]] as [number,number][]),
-      ],
-    },
-
-    // ── Song 4 · 138 BPM · F major · I-IV-ii-V ──────────────────────────
+    // ── Song 2 · 138 BPM · F major · I-IV-ii-V ──────────────────────────
     {
       bpm: 138,
       mel: [
@@ -248,6 +173,66 @@ export function startAmbientMusic(
         ...[0,1].flatMap(() => [[N.Bb3,.5],[N.F3,.5],[N.D4,.5],[N.F3,.5]] as [number,number][]),
         ...[0,1].flatMap(() => [[N.D3,.5],[N.A3,.5],[N.F4,.5],[N.A3,.5]] as [number,number][]),
         ...[0,1].flatMap(() => [[N.C3,.5],[N.G3,.5],[N.E4,.5],[N.G3,.5]] as [number,number][]),
+      ],
+    },
+
+    // ── Song 3 · 120 BPM · G major · I-V-vi-IV ──────────────────────────
+    {
+      bpm: 120,
+      mel: [
+        [N.G4,.5],[N.B4,.5],[N.D5,.5],[N.B4,.5],
+        [N.G5,1 ],[N.Fs5,.5],[N.G5,.5],
+        [N.Fs5,.5],[N.D5,.5],[N.A4,.5],[N.D5,.5],
+        [N.Fs5,1 ],[N.R,1],
+        [N.E5,.5],[N.G5,.5],[N.B5,.5],[N.A5,.5],
+        [N.G5,1 ],[N.E5,.5],[N.D5,.5],
+        [N.C5,.5],[N.B4,.5],[N.A4,.5],[N.G4,.5],
+        [N.E4,2 ],
+        [N.D5,.25],[N.B4,.25],[N.G4,.25],[N.D4,.25],
+        [N.G4,.5 ],[N.B4,.5 ],
+        [N.D5,.5 ],[N.G5,.5 ],[N.B5,1],
+        [N.A5,.25],[N.Fs5,.25],[N.D5,.25],[N.A4,.25],
+        [N.Fs4,.5],[N.A4,.5 ],
+        [N.D5,.5 ],[N.Fs5,.5],[N.D5,1],
+        [N.E5,.5],[N.Fs5,.5],[N.G5,.5],[N.A5,.5],
+        [N.G5,.5],[N.E5,.5 ],[N.B4,1],
+        [N.C5,.5],[N.B4,.5],[N.A4,.5],[N.G4,.5],
+        [N.D5,.5],[N.G4,.5],[N.R,1],
+      ],
+      bas: [
+        ...[0,1].flatMap(() => [[N.G3,.5],[N.D4,.5],[N.G4,.5],[N.D4,.5]] as [number,number][]),
+        ...[0,1].flatMap(() => [[N.D3,.5],[N.A3,.5],[N.Fs4,.5],[N.A3,.5]] as [number,number][]),
+        ...[0,1].flatMap(() => [[N.E3,.5],[N.B3,.5],[N.E4,.5],[N.B3,.5]] as [number,number][]),
+        ...[0,1].flatMap(() => [[N.C3,.5],[N.G3,.5],[N.E4,.5],[N.G3,.5]] as [number,number][]),
+      ],
+    },
+
+    // ── Song 4 · 105 BPM · A minor · i-VI-III-VII ────────────────────────
+    {
+      bpm: 105,
+      mel: [
+        [N.E5,.5],[N.C5,.5],[N.A4,.5],[N.C5,.5],
+        [N.E5,1 ],[N.G5,.5],[N.R,.5],
+        [N.F5,.5],[N.A5,.5],[N.C5,.5],[N.A4,.5],
+        [N.F4,2 ],
+        [N.G5,.5],[N.E5,.5],[N.C5,.5],[N.E5,.5],
+        [N.G5,1 ],[N.A5,.5],[N.G5,.5],
+        [N.D5,.5],[N.B4,.5],[N.G4,.5],[N.D5,.5],
+        [N.G5,1 ],[N.R,1],
+        [N.A5,.5],[N.G5,.5],[N.E5,.5],[N.C5,.5],
+        [N.A4,1 ],[N.G4,.5],[N.A4,.5],
+        [N.F4,.25],[N.A4,.25],[N.C5,.25],[N.F5,.25],
+        [N.E5,.5 ],[N.C5,.5 ],[N.A4,1],[N.G4,.5],[N.R,.5],
+        [N.C5,.5],[N.E5,.5],[N.G5,.5],[N.E5,.5],
+        [N.D5,.5],[N.C5,.5],[N.E5,1],
+        [N.D5,.5],[N.B4,.5],[N.G4,.5],[N.E5,.5],
+        [N.A4,2 ],
+      ],
+      bas: [
+        ...[0,1].flatMap(() => [[N.A3,.5],[N.E4,.5],[N.A4,.5],[N.E4,.5]] as [number,number][]),
+        ...[0,1].flatMap(() => [[N.F3,.5],[N.C4,.5],[N.F4,.5],[N.C4,.5]] as [number,number][]),
+        ...[0,1].flatMap(() => [[N.C3,.5],[N.G3,.5],[N.E4,.5],[N.G3,.5]] as [number,number][]),
+        ...[0,1].flatMap(() => [[N.G3,.5],[N.D4,.5],[N.G4,.5],[N.D4,.5]] as [number,number][]),
       ],
     },
   ]
@@ -314,6 +299,76 @@ export function startAmbientMusic(
     },
     setVolume: (v: number) => {
       master.gain.linearRampToValueAtTime(BASE_GAIN * v, ctx.currentTime + 0.15)
+    },
+  }
+}
+
+/**
+ * Som de chuva relaxante via Web Audio API.
+ * Combina ruído branco filtrado em três camadas: borrifo (high), pingo (mid) e trovão distante (low).
+ */
+export function startRainSound(
+  ctx: AudioContext,
+  initialVol = 1,
+): { stop: () => void; setVolume: (v: number) => void } {
+  const BASE_GAIN = 0.6
+  const master = ctx.createGain()
+  master.gain.setValueAtTime(0, ctx.currentTime)
+  master.gain.linearRampToValueAtTime(BASE_GAIN * initialVol, ctx.currentTime + 1.5)
+  master.connect(ctx.destination)
+
+  const sources: AudioBufferSourceNode[] = []
+
+  function makeNoise(seconds = 4): AudioBufferSourceNode {
+    const buf = ctx.createBuffer(1, ctx.sampleRate * seconds, ctx.sampleRate)
+    const data = buf.getChannelData(0)
+    for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1
+    const src = ctx.createBufferSource()
+    src.buffer = buf
+    src.loop = true
+    sources.push(src)
+    return src
+  }
+
+  // Camada 1 — borrifo fino (highpass ~3kHz)
+  const spray = makeNoise()
+  const hpf = ctx.createBiquadFilter()
+  hpf.type = 'highpass'
+  hpf.frequency.value = 3000
+  hpf.Q.value = 0.5
+  const sprayGain = ctx.createGain()
+  sprayGain.gain.value = 0.35
+  spray.connect(hpf); hpf.connect(sprayGain); sprayGain.connect(master)
+  spray.start()
+
+  // Camada 2 — pingo médio (bandpass ~800Hz)
+  const drop = makeNoise()
+  const bpf = ctx.createBiquadFilter()
+  bpf.type = 'bandpass'
+  bpf.frequency.value = 800
+  bpf.Q.value = 0.8
+  const dropGain = ctx.createGain()
+  dropGain.gain.value = 0.45
+  drop.connect(bpf); bpf.connect(dropGain); dropGain.connect(master)
+  drop.start()
+
+  // Camada 3 — rumble distante (lowpass ~200Hz)
+  const rumble = makeNoise()
+  const lpf = ctx.createBiquadFilter()
+  lpf.type = 'lowpass'
+  lpf.frequency.value = 200
+  const rumbleGain = ctx.createGain()
+  rumbleGain.gain.value = 0.2
+  rumble.connect(lpf); lpf.connect(rumbleGain); rumbleGain.connect(master)
+  rumble.start()
+
+  return {
+    stop: () => {
+      master.gain.linearRampToValueAtTime(0, ctx.currentTime + 1.2)
+      setTimeout(() => sources.forEach(s => { try { s.stop() } catch { /* ok */ } }), 1300)
+    },
+    setVolume: (v: number) => {
+      master.gain.linearRampToValueAtTime(BASE_GAIN * v, ctx.currentTime + 0.2)
     },
   }
 }
