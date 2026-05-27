@@ -31,7 +31,7 @@ export default function LandingPage() {
       <LandingBackground />
 
       {/* ── NAV ─────────────────────────────────────────────────────────── */}
-      <nav className="sticky top-0 z-50 border-b border-matema-border" style={{ background: 'rgba(250,248,244,0.88)', backdropFilter: 'blur(12px)' }}>
+      <nav className="sticky top-0 z-50 border-b border-matema-border" style={{ backgroundImage: 'url(/nav-texture.jpg)', backgroundSize: 'cover', backgroundPosition: 'center' }}>
         <div className="max-w-5xl mx-auto px-4 h-16 flex items-center justify-end">
           <div className="flex items-center gap-3">
             <Link href="/entrar" className="text-sm font-semibold text-matema-muted hover:text-matema-dark transition-colors px-4 py-2 rounded-xl hover:bg-matema-warm">
