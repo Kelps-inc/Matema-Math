@@ -124,7 +124,7 @@ export default function LandingPage() {
                 <div className="rounded-2xl p-4 mb-4 border" style={{ background: 'linear-gradient(135deg,#FAF8F4,#F3EDE3)', borderColor: '#E8E0D4' }}>
                   <div className="flex justify-between items-center mb-2">
                     <p className="text-xs text-matema-muted">Questão 3 de 5</p>
-                    <span className="text-xs font-semibold text-matema-primary bg-matema-primary/10 px-2 py-0.5 rounded-full">Médio</span>
+                    <span className="text-xs font-semibold text-matema-primary bg-matema-primary/10 px-2 py-0.5 rounded-full">Fácil</span>
                   </div>
                   <div className="w-full bg-matema-border rounded-full h-1.5 mb-3 overflow-hidden">
                     <div className="h-full rounded-full" style={{ width: '40%', background: 'linear-gradient(to right,#D4845A,#8B7CC4)' }} />
