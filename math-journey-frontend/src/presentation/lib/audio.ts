@@ -304,68 +304,40 @@ export function startAmbientMusic(
 }
 
 /**
- * Som de chuva relaxante via Web Audio API.
- * Combina ruído branco filtrado em três camadas: borrifo (high), pingo (mid) e trovão distante (low).
+ * Som de chuva relaxante a partir do arquivo /sounds/rain.mp3.
+ * Carrega, decodifica e toca em loop com fade-in/out suave.
  */
 export function startRainSound(
   ctx: AudioContext,
   initialVol = 1,
 ): { stop: () => void; setVolume: (v: number) => void } {
-  const BASE_GAIN = 0.09
+  const BASE_GAIN = 0.6
   const master = ctx.createGain()
   master.gain.setValueAtTime(0, ctx.currentTime)
-  master.gain.linearRampToValueAtTime(BASE_GAIN * initialVol, ctx.currentTime + 1.5)
   master.connect(ctx.destination)
 
-  const sources: AudioBufferSourceNode[] = []
+  let src: AudioBufferSourceNode | null = null
+  let stopped = false
 
-  function makeNoise(seconds = 4): AudioBufferSourceNode {
-    const buf = ctx.createBuffer(1, ctx.sampleRate * seconds, ctx.sampleRate)
-    const data = buf.getChannelData(0)
-    for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1
-    const src = ctx.createBufferSource()
-    src.buffer = buf
-    src.loop = true
-    sources.push(src)
-    return src
-  }
-
-  // Camada 1 — borrifo fino (highpass ~3kHz)
-  const spray = makeNoise()
-  const hpf = ctx.createBiquadFilter()
-  hpf.type = 'highpass'
-  hpf.frequency.value = 3000
-  hpf.Q.value = 0.5
-  const sprayGain = ctx.createGain()
-  sprayGain.gain.value = 0.35
-  spray.connect(hpf); hpf.connect(sprayGain); sprayGain.connect(master)
-  spray.start()
-
-  // Camada 2 — pingo médio (bandpass ~800Hz)
-  const drop = makeNoise()
-  const bpf = ctx.createBiquadFilter()
-  bpf.type = 'bandpass'
-  bpf.frequency.value = 800
-  bpf.Q.value = 0.8
-  const dropGain = ctx.createGain()
-  dropGain.gain.value = 0.45
-  drop.connect(bpf); bpf.connect(dropGain); dropGain.connect(master)
-  drop.start()
-
-  // Camada 3 — rumble distante (lowpass ~200Hz)
-  const rumble = makeNoise()
-  const lpf = ctx.createBiquadFilter()
-  lpf.type = 'lowpass'
-  lpf.frequency.value = 200
-  const rumbleGain = ctx.createGain()
-  rumbleGain.gain.value = 0.2
-  rumble.connect(lpf); lpf.connect(rumbleGain); rumbleGain.connect(master)
-  rumble.start()
+  fetch('/sounds/rain.mp3')
+    .then((r) => r.arrayBuffer())
+    .then((arr) => ctx.decodeAudioData(arr))
+    .then((buf) => {
+      if (stopped) return
+      src = ctx.createBufferSource()
+      src.buffer = buf
+      src.loop = true
+      src.connect(master)
+      src.start()
+      master.gain.linearRampToValueAtTime(BASE_GAIN * initialVol, ctx.currentTime + 1.5)
+    })
+    .catch(() => { /* falhou silenciosamente */ })
 
   return {
     stop: () => {
+      stopped = true
       master.gain.linearRampToValueAtTime(0, ctx.currentTime + 1.2)
-      setTimeout(() => sources.forEach(s => { try { s.stop() } catch { /* ok */ } }), 1300)
+      setTimeout(() => { try { src?.stop() } catch { /* ok */ } }, 1300)
     },
     setVolume: (v: number) => {
       master.gain.linearRampToValueAtTime(BASE_GAIN * v, ctx.currentTime + 0.2)
