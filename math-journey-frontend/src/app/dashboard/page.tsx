@@ -86,9 +86,9 @@ export default async function DashboardPage() {
           Olá, {profile.displayName.split(' ')[0]}! 👋
         </h1>
         <p className="text-matema-muted">
-          {completedLessons === 0
+          {completedLessons === 0 && rankedStats.total === 0
             ? 'Pronto para começar sua jornada matemática?'
-            : `Você já completou ${completedLessons} li${completedLessons !== 1 ? 'ções' : 'ção'}. Continue assim!`}
+            : `Você já respondeu a ${completedLessons + rankedStats.total} questões. Continue assim!`}
         </p>
       </div>
 
