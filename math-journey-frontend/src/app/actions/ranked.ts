@@ -114,6 +114,18 @@ export async function saveRankedGameAction(answers: RankedAnswer[]) {
   const demoted  = rankValue(newElo.tier, newElo.division) < rankValue(current.tier, current.division)
   const changed  = newElo.tier !== current.tier || newElo.division !== current.division || newElo.lp !== current.lp
 
+  // Persist each individual answer so the dashboard can show ranked stats
+  const answerRows = answers.map((a) => ({
+    user_id:     user.id,
+    exercise_id: a.exerciseId,
+    answer:      a.answer,
+    is_correct:  a.isCorrect,
+    time_ms:     a.timeMs,
+    is_ranked:   true,
+    answered_at: new Date().toISOString(),
+  }))
+  await supabaseAny.from('user_exercise_answers').insert(answerRows)
+
   if (changed) {
     await supabaseAny
       .from('user_profiles')
@@ -127,6 +139,7 @@ export async function saveRankedGameAction(answers: RankedAnswer[]) {
   }
 
   revalidatePath('/ranqueada')
+  revalidatePath('/dashboard')
 
   return {
     success:     true,

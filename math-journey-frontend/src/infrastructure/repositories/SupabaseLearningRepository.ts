@@ -105,63 +105,32 @@ export class SupabaseLearningRepository implements ILearningRepository {
   }
 
   async findRankedLessonStats(userId: string): Promise<{ easy: number; medium: number; hard: number; total: number }> {
-    // Get all ranked modules
-    const { data: rankedModules, error: moduleError } = await this.supabase
-      .from('modules')
-      .select('id')
+    // Join user_exercise_answers (is_ranked=true) with exercises to get difficulty counts
+    const { data, error } = await (this.supabase as any)
+      .from('user_exercise_answers')
+      .select('exercises(difficulty)')
+      .eq('user_id', userId)
       .eq('is_ranked', true)
 
-    if (moduleError) throw new Error(moduleError.message)
-    if (!rankedModules || rankedModules.length === 0) {
-      return { easy: 0, medium: 0, hard: 0, total: 0 }
-    }
+    if (error) return { easy: 0, medium: 0, hard: 0, total: 0 }
 
-    const moduleIds = rankedModules.map((m: any) => m.id)
-
-    // Get all lessons from ranked modules
-    const { data: lessons, error: lessonError } = await this.supabase
-      .from('lessons')
-      .select('id')
-      .in('module_id', moduleIds)
-
-    if (lessonError) throw new Error(lessonError.message)
-    if (!lessons || lessons.length === 0) {
-      return { easy: 0, medium: 0, hard: 0, total: 0 }
-    }
-
-    const lessonIds = lessons.map((l: any) => l.id)
-
-    // Get completed lessons
-    const completedLessonIds = await this.findCompletedLessonIds(userId)
-    const completedRankedLessonIds = completedLessonIds.filter(id => lessonIds.includes(id))
-
-    // Get exercises for completed ranked lessons and count by difficulty
-    if (completedRankedLessonIds.length === 0) {
-      return { easy: 0, medium: 0, hard: 0, total: 0 }
-    }
-
-    const { data: exercises, error: exerciseError } = await this.supabase
-      .from('exercises')
-      .select('difficulty')
-      .in('lesson_id', completedRankedLessonIds)
-
-    if (exerciseError) throw new Error(exerciseError.message)
-
-    const difficulties = ((exercises ?? []) as any[]).reduce(
-      (acc, e: any) => {
-        if (e.difficulty === 'easy') acc.easy++
-        else if (e.difficulty === 'medium') acc.medium++
-        else if (e.difficulty === 'hard') acc.hard++
+    const rows = (data ?? []) as any[]
+    const counts = rows.reduce(
+      (acc, row: any) => {
+        const diff = row.exercises?.difficulty
+        if (diff === 'easy')   acc.easy++
+        else if (diff === 'medium') acc.medium++
+        else if (diff === 'hard')   acc.hard++
         return acc
       },
-      { easy: 0, medium: 0, hard: 0 }
+      { easy: 0, medium: 0, hard: 0 },
     )
 
     return {
-      easy: difficulties.easy,
-      medium: difficulties.medium,
-      hard: difficulties.hard,
-      total: (exercises ?? []).length,
+      easy:   counts.easy,
+      medium: counts.medium,
+      hard:   counts.hard,
+      total:  rows.length,
     }
   }
 }
