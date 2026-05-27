@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
-import { createAudioContext, startAmbientMusic, playSfxClick } from '@/presentation/lib/audio'
+import { createAudioContext, startAmbientMusic } from '@/presentation/lib/audio'
 
 type MusicHandle = { stop: () => void; setVolume: (v: number) => void }
 
@@ -13,6 +13,7 @@ function getVol() {
 export function AudioManager() {
   const ctxRef    = useRef<AudioContext | null>(null)
   const handleRef = useRef<MusicHandle | null>(null)
+  const clickBufRef = useRef<AudioBuffer | null>(null)
 
   useEffect(() => {
     const enabled = localStorage.getItem('matema_music_enabled') === 'true'
@@ -43,6 +44,15 @@ export function AudioManager() {
       handleRef.current?.setVolume(volume)
     }
 
+    async function loadClickSound(ctx: AudioContext) {
+      if (clickBufRef.current) return
+      try {
+        const res = await fetch('/sounds/click.mp3')
+        const arr = await res.arrayBuffer()
+        clickBufRef.current = await ctx.decodeAudioData(arr)
+      } catch { /* sem som se falhar */ }
+    }
+
     function handleClickSfx(e: MouseEvent) {
       const target = e.target as HTMLElement
       if (!target.closest('button, a, [role="button"]')) return
@@ -50,7 +60,19 @@ export function AudioManager() {
       const ctx = ctxRef.current
       if (!ctx) return
       if (ctx.state === 'suspended') ctx.resume()
-      playSfxClick(ctx, 0.6)
+
+      if (!clickBufRef.current) {
+        loadClickSound(ctx)
+        return
+      }
+
+      const src = ctx.createBufferSource()
+      const gain = ctx.createGain()
+      src.buffer = clickBufRef.current
+      gain.gain.setValueAtTime(0.6, ctx.currentTime)
+      src.connect(gain)
+      gain.connect(ctx.destination)
+      src.start()
     }
 
     window.addEventListener('matema:music-toggle', handleToggle)
