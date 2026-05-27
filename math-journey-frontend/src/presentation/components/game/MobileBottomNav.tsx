@@ -34,8 +34,8 @@ export function MobileBottomNav() {
                     : 'border-orange-300 bg-gradient-to-b from-orange-50 to-amber-50/80 text-orange-400',
                 )}
               >
-                <span className="text-2xl leading-none">{icon}</span>
-                <span className="text-[10px] font-extrabold leading-none tracking-wide">
+                <span className="text-3xl leading-none">{icon}</span>
+                <span className="text-xs font-extrabold leading-none tracking-wide">
                   {label}
                 </span>
               </Link>
