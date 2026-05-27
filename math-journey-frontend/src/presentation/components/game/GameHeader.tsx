@@ -17,7 +17,7 @@ export function GameHeader({ user }: GameHeaderProps) {
       {/* Logo posicionada absolutamente sobre a faixa laranja */}
       <Link href="/dashboard" className="absolute left-[63px] top-1/2 -translate-y-1/2 select-none z-10">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/matema-logo.png" alt="Matema" style={{ height: '68px', width: 'auto', display: 'block' }} />
+        <img src="/matema-logo.png" alt="Matema" style={{ height: '62px', width: 'auto', display: 'block' }} />
       </Link>
 
       <div className="max-w-5xl mx-auto px-4 h-20 flex items-center justify-between gap-4">
