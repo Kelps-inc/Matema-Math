@@ -32,8 +32,7 @@ export default function LandingPage() {
 
       {/* ── NAV ─────────────────────────────────────────────────────────── */}
       <nav className="sticky top-0 z-50 border-b border-matema-border" style={{ background: 'rgba(250,248,244,0.88)', backdropFilter: 'blur(12px)' }}>
-        <div className="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
-          <Image src="/logo.png" alt="Matema" width={160} height={54} className="h-12 w-auto" priority />
+        <div className="max-w-5xl mx-auto px-4 h-16 flex items-center justify-end">
           <div className="flex items-center gap-3">
             <Link href="/entrar" className="text-sm font-semibold text-matema-muted hover:text-matema-dark transition-colors px-4 py-2 rounded-xl hover:bg-matema-warm">
               Entrar
@@ -67,7 +66,7 @@ export default function LandingPage() {
         <div className="relative max-w-5xl mx-auto px-4 pt-24 pb-20 text-center">
           {/* Logo hero */}
           <div className="flex justify-center mb-8">
-            <Image src="/logo.png" alt="Matema" width={220} height={220} className="h-36 md:h-44 w-auto drop-shadow-md" priority />
+            <Image src="/logo.png" alt="Matema" width={320} height={320} className="h-52 md:h-64 w-auto drop-shadow-md" priority />
           </div>
 
           {/* Badge */}
