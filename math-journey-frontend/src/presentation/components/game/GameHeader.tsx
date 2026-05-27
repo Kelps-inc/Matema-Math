@@ -22,11 +22,11 @@ export function GameHeader({ user }: GameHeaderProps) {
           <Link href="/modulos" className="px-4 py-2 text-sm font-medium text-matema-muted hover:text-matema-dark hover:bg-matema-warm rounded-xl transition-colors">
             Tutorial
           </Link>
-          <Link href="/ranqueada" className="px-4 py-2 text-sm font-medium text-matema-muted hover:text-matema-dark hover:bg-matema-warm rounded-xl transition-colors">
-            Ranqueada
-          </Link>
           <Link href="/loja" className="px-4 py-2 text-sm font-medium text-matema-muted hover:text-matema-dark hover:bg-matema-warm rounded-xl transition-colors">
             Loja
+          </Link>
+          <Link href="/ranqueada" className="px-4 py-2 text-sm font-bold text-orange-500 border-2 border-orange-300 bg-gradient-to-b from-orange-50 to-amber-50/70 hover:border-orange-400 hover:bg-orange-100 rounded-xl transition-colors shadow-[0_2px_8px_rgba(251,146,60,0.2)]">
+            🏆 Ranqueada
           </Link>
           <Link href="/avatar" className="px-4 py-2 text-sm font-medium text-matema-muted hover:text-matema-dark hover:bg-matema-warm rounded-xl transition-colors">
             Avatar
