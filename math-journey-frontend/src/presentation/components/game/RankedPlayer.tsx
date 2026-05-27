@@ -28,7 +28,7 @@ interface RankedPlayerProps {
 
 type Phase = 'playing' | 'answered' | 'saving' | 'result'
 
-const MIN_QUESTIONS_TO_SAVE = 3
+const MIN_ANSWERED_TO_EXIT = 2 // fewer than this triggers the -2 PDL warning
 
 export function RankedPlayer({ exercises, difficulty, currentTier, currentDivision, currentLp }: RankedPlayerProps) {
   const router = useRouter()
@@ -36,6 +36,8 @@ export function RankedPlayer({ exercises, difficulty, currentTier, currentDivisi
   const [current, setCurrent] = useState(0)
   const [selected, setSelected] = useState<string | null>(null)
   const [answers, setAnswers] = useState<RankedAnswer[]>([])
+  const [skippedCount, setSkippedCount] = useState(0)
+  const [showExitWarning, setShowExitWarning] = useState(false)
   const [elapsedMs, setElapsedMs] = useState(0)
   const [result, setResult] = useState<{
     score: number; accuracy: number; correct: number; total: number
@@ -60,6 +62,30 @@ export function RankedPlayer({ exercises, difficulty, currentTier, currentDivisi
     return () => { if (timerRef.current) clearInterval(timerRef.current) }
   }, [phase, current])
 
+  // ── shared save helper ────────────────────────────────────────────────────
+  const saveGame = useCallback(async (
+    answersToSave: RankedAnswer[],
+    skips: number,
+    earlyExitPenalty = false,
+  ) => {
+    setPhase('saving')
+    const res = await saveRankedGameAction(answersToSave, { skippedCount: skips, earlyExitPenalty })
+    if (res.error) { setError(res.error); return }
+    setResult({
+      score:       res.score!,
+      accuracy:    res.accuracy!,
+      correct:     res.correct!,
+      total:       res.total!,
+      lpChange:    res.lpChange!,
+      newLp:       res.newLp!,
+      newTier:     res.newTier as EloTier,
+      newDivision: res.newDivision!,
+      promoted:    res.promoted!,
+      demoted:     res.demoted!,
+    })
+    setPhase('result')
+  }, [])
+
   const handleSelect = useCallback((option: string) => {
     if (phase !== 'playing') return
     setSelected(option)
@@ -83,27 +109,28 @@ export function RankedPlayer({ exercises, difficulty, currentTier, currentDivisi
       setSelected(null)
       setPhase('playing')
     } else {
-      setPhase('saving')
-      const res = await saveRankedGameAction(newAnswers)
-      if (res.error) { setError(res.error); return }
-      setResult({
-        score:       res.score!,
-        accuracy:    res.accuracy!,
-        correct:     res.correct!,
-        total:       res.total!,
-        lpChange:    res.lpChange!,
-        newLp:       res.newLp!,
-        newTier:     res.newTier as EloTier,
-        newDivision: res.newDivision!,
-        promoted:    res.promoted!,
-        demoted:     res.demoted!,
-      })
-      setPhase('result')
+      await saveGame(newAnswers, skippedCount)
     }
-  }, [selected, exercise, answers, current, exercises.length])
+  }, [selected, exercise, answers, current, exercises.length, skippedCount, saveGame])
 
-  const handleExit = useCallback(async () => {
-    // Include current question if already answered
+  const handleSkip = useCallback(async () => {
+    if (phase !== 'playing') return
+    const newSkips = skippedCount + 1
+    setSkippedCount(newSkips)
+
+    if (current + 1 < exercises.length) {
+      setCurrent((c) => c + 1)
+      setSelected(null)
+      setPhase('playing')
+    } else {
+      // Skipped last question — save what we have
+      await saveGame(answers, newSkips)
+    }
+  }, [phase, current, exercises.length, skippedCount, answers, saveGame])
+
+  const handleExit = useCallback(() => {
+    const answeredCount = answers.length + (phase === 'answered' ? 1 : 0)
+    // Note: we count what's already in state; current question answered but not committed is counted
     const exitAnswers: RankedAnswer[] = phase === 'answered' && selected && exercise
       ? [...answers, {
           exerciseId: exercise.id,
@@ -113,28 +140,26 @@ export function RankedPlayer({ exercises, difficulty, currentTier, currentDivisi
         }]
       : answers
 
-    if (exitAnswers.length < MIN_QUESTIONS_TO_SAVE) {
-      router.push('/ranqueada')
+    if (exitAnswers.length < MIN_ANSWERED_TO_EXIT) {
+      setShowExitWarning(true)
       return
     }
 
-    setPhase('saving')
-    const res = await saveRankedGameAction(exitAnswers)
-    if (res.error) { setError(res.error); return }
-    setResult({
-      score:       res.score!,
-      accuracy:    res.accuracy!,
-      correct:     res.correct!,
-      total:       res.total!,
-      lpChange:    res.lpChange!,
-      newLp:       res.newLp!,
-      newTier:     res.newTier as EloTier,
-      newDivision: res.newDivision!,
-      promoted:    res.promoted!,
-      demoted:     res.demoted!,
-    })
-    setPhase('result')
-  }, [phase, selected, exercise, answers, router])
+    saveGame(exitAnswers, skippedCount)
+  }, [phase, selected, exercise, answers, skippedCount, saveGame])
+
+  const confirmEarlyExit = useCallback(() => {
+    setShowExitWarning(false)
+    const exitAnswers: RankedAnswer[] = phase === 'answered' && selected && exercise
+      ? [...answers, {
+          exerciseId: exercise.id,
+          answer: selected,
+          isCorrect: selected.trim().toLowerCase() === exercise.correct_answer.trim().toLowerCase(),
+          timeMs: Date.now() - questionStartRef.current,
+        }]
+      : answers
+    saveGame(exitAnswers, skippedCount, true)
+  }, [phase, selected, exercise, answers, skippedCount, saveGame])
 
   // ── SAVING ─────────────────────────────────────────────────────────────────
   if (phase === 'saving') {
@@ -262,19 +287,35 @@ export function RankedPlayer({ exercises, difficulty, currentTier, currentDivisi
 
   return (
     <div className="max-w-xl mx-auto animate-fade-in">
-      {/* Encerrar gameplay — centrado no topo */}
-      <div className="flex justify-center mb-3">
-        <button
-          onClick={handleExit}
-          title={answers.length < MIN_QUESTIONS_TO_SAVE ? 'Sair sem salvar' : 'Salvar e sair'}
-          className="px-6 py-2 text-sm font-bold text-matema-muted bg-white border-2 border-matema-border hover:border-red-300 hover:text-red-500 hover:bg-red-50 rounded-2xl transition-colors shadow-sm"
-        >
-          Encerrar gameplay
-        </button>
-      </div>
+      {/* Warning modal — sair cedo */}
+      {showExitWarning && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
+          <div className="bg-white rounded-3xl p-6 max-w-sm w-full shadow-xl animate-fade-in">
+            <p className="text-xl font-extrabold text-matema-dark mb-2">⚠️ Saindo cedo</p>
+            <p className="text-sm text-matema-muted mb-5 leading-relaxed">
+              Você respondeu apenas <strong>{answers.length}</strong> questão{answers.length !== 1 ? 'ão' : ''}.
+              Encerrar agora custará <strong className="text-red-500">−2 PDL</strong>.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowExitWarning(false)}
+                className="flex-1 border-2 border-matema-border py-2.5 rounded-2xl font-bold text-matema-dark hover:bg-matema-warm transition-colors text-sm"
+              >
+                Continuar
+              </button>
+              <button
+                onClick={confirmEarlyExit}
+                className="flex-1 bg-red-500 text-white py-2.5 rounded-2xl font-bold hover:bg-red-600 transition-colors text-sm"
+              >
+                Sair (−2 PDL)
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Tier + dificuldade */}
-      <div className="flex items-center justify-between mb-3">
+      <div className="flex items-center justify-between mb-1.5">
         <span className="text-sm font-semibold text-matema-muted">
           {currTierIcon} {currTierLabel}{currDivLabel}
         </span>
@@ -285,12 +326,12 @@ export function RankedPlayer({ exercises, difficulty, currentTier, currentDivisi
 
       {/* LP bar */}
       {currentTier !== 'mestre' && (
-        <div className="mb-3">
-          <div className="flex justify-between text-xs text-matema-muted mb-1">
+        <div className="mb-1.5">
+          <div className="flex justify-between text-xs text-matema-muted mb-0.5">
             <span className="font-semibold">{currentLp} PDL</span>
             <span>100 PDL</span>
           </div>
-          <div className="h-2 bg-matema-border rounded-full overflow-hidden">
+          <div className="h-1.5 bg-matema-border rounded-full overflow-hidden">
             <div
               className="h-full bg-matema-primary/60 rounded-full transition-all"
               style={{ width: `${currentLp}%` }}
@@ -300,14 +341,14 @@ export function RankedPlayer({ exercises, difficulty, currentTier, currentDivisi
       )}
 
       {/* Progress */}
-      <div className="mb-4">
-        <div className="flex justify-between text-xs text-matema-muted mb-1">
+      <div className="mb-1">
+        <div className="flex justify-between text-xs text-matema-muted mb-0.5">
           <span>Questão {current + 1} de {exercises.length}</span>
           {phase === 'playing' && (
             <span className="tabular-nums">⏱️ {(elapsedMs / 1000).toFixed(1)}s</span>
           )}
         </div>
-        <div className="h-2 bg-matema-border rounded-full overflow-hidden">
+        <div className="h-1.5 bg-matema-border rounded-full overflow-hidden">
           <div
             className="h-full bg-matema-primary rounded-full transition-all duration-500"
             style={{ width: `${progressPercent}%` }}
@@ -316,9 +357,9 @@ export function RankedPlayer({ exercises, difficulty, currentTier, currentDivisi
       </div>
 
       {/* Question card */}
-      <div className="bg-white rounded-3xl border border-matema-border p-6 shadow-sm mb-4">
+      <div className="bg-white rounded-3xl border border-matema-border p-4 shadow-sm mb-2">
         {exercise.context && (
-          <div className="bg-matema-cream rounded-2xl p-4 mb-4 border border-matema-border overflow-hidden">
+          <div className="bg-matema-cream rounded-2xl p-3 mb-3 border border-matema-border overflow-hidden">
             {exercise.context.trimStart().startsWith('<svg') ? (
               <div dangerouslySetInnerHTML={{ __html: exercise.context }} />
             ) : (
@@ -329,11 +370,11 @@ export function RankedPlayer({ exercises, difficulty, currentTier, currentDivisi
           </div>
         )}
 
-        <p className="font-semibold text-matema-dark text-base leading-relaxed mb-6">
+        <p className="font-semibold text-matema-dark text-sm leading-relaxed mb-3">
           <MathText>{exercise.question}</MathText>
         </p>
 
-        <div className="space-y-3">
+        <div className="space-y-2">
           {options.map((option, i) => {
             const isSelected = selected === option
             const isCorrect = option.trim().toLowerCase() === exercise.correct_answer.trim().toLowerCase()
@@ -353,7 +394,7 @@ export function RankedPlayer({ exercises, difficulty, currentTier, currentDivisi
                 onClick={() => handleSelect(option)}
                 disabled={phase === 'answered'}
                 className={cn(
-                  'w-full text-left px-4 py-3 rounded-2xl border-2 font-medium transition-all text-sm',
+                  'w-full text-left px-4 py-2.5 rounded-2xl border-2 font-medium transition-all text-sm',
                   optClass,
                 )}
               >
@@ -364,20 +405,43 @@ export function RankedPlayer({ exercises, difficulty, currentTier, currentDivisi
         </div>
       </div>
 
+      {/* Answered: explicação + próxima */}
       {phase === 'answered' && (
-        <div className="animate-fade-in">
-          <div className="bg-white rounded-2xl border border-matema-border p-4 mb-4 text-sm text-matema-muted leading-relaxed">
+        <div className="animate-fade-in mb-2">
+          <div className="bg-white rounded-2xl border border-matema-border p-3 mb-2 text-sm text-matema-muted leading-relaxed">
             <span className="font-semibold text-matema-dark">💡 </span>
             <MathText>{exercise.explanation}</MathText>
           </div>
           <button
             onClick={handleNext}
-            className="w-full bg-matema-primary text-white font-bold py-4 rounded-2xl text-base hover:opacity-90 transition-opacity"
+            className="w-full bg-matema-primary text-white font-bold py-3 rounded-2xl text-sm hover:opacity-90 transition-opacity"
           >
             {current + 1 < exercises.length ? 'Próxima →' : 'Ver resultado 🏆'}
           </button>
         </div>
       )}
+
+      {/* Playing: Pular questão */}
+      {phase === 'playing' && (
+        <div className="flex justify-center mb-1">
+          <button
+            onClick={handleSkip}
+            className="text-xs text-matema-muted hover:text-amber-600 px-4 py-1.5 rounded-xl hover:bg-amber-50 transition-colors"
+          >
+            ⏭ Pular questão <span className="opacity-60">(−1 PDL)</span>
+          </button>
+        </div>
+      )}
+
+      {/* Encerrar gameplay — sempre no rodapé */}
+      <div className="flex justify-center mt-1">
+        <button
+          onClick={handleExit}
+          className="text-xs text-matema-muted hover:text-red-500 px-4 py-1.5 rounded-xl hover:bg-red-50 transition-colors"
+        >
+          Encerrar gameplay
+        </button>
+      </div>
     </div>
   )
 }

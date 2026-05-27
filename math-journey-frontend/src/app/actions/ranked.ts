@@ -78,7 +78,10 @@ export interface RankedAnswer {
   timeMs: number
 }
 
-export async function saveRankedGameAction(answers: RankedAnswer[]) {
+export async function saveRankedGameAction(
+  answers: RankedAnswer[],
+  opts: { skippedCount?: number; earlyExitPenalty?: boolean } = {},
+) {
   const supabase = await createClient()
   const { data: { user }, error: authError } = await supabase.auth.getUser()
   if (authError || !user) return { error: 'Não autenticado' }
@@ -95,12 +98,15 @@ export async function saveRankedGameAction(answers: RankedAnswer[]) {
   if (!profile?.placement_completed) return { error: 'Complete o teste de classificação primeiro' }
 
   const correct = answers.filter((a) => a.isCorrect).length
-  const accuracy = (correct / answers.length) * 100
-  const avgTimeSeconds = answers.reduce((s, a) => s + a.timeMs, 0) / answers.length / 1000
-  const timeBonus = Math.max(0, Math.min(100, (1 - avgTimeSeconds / 60) * 100))
-  const score = accuracy * 0.95 + timeBonus * 0.05
+  const accuracy  = answers.length > 0 ? (correct / answers.length) * 100 : 0
+  const avgTimeMs = answers.length > 0 ? answers.reduce((s, a) => s + a.timeMs, 0) / answers.length : 60000
+  const timeBonus = Math.max(0, Math.min(100, (1 - avgTimeMs / 1000 / 60) * 100))
+  const score     = accuracy * 0.95 + timeBonus * 0.05
 
-  const change = lpChangeFromScore(score)
+  // Early exit with < 2 answered questions → flat -2 PDL penalty
+  const change = opts.earlyExitPenalty
+    ? -2
+    : lpChangeFromScore(score) - (opts.skippedCount ?? 0)
 
   const current = {
     tier: (profile.elo_tier ?? 'bronze') as EloTier,
