@@ -53,7 +53,7 @@ export default async function AvatarPage() {
   const ownedVisualItems: { id: string; name: string; category: string; icon: string }[] =
     inventoryRows
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      .filter((r: any) => r.shop_items?.category === 'avatar' || r.shop_items?.category === 'acessorio')
+      .filter((r: any) => r.shop_items?.category === 'acessorio')
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       .map((r: any) => ({
         id:       r.item_id as string,
