@@ -3,6 +3,7 @@
 import { useState, useTransition } from 'react'
 import { Avatar } from './Avatar'
 import { saveAvatarConfigAction } from '@/app/actions/avatar'
+import { setItemEquippedAction } from '@/app/actions/shop'
 import type { AvatarConfig } from './AvatarConfig'
 import {
   SKIN_TONES,
@@ -33,12 +34,21 @@ import {
 } from './AvatarConfig'
 import { cn } from '@/presentation/lib/utils'
 
+interface OwnedVisualItem {
+  id: string
+  name: string
+  category: string
+  icon: string
+}
+
 interface AvatarEditorProps {
   initialConfig: AvatarConfig
   ownedItemNames?: string[]
+  ownedVisualItems?: OwnedVisualItem[]
+  initialEquippedIds?: string[]
 }
 
-type Tab = 'aparencia' | 'tracos' | 'corpo'
+type Tab = 'aparencia' | 'tracos' | 'corpo' | 'acessorios'
 
 // ─── Picker genérico de estilo ───────────────────────────────
 
@@ -80,17 +90,39 @@ function StylePicker<T extends string>({
 
 // ─── Editor principal ────────────────────────────────────────
 
-export function AvatarEditor({ initialConfig, ownedItemNames = [] }: AvatarEditorProps) {
+export function AvatarEditor({
+  initialConfig,
+  ownedItemNames = [],
+  ownedVisualItems = [],
+  initialEquippedIds = [],
+}: AvatarEditorProps) {
   const [config, setConfig] = useState<AvatarConfig>(initialConfig)
   const [tab, setTab] = useState<Tab>('aparencia')
   const [isPending, startTransition] = useTransition()
   const [saved, setSaved] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
+  const [equippedIds, setEquippedIds] = useState<Set<string>>(new Set(initialEquippedIds))
+  const [togglingId, setTogglingId] = useState<string | null>(null)
 
   function set<K extends keyof AvatarConfig>(key: K, value: AvatarConfig[K]) {
     setConfig((prev) => ({ ...prev, [key]: value }))
     setSaved(false)
     setSaveError(null)
+  }
+
+  function toggleEquip(item: OwnedVisualItem) {
+    const next = !equippedIds.has(item.id)
+    setTogglingId(item.id)
+    startTransition(async () => {
+      await setItemEquippedAction(item.id, next)
+      setEquippedIds((prev) => {
+        const s = new Set(prev)
+        if (next) s.add(item.id)
+        else s.delete(item.id)
+        return s
+      })
+      setTogglingId(null)
+    })
   }
 
   function handleSave() {
@@ -104,10 +136,16 @@ export function AvatarEditor({ initialConfig, ownedItemNames = [] }: AvatarEdito
   }
 
   const tabs: { id: Tab; label: string; icon: string }[] = [
-    { id: 'aparencia', label: 'Aparência', icon: '🎨' },
-    { id: 'tracos',    label: 'Traços',    icon: '✏️' },
-    { id: 'corpo',     label: 'Corpo',     icon: '💪' },
+    { id: 'aparencia',  label: 'Aparência',  icon: '🎨' },
+    { id: 'tracos',     label: 'Traços',     icon: '✏️' },
+    { id: 'corpo',      label: 'Corpo',      icon: '💪' },
+    { id: 'acessorios', label: 'Acessórios', icon: '✨' },
   ]
+
+  // Nomes equipados dinamicamente para a prévia do avatar
+  const equippedNames = ownedVisualItems
+    .filter((i) => equippedIds.has(i.id))
+    .map((i) => i.name)
 
   return (
     <div className="max-w-3xl mx-auto">
@@ -116,10 +154,10 @@ export function AvatarEditor({ initialConfig, ownedItemNames = [] }: AvatarEdito
         {/* Prévia do avatar */}
         <div className="flex-shrink-0 flex flex-col items-center bg-white rounded-3xl border border-matema-border p-6 md:w-52">
           <p className="text-xs font-semibold text-matema-muted mb-4 uppercase tracking-wide">Prévia</p>
-          <Avatar config={config} ownedItemNames={ownedItemNames} size={140} />
-          {ownedItemNames.length > 0 && (
+          <Avatar config={config} ownedItemNames={equippedNames.length > 0 ? equippedNames : ownedItemNames} size={140} />
+          {equippedNames.length > 0 && (
             <p className="text-xs text-matema-muted mt-3 text-center">
-              {ownedItemNames.length} item{ownedItemNames.length !== 1 ? 'ns' : ''} equipado{ownedItemNames.length !== 1 ? 's' : ''}
+              {equippedNames.length} item{equippedNames.length !== 1 ? 'ns' : ''} equipado{equippedNames.length !== 1 ? 's' : ''}
             </p>
           )}
         </div>
@@ -303,6 +341,50 @@ export function AvatarEditor({ initialConfig, ownedItemNames = [] }: AvatarEdito
                   value={config.heightType}
                   onChange={(v) => set('heightType', v)}
                 />
+              </>
+            )}
+
+            {/* ── Acessórios ── */}
+            {tab === 'acessorios' && (
+              <>
+                {ownedVisualItems.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-10 text-center gap-3">
+                    <span className="text-5xl">🛍️</span>
+                    <p className="font-bold text-matema-dark">Nenhum item ainda</p>
+                    <p className="text-sm text-matema-muted">
+                      Compre acessórios e avatares na <a href="/loja" className="text-matema-primary underline">Loja</a> com suas moedas!
+                    </p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-2 gap-3">
+                    {ownedVisualItems.map((item) => {
+                      const equipped = equippedIds.has(item.id)
+                      const loading  = togglingId === item.id
+                      return (
+                        <button
+                          key={item.id}
+                          onClick={() => toggleEquip(item)}
+                          disabled={loading}
+                          className={cn(
+                            'flex items-center gap-3 p-3 rounded-2xl border-2 text-left transition-all',
+                            equipped
+                              ? 'border-matema-primary bg-matema-primary/5 text-matema-primary'
+                              : 'border-matema-border bg-matema-warm text-matema-dark hover:border-matema-dark',
+                            loading && 'opacity-60',
+                          )}
+                        >
+                          <span className="text-2xl">{item.icon}</span>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-semibold truncate">{item.name}</p>
+                            <p className="text-xs mt-0.5 font-medium">
+                              {equipped ? '✓ Equipado' : 'Equipar'}
+                            </p>
+                          </div>
+                        </button>
+                      )
+                    })}
+                  </div>
+                )}
               </>
             )}
           </div>

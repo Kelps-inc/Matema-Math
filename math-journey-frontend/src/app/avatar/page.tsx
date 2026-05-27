@@ -21,7 +21,7 @@ export default async function AvatarPage() {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (supabase as any)
       .from('user_inventory')
-      .select('shop_items(name)')
+      .select('item_id, is_equipped, shop_items(name, category, icon)')
       .eq('user_id', user.id),
   ])
 
@@ -43,10 +43,30 @@ export default async function AvatarPage() {
       }
     : DEFAULT_AVATAR_CONFIG
 
-  const ownedItemNames: string[] = (inventoryResult.data ?? [])
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    .map((r: any) => r.shop_items?.name ?? '')
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const inventoryRows: any[] = inventoryResult.data ?? []
+
+  const ownedItemNames: string[] = inventoryRows
+    .map((r) => r.shop_items?.name ?? '')
     .filter(Boolean)
+
+  const ownedVisualItems: { id: string; name: string; category: string; icon: string }[] =
+    inventoryRows
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .filter((r: any) => r.shop_items?.category === 'avatar' || r.shop_items?.category === 'acessorio')
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .map((r: any) => ({
+        id:       r.item_id as string,
+        name:     r.shop_items?.name     ?? '',
+        category: r.shop_items?.category ?? '',
+        icon:     r.shop_items?.icon     ?? '✨',
+      }))
+
+  const equippedItemIds: string[] = inventoryRows
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    .filter((r: any) => r.is_equipped !== false)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    .map((r: any) => r.item_id as string)
 
   return (
     <div className="animate-fade-in">
@@ -55,7 +75,12 @@ export default async function AvatarPage() {
         <p className="text-sm text-matema-muted">Personalize seu personagem</p>
       </div>
 
-      <AvatarEditor initialConfig={avatarConfig} ownedItemNames={ownedItemNames} />
+      <AvatarEditor
+        initialConfig={avatarConfig}
+        ownedItemNames={ownedItemNames}
+        ownedVisualItems={ownedVisualItems}
+        initialEquippedIds={equippedItemIds}
+      />
     </div>
   )
 }
