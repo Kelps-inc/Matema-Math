@@ -15,9 +15,10 @@ export default async function DashboardPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/entrar')
 
-  const [profile, modules, inventoryResult, avatarResult] = await Promise.all([
+  const learningRepo = new SupabaseLearningRepository(supabase)
+  const [profile, modules, inventoryResult, avatarResult, rankedStats] = await Promise.all([
     new SupabaseUserRepository(supabase).findById(user.id),
-    new GetModulesUseCase(new SupabaseLearningRepository(supabase)).execute(user.id),
+    new GetModulesUseCase(learningRepo).execute(user.id),
     (supabase as any)
       .from('user_inventory')
       .select('is_equipped, shop_items(name)')
@@ -27,6 +28,7 @@ export default async function DashboardPage() {
       .select('*')
       .eq('user_id', user.id)
       .single(),
+    learningRepo.findRankedLessonStats(user.id),
   ])
 
   const ownedItemNames: string[] = (inventoryResult.data ?? [])
@@ -125,12 +127,16 @@ export default async function DashboardPage() {
       )}
 
       <div className="grid md:grid-cols-3 gap-5 mb-8">
-        {/* Card de progresso */}
+        {/* Card de progresso - Tutorial */}
         <div className="md:col-span-2 bg-white rounded-3xl border border-matema-border p-6">
           <div className="flex items-center justify-between mb-5">
             <div>
               <h2 className="font-bold text-matema-dark text-lg">Seu progresso</h2>
-              <p className="text-sm text-matema-muted">{completedLessons} de {totalLessons} lições concluídas</p>
+              <p className="text-sm text-matema-muted">
+                {completedLessons === totalLessons && totalLessons === 16
+                  ? '16/16 - Tutorial Completo ✅'
+                  : `Tutorial: ${completedLessons} de ${totalLessons} lições concluídas`}
+              </p>
             </div>
             <div className="w-14 h-14 bg-matema-primary/10 rounded-2xl flex items-center justify-center">
               <span className="text-2xl font-extrabold text-matema-primary">{profile.level}</span>
@@ -182,6 +188,46 @@ export default async function DashboardPage() {
               </div>
             </div>
           )}
+        </div>
+      </div>
+
+      {/* Lições Ranqueadas */}
+      <div className="bg-white rounded-3xl border border-matema-border p-6">
+        <h2 className="font-bold text-matema-dark text-lg mb-4">Lições Ranqueadas</h2>
+        <div className="flex items-center justify-between">
+          <div className="flex flex-wrap gap-6">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center">
+                <span className="text-xl">✓</span>
+              </div>
+              <div>
+                <p className="text-sm text-matema-muted">Fáceis</p>
+                <p className="text-xl font-extrabold text-matema-dark">{rankedStats.easy}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-yellow-100 rounded-xl flex items-center justify-center">
+                <span className="text-xl">⚠</span>
+              </div>
+              <div>
+                <p className="text-sm text-matema-muted">Médias</p>
+                <p className="text-xl font-extrabold text-matema-dark">{rankedStats.medium}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center">
+                <span className="text-xl">★</span>
+              </div>
+              <div>
+                <p className="text-sm text-matema-muted">Difíceis</p>
+                <p className="text-xl font-extrabold text-matema-dark">{rankedStats.hard}</p>
+              </div>
+            </div>
+          </div>
+          <div className="text-right">
+            <p className="text-sm text-matema-muted mb-1">Total</p>
+            <p className="text-2xl font-extrabold text-matema-primary">{rankedStats.total}</p>
+          </div>
         </div>
       </div>
 
