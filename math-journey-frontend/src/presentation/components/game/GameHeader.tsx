@@ -11,16 +11,19 @@ export function GameHeader({ user }: GameHeaderProps) {
   return (
     <>
     <header
-      className="border-b border-white/10 sticky top-0 z-50"
+      className="border-b border-white/10 sticky top-0 z-50 relative"
       style={{ backgroundImage: 'url(/header-bg.png)', backgroundSize: 'cover', backgroundPosition: 'left center' }}
     >
+      {/* Logo posicionada absolutamente sobre a faixa laranja */}
+      <Link href="/dashboard" className="absolute left-3 top-1/2 -translate-y-1/2 select-none z-10">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/matema-logo.png" alt="Matema" style={{ height: '80px', width: 'auto', display: 'block' }} />
+      </Link>
+
       <div className="max-w-5xl mx-auto px-4 h-20 flex items-center justify-between gap-4">
 
-        {/* Logo */}
-        <Link href="/dashboard" className="flex items-center select-none shrink-0">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/matema-logo.png" alt="Matema" style={{ height: '80px', width: 'auto', display: 'block' }} />
-        </Link>
+        {/* Espaço reservado para a logo não sobrepor o nav */}
+        <div className="shrink-0 w-20" />
 
         {/* Nav */}
         <nav className="hidden sm:flex items-center gap-1">
