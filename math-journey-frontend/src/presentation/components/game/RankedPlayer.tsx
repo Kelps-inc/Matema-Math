@@ -437,7 +437,7 @@ export function RankedPlayer({ exercises, difficulty, currentTier, currentDivisi
       <div className="flex justify-center mt-1">
         <button
           onClick={handleExit}
-          className="text-xs text-matema-muted hover:text-red-500 px-4 py-1.5 rounded-xl hover:bg-red-50 transition-colors"
+          className="text-sm font-semibold text-matema-muted hover:text-red-500 px-5 py-2 rounded-xl border border-matema-border hover:border-red-300 hover:bg-red-50 transition-colors"
         >
           Encerrar gameplay
         </button>
