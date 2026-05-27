@@ -182,40 +182,40 @@ export function RankedPlayer({ exercises, difficulty, currentTier, currentDivisi
 
     return (
       <div className="max-w-xl mx-auto animate-fade-in">
-        <div className="bg-white rounded-3xl border border-matema-border p-8 text-center shadow-sm">
+        <div className="bg-white rounded-3xl border border-matema-border p-5 text-center shadow-sm">
           {result.promoted ? (
             <>
-              <div className="text-4xl mb-2">🎉</div>
-              <h2 className="text-xl font-extrabold text-matema-dark mb-1">Promovido!</h2>
-              <p className="text-matema-muted text-sm mb-4">Você subiu de divisão!</p>
+              <div className="text-3xl mb-1">🎉</div>
+              <h2 className="text-lg font-extrabold text-matema-dark mb-0.5">Promovido!</h2>
+              <p className="text-matema-muted text-xs mb-2">Você subiu de divisão!</p>
             </>
           ) : result.demoted ? (
             <>
-              <div className="text-4xl mb-2">📉</div>
-              <h2 className="text-xl font-extrabold text-matema-dark mb-1">Rebaixado</h2>
-              <p className="text-matema-muted text-sm mb-4">Você desceu de divisão.</p>
+              <div className="text-3xl mb-1">📉</div>
+              <h2 className="text-lg font-extrabold text-matema-dark mb-0.5">Rebaixado</h2>
+              <p className="text-matema-muted text-xs mb-2">Você desceu de divisão.</p>
             </>
           ) : (
             <>
-              <div className="text-4xl mb-2">💪</div>
-              <h2 className="text-xl font-extrabold text-matema-dark mb-1">Partida concluída</h2>
-              <p className="text-matema-muted text-sm mb-4">Continue jogando para subir!</p>
+              <div className="text-3xl mb-1">💪</div>
+              <h2 className="text-lg font-extrabold text-matema-dark mb-0.5">Partida concluída</h2>
+              <p className="text-matema-muted text-xs mb-2">Continue jogando para subir!</p>
             </>
           )}
 
-          <div className="text-6xl mb-2">{tierIcon}</div>
-          <p className="text-2xl font-extrabold text-matema-dark">{tierLabel}{divLabel}</p>
+          <div className="text-5xl mb-1">{tierIcon}</div>
+          <p className="text-xl font-extrabold text-matema-dark">{tierLabel}{divLabel}</p>
 
           {/* LP display */}
           {result.newTier !== 'mestre' ? (
-            <div className="mt-3 mb-6">
-              <div className="flex justify-between text-xs text-matema-muted mb-1.5">
+            <div className="mt-2 mb-4">
+              <div className="flex justify-between text-xs text-matema-muted mb-1">
                 <span className={cn('font-bold text-sm', lpColor)}>
                   {lpSign}{result.lpChange} PDL
                 </span>
                 <span>{result.newLp} / 100 PDL</span>
               </div>
-              <div className="h-2.5 bg-matema-border rounded-full overflow-hidden">
+              <div className="h-2 bg-matema-border rounded-full overflow-hidden">
                 <div
                   className={cn(
                     'h-full rounded-full transition-all duration-700',
@@ -226,22 +226,22 @@ export function RankedPlayer({ exercises, difficulty, currentTier, currentDivisi
               </div>
             </div>
           ) : (
-            <p className={cn('text-sm font-bold mt-2 mb-6', lpColor)}>
+            <p className={cn('text-sm font-bold mt-1 mb-4', lpColor)}>
               {lpSign}{result.lpChange} PDL &middot; {result.newLp} PDL total
             </p>
           )}
 
-          <div className="grid grid-cols-3 gap-3 mb-8 text-sm">
-            <div className="bg-matema-cream border border-matema-border rounded-2xl p-3">
-              <div className="text-xl font-extrabold text-matema-dark">{result.correct}/{result.total}</div>
+          <div className="grid grid-cols-3 gap-2 mb-4 text-sm">
+            <div className="bg-matema-cream border border-matema-border rounded-2xl p-2.5">
+              <div className="text-lg font-extrabold text-matema-dark">{result.correct}/{result.total}</div>
               <div className="text-matema-muted text-xs">Acertos</div>
             </div>
-            <div className="bg-matema-cream border border-matema-border rounded-2xl p-3">
-              <div className="text-xl font-extrabold text-matema-dark">{result.accuracy}%</div>
+            <div className="bg-matema-cream border border-matema-border rounded-2xl p-2.5">
+              <div className="text-lg font-extrabold text-matema-dark">{result.accuracy}%</div>
               <div className="text-matema-muted text-xs">Precisão</div>
             </div>
-            <div className="bg-matema-cream border border-matema-border rounded-2xl p-3">
-              <div className="text-xl font-extrabold text-matema-dark">{result.score}</div>
+            <div className="bg-matema-cream border border-matema-border rounded-2xl p-2.5">
+              <div className="text-lg font-extrabold text-matema-dark">{result.score}</div>
               <div className="text-matema-muted text-xs">Pontuação</div>
             </div>
           </div>
