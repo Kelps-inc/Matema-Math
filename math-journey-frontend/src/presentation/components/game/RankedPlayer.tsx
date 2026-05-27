@@ -28,6 +28,8 @@ interface RankedPlayerProps {
 
 type Phase = 'playing' | 'answered' | 'saving' | 'result'
 
+const MIN_QUESTIONS_TO_SAVE = 3
+
 export function RankedPlayer({ exercises, difficulty, currentTier, currentDivision, currentLp }: RankedPlayerProps) {
   const router = useRouter()
   const [phase, setPhase] = useState<Phase>('playing')
@@ -99,6 +101,40 @@ export function RankedPlayer({ exercises, difficulty, currentTier, currentDivisi
       setPhase('result')
     }
   }, [selected, exercise, answers, current, exercises.length])
+
+  const handleExit = useCallback(async () => {
+    // Include current question if already answered
+    const exitAnswers: RankedAnswer[] = phase === 'answered' && selected && exercise
+      ? [...answers, {
+          exerciseId: exercise.id,
+          answer: selected,
+          isCorrect: selected.trim().toLowerCase() === exercise.correct_answer.trim().toLowerCase(),
+          timeMs: Date.now() - questionStartRef.current,
+        }]
+      : answers
+
+    if (exitAnswers.length < MIN_QUESTIONS_TO_SAVE) {
+      router.push('/ranqueada')
+      return
+    }
+
+    setPhase('saving')
+    const res = await saveRankedGameAction(exitAnswers)
+    if (res.error) { setError(res.error); return }
+    setResult({
+      score:       res.score!,
+      accuracy:    res.accuracy!,
+      correct:     res.correct!,
+      total:       res.total!,
+      lpChange:    res.lpChange!,
+      newLp:       res.newLp!,
+      newTier:     res.newTier as EloTier,
+      newDivision: res.newDivision!,
+      promoted:    res.promoted!,
+      demoted:     res.demoted!,
+    })
+    setPhase('result')
+  }, [phase, selected, exercise, answers, router])
 
   // ── SAVING ─────────────────────────────────────────────────────────────────
   if (phase === 'saving') {
@@ -228,9 +264,18 @@ export function RankedPlayer({ exercises, difficulty, currentTier, currentDivisi
     <div className="max-w-xl mx-auto animate-fade-in">
       {/* Header row */}
       <div className="flex items-center justify-between mb-3">
-        <span className="text-sm font-semibold text-matema-muted">
-          {currTierIcon} {currTierLabel}{currDivLabel}
-        </span>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={handleExit}
+            className="text-xs text-matema-muted hover:text-matema-dark transition-colors flex items-center gap-1"
+            title={answers.length < MIN_QUESTIONS_TO_SAVE ? 'Sair sem salvar' : 'Salvar e sair'}
+          >
+            ✕ Sair
+          </button>
+          <span className="text-sm font-semibold text-matema-muted">
+            {currTierIcon} {currTierLabel}{currDivLabel}
+          </span>
+        </div>
         <span className={cn('text-xs font-semibold px-2 py-0.5 rounded-full border', DIFF_COLOR[exercise.difficulty])}>
           {DIFF_LABEL[exercise.difficulty]}
         </span>
