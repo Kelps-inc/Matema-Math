@@ -1,14 +1,10 @@
 import { createClient } from '@/infrastructure/supabase/server'
 import { SupabaseUserRepository } from '@/infrastructure/repositories/SupabaseUserRepository'
 import { redirect } from 'next/navigation'
-import { RankedPlayer } from '@/presentation/components/game/RankedPlayer'
-import type { EloTier } from '@/domain/user/entities/User'
+import Link from 'next/link'
+import { ELO_TIER_ICONS, ELO_TIER_LABELS, type EloTier } from '@/domain/user/entities/User'
 
-const RANKED_LESSON_SLUGS = ['ranqueada-facil', 'ranqueada-medio', 'ranqueada-dificil']
-const QUESTIONS_PER_GAME = 10
-const COOLDOWN_DAYS = 20
-
-export default async function RanqueadaJogarPage() {
+export default async function RanqueadaModoPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/entrar')
@@ -18,93 +14,104 @@ export default async function RanqueadaJogarPage() {
   if (!profile) redirect('/entrar')
   if (!profile.placementCompleted) redirect('/ranqueada/placement')
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const supabaseAny = supabase as any
-
-  // Fetch all ranked lessons
-  const { data: lessons } = await supabaseAny
-    .from('lessons')
-    .select('id')
-    .in('slug', RANKED_LESSON_SLUGS)
-
-  if (!lessons || lessons.length === 0) redirect('/ranqueada')
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const lessonIds = (lessons as any[]).map((l: any) => l.id)
-
-  // Find exercise IDs the user answered in the last COOLDOWN_DAYS days
-  const cooldownSince = new Date(Date.now() - COOLDOWN_DAYS * 24 * 60 * 60 * 1000).toISOString()
-  const { data: recentAnswers } = await supabaseAny
-    .from('user_exercise_answers')
-    .select('exercise_id')
-    .eq('user_id', user.id)
-    .eq('is_ranked', true)
-    .gte('answered_at', cooldownSince)
-
-  const recentIds: string[] = [
-    ...new Set((recentAnswers ?? []).map((a: any) => a.exercise_id as string)),
-  ]
-
-  // Fetch eligible (fresh) exercises, excluding recently answered ones
-  const baseQuery = supabaseAny
-    .from('exercises')
-    .select('id, question, context, type, options, correct_answer, explanation, difficulty')
-    .in('lesson_id', lessonIds)
-
-  const freshQuery = recentIds.length > 0
-    ? baseQuery.not('id', 'in', `(${recentIds.map((id) => `"${id}"`).join(',')})`)
-    : baseQuery
-
-  const { data: freshExercises } = await freshQuery
-
-  // Fallback: if not enough fresh questions, pad with the least-recently answered ones
-  let allExercises = freshExercises ?? []
-  if (allExercises.length < QUESTIONS_PER_GAME && recentIds.length > 0) {
-    const needed = QUESTIONS_PER_GAME - allExercises.length
-    const { data: oldestAnswered } = await supabaseAny
-      .from('user_exercise_answers')
-      .select('exercise_id')
-      .eq('user_id', user.id)
-      .eq('is_ranked', true)
-      .order('answered_at', { ascending: true })
-      .limit(needed * 3) // fetch extra to deduplicate
-
-    const oldestIds: string[] = [
-      ...new Set((oldestAnswered ?? []).map((a: any) => a.exercise_id as string)),
-    ].slice(0, needed)
-
-    if (oldestIds.length > 0) {
-      const { data: fallbackExercises } = await supabaseAny
-        .from('exercises')
-        .select('id, question, context, type, options, correct_answer, explanation, difficulty')
-        .in('id', oldestIds)
-      allExercises = [...allExercises, ...(fallbackExercises ?? [])]
-    }
-  }
-
-  function pickRandom<T>(arr: T[], n: number): T[] {
-    return [...(arr ?? [])].sort(() => Math.random() - 0.5).slice(0, n)
-  }
-
-  const selected = pickRandom(allExercises ?? [], QUESTIONS_PER_GAME)
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const exercises = selected.map((e: any) => ({
-    ...e,
-    options: Array.isArray(e.options) ? e.options : null,
-  }))
-
-  if (exercises.length === 0) redirect('/ranqueada')
+  const tier      = profile.eloTier as EloTier
+  const tierIcon  = ELO_TIER_ICONS[tier]
+  const tierLabel = ELO_TIER_LABELS[tier]
+  const divLabel  = tier === 'mestre' ? '' : ` ${['','I','II','III','IV'][profile.eloDivision] ?? profile.eloDivision}`
 
   return (
-    <div className="animate-fade-in">
-      <RankedPlayer
-        exercises={exercises}
-        difficulty="mixed"
-        currentTier={profile.eloTier as EloTier}
-        currentDivision={profile.eloDivision}
-        currentLp={profile.eloLp}
-      />
+    <div className="max-w-2xl mx-auto animate-fade-in">
+
+      {/* Elo atual — contexto rápido */}
+      <div className="flex items-center gap-3 mb-8">
+        <Link href="/ranqueada" className="text-sm text-matema-muted hover:text-matema-dark transition-colors">
+          ← Ranqueada
+        </Link>
+        <span className="text-matema-border">|</span>
+        <span className="text-sm font-semibold text-matema-dark">
+          {tierIcon} {tierLabel}{divLabel} · {profile.eloLp} PDL
+        </span>
+      </div>
+
+      <h1 className="text-2xl font-extrabold text-matema-dark mb-2">Escolha o modo</h1>
+      <p className="text-matema-muted text-sm mb-8">
+        Cada modo tem seu próprio estilo de questão. O Elo é compartilhado entre todos.
+      </p>
+
+      <div className="grid sm:grid-cols-2 gap-5">
+
+        {/* ── Modo Questões Objetivas ── */}
+        <div className="bg-white rounded-3xl border-2 border-matema-primary/30 p-6 flex flex-col gap-4 shadow-sm hover:border-matema-primary/60 transition-colors">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 bg-matema-primary/10 rounded-2xl flex items-center justify-center text-2xl">
+              ⚡
+            </div>
+            <div>
+              <h2 className="font-extrabold text-matema-dark text-base leading-tight">Questões Objetivas</h2>
+              <p className="text-xs text-matema-muted">Modo rápido</p>
+            </div>
+          </div>
+
+          <p className="text-sm text-matema-muted leading-relaxed">
+            10 questões diretas, sem enrolação. Ideal para treinar cálculo, conceitos e fórmulas no menor tempo possível.
+          </p>
+
+          <div className="grid grid-cols-2 gap-2 text-xs">
+            {[
+              ['📝', '10 questões'],
+              ['⏱️', '~5 minutos'],
+              ['🎯', 'Direto ao ponto'],
+              ['🏆', 'Conta pro Elo'],
+            ].map(([icon, label]) => (
+              <div key={label} className="flex items-center gap-1.5 text-matema-muted">
+                <span>{icon}</span><span>{label}</span>
+              </div>
+            ))}
+          </div>
+
+          <Link
+            href="/ranqueada/jogar/objetivas"
+            className="mt-auto w-full text-center bg-matema-primary text-white font-bold py-3 rounded-2xl hover:opacity-90 active:scale-[0.98] transition-all"
+          >
+            Jogar agora →
+          </Link>
+        </div>
+
+        {/* ── Modo Estilo ENEM ── */}
+        <div className="bg-white rounded-3xl border-2 border-matema-border p-6 flex flex-col gap-4 opacity-70">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 bg-matema-accent/10 rounded-2xl flex items-center justify-center text-2xl">
+              📄
+            </div>
+            <div>
+              <h2 className="font-extrabold text-matema-dark text-base leading-tight">Estilo ENEM</h2>
+              <p className="text-xs text-matema-muted">Em breve</p>
+            </div>
+          </div>
+
+          <p className="text-sm text-matema-muted leading-relaxed">
+            Questões com textões, contexto do mundo real, gráficos e situações-problema — exatamente como caem no ENEM.
+          </p>
+
+          <div className="grid grid-cols-2 gap-2 text-xs">
+            {[
+              ['📰', '5–6 questões longas'],
+              ['⏱️', '~15 minutos'],
+              ['📊', 'Contexto rico'],
+              ['🏆', 'Conta pro Elo'],
+            ].map(([icon, label]) => (
+              <div key={label} className="flex items-center gap-1.5 text-matema-muted">
+                <span>{icon}</span><span>{label}</span>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-auto w-full text-center bg-matema-border text-matema-muted font-bold py-3 rounded-2xl cursor-not-allowed text-sm">
+            Em breve...
+          </div>
+        </div>
+
+      </div>
     </div>
   )
 }

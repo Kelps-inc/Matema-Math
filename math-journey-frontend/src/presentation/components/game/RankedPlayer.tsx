@@ -229,7 +229,7 @@ export function RankedPlayer({ exercises, difficulty, currentTier, currentDivisi
               Meu perfil
             </button>
             <button
-              onClick={() => router.push(`/ranqueada/jogar?difficulty=${difficulty}`)}
+              onClick={() => router.push('/ranqueada/jogar')}
               className="flex-1 bg-matema-primary text-white font-bold py-3 rounded-2xl hover:opacity-90 transition-opacity"
             >
               Jogar de novo
