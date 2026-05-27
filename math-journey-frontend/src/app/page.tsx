@@ -31,10 +31,10 @@ export default function LandingPage() {
       <LandingBackground />
 
       {/* ── NAV ─────────────────────────────────────────────────────────── */}
-      <nav className="sticky top-0 z-50 border-b border-matema-border" style={{ background: 'linear-gradient(rgba(160,160,160,0.35), rgba(160,160,160,0.35)), url(/nav-texture.jpg) center/cover' }}>
+      <nav className="sticky top-0 z-50 border-b border-matema-border" style={{ background: 'linear-gradient(rgba(140,140,140,0.55), rgba(140,140,140,0.55)), url(/nav-texture.jpg) center/cover' }}>
         <div className="max-w-5xl mx-auto px-4 h-16 flex items-center justify-end">
           <div className="flex items-center gap-3">
-            <Link href="/entrar" className="text-sm font-semibold text-matema-muted hover:text-matema-dark transition-colors px-4 py-2 rounded-xl hover:bg-matema-warm">
+            <Link href="/entrar" className="text-base font-bold text-black hover:text-black/70 transition-colors px-6 py-2.5 rounded-xl hover:bg-black/10">
               Entrar
             </Link>
             {/* Gradient border button */}
