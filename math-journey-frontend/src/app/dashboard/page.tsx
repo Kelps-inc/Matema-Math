@@ -115,7 +115,7 @@ export default async function DashboardPage() {
             </div>
           </div>
           {ownedItemNames.length > 0 && (
-            <p className="text-xs text-matema-muted mt-2">{ownedItemNames.length} item{ownedItemNames.length !== 1 ? 'ns' : ''} na mochila</p>
+            <p className="text-xs text-matema-muted mt-2">{ownedItemNames.length} {ownedItemNames.length !== 1 ? 'itens' : 'item'} na mochila</p>
           )}
           <Link href="/avatar" className="text-xs text-matema-primary font-semibold mt-2 inline-block hover:underline">
             Editar avatar →
