@@ -66,7 +66,7 @@ export default function LandingPage() {
         <div className="relative max-w-5xl mx-auto px-4 pt-24 pb-20 text-center">
           {/* Logo hero */}
           <div className="flex justify-center mb-8">
-            <Image src="/matema-logo.png" alt="Matema" width={400} height={400} className="h-64 md:h-80 w-auto drop-shadow-md" priority />
+            <Image src="/matema-logo.png" alt="Matema" width={600} height={600} className="w-[360px] md:w-[520px] h-auto drop-shadow-md" priority />
           </div>
 
           {/* Badge */}
