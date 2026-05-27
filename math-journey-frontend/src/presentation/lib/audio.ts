@@ -311,7 +311,7 @@ export function startRainSound(
   ctx: AudioContext,
   initialVol = 1,
 ): { stop: () => void; setVolume: (v: number) => void } {
-  const BASE_GAIN = 0.6
+  const BASE_GAIN = 0.18
   const master = ctx.createGain()
   master.gain.setValueAtTime(0, ctx.currentTime)
   master.gain.linearRampToValueAtTime(BASE_GAIN * initialVol, ctx.currentTime + 1.5)
