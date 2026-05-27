@@ -31,7 +31,7 @@ export default function LandingPage() {
       <LandingBackground />
 
       {/* ── NAV ─────────────────────────────────────────────────────────── */}
-      <nav className="sticky top-0 z-50 border-b border-matema-border" style={{ backgroundImage: 'url(/nav-texture.jpg)', backgroundSize: 'cover', backgroundPosition: 'center' }}>
+      <nav className="sticky top-0 z-50 border-b border-matema-border" style={{ background: 'linear-gradient(rgba(160,160,160,0.35), rgba(160,160,160,0.35)), url(/nav-texture.jpg) center/cover' }}>
         <div className="max-w-5xl mx-auto px-4 h-16 flex items-center justify-end">
           <div className="flex items-center gap-3">
             <Link href="/entrar" className="text-sm font-semibold text-matema-muted hover:text-matema-dark transition-colors px-4 py-2 rounded-xl hover:bg-matema-warm">
@@ -65,7 +65,7 @@ export default function LandingPage() {
 
         {/* Logo — ocupa a viewport inteira, resto só com scroll */}
         <div className="flex items-center justify-center" style={{ minHeight: 'calc(100vh - 64px)' }}>
-          <Image src="/matema-logo.png" alt="Matema" width={600} height={600} className="w-[360px] md:w-[520px] h-auto drop-shadow-md" priority />
+          <Image src="/matema-logo-landing.png" alt="Matema" width={600} height={600} className="w-[360px] md:w-[520px] h-auto drop-shadow-md" priority />
         </div>
 
         <div className="relative max-w-5xl mx-auto px-4 pt-4 pb-20 text-center">
