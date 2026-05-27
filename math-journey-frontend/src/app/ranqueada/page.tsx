@@ -53,7 +53,7 @@ export default async function RanqueadaPage() {
               <span className="font-semibold">{profile.eloLp} PDL</span>
               <span>100 PDL</span>
             </div>
-            <div className="h-3 bg-white/50 rounded-full overflow-hidden border border-white/40">
+            <div className="h-3 bg-gray-200 rounded-full overflow-hidden">
               <div
                 className="h-full bg-matema-primary rounded-full transition-all duration-500"
                 style={{ width: `${profile.eloLp}%` }}
