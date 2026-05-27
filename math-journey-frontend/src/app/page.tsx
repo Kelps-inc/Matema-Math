@@ -63,12 +63,12 @@ export default function LandingPage() {
         <span className="absolute top-8 right-[30%] text-6xl font-black select-none pointer-events-none" style={{ color: '#F0B4290D', transform: 'rotate(-8deg)' }}>√</span>
         <span className="absolute bottom-8 right-[5%] text-8xl font-black select-none pointer-events-none" style={{ color: '#D4845A0A', transform: 'rotate(20deg)' }}>∫</span>
 
-        <div className="relative max-w-5xl mx-auto px-4 pt-8 pb-20 text-center">
-          {/* Logo hero */}
-          <div className="flex justify-center mb-8">
-            <Image src="/matema-logo.png" alt="Matema" width={600} height={600} className="w-[360px] md:w-[520px] h-auto drop-shadow-md" priority />
-          </div>
+        {/* Logo — ocupa a viewport inteira, resto só com scroll */}
+        <div className="flex items-center justify-center" style={{ minHeight: 'calc(100vh - 64px)' }}>
+          <Image src="/matema-logo.png" alt="Matema" width={600} height={600} className="w-[360px] md:w-[520px] h-auto drop-shadow-md" priority />
+        </div>
 
+        <div className="relative max-w-5xl mx-auto px-4 pt-4 pb-20 text-center">
           {/* Badge */}
           <div className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 mb-7 border" style={{ background: 'linear-gradient(135deg,#D4845A12,#8B7CC412)', borderColor: '#D4845A35' }}>
             <span className="text-sm">✨</span>
