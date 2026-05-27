@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import { signOut } from '@/app/actions/auth'
 import { ProgressBar } from '@/presentation/components/ui/ProgressBar'
 import { MobileBottomNav } from '@/presentation/components/game/MobileBottomNav'
@@ -13,9 +14,8 @@ export function GameHeader({ user }: GameHeaderProps) {
     <>
     <header className="bg-white/90 backdrop-blur-md border-b border-matema-border sticky top-0 z-50">
       <div className="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between gap-4">
-        <div className="flex items-center gap-2 font-bold text-matema-dark text-xl select-none">
-          <span className="text-2xl">📐</span>
-          <span className="text-matema-primary">Matema</span>
+        <div className="flex items-center select-none">
+          <Image src="/logo.png" alt="Matema" width={120} height={40} className="h-10 w-auto" priority />
         </div>
 
         <nav className="hidden sm:flex items-center gap-1">

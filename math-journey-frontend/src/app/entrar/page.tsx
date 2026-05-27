@@ -1,12 +1,12 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import { SignInForm } from './SignInForm'
 
 export default function EntrarPage() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-4 bg-matema-cream">
-      <Link href="/" className="flex items-center gap-2 font-bold text-xl text-matema-dark mb-10">
-        <span className="text-2xl">📐</span>
-        <span className="text-matema-primary">Matema</span>
+      <Link href="/" className="mb-10">
+        <Image src="/logo.png" alt="Matema" width={140} height={47} className="h-12 w-auto" priority />
       </Link>
 
       <div className="w-full max-w-md">

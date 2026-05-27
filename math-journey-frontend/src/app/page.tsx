@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import { LandingBackground } from '@/presentation/components/landing/LandingBackground'
 
 const modules = [
@@ -32,10 +33,7 @@ export default function LandingPage() {
       {/* ── NAV ─────────────────────────────────────────────────────────── */}
       <nav className="sticky top-0 z-50 border-b border-matema-border" style={{ background: 'rgba(250,248,244,0.88)', backdropFilter: 'blur(12px)' }}>
         <div className="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2 font-extrabold text-xl text-matema-dark">
-            <span className="text-2xl">📐</span>
-            <span className="text-matema-primary">Matema</span>
-          </div>
+          <Image src="/logo.png" alt="Matema" width={120} height={40} className="h-10 w-auto" priority />
           <div className="flex items-center gap-3">
             <Link href="/entrar" className="text-sm font-semibold text-matema-muted hover:text-matema-dark transition-colors px-4 py-2 rounded-xl hover:bg-matema-warm">
               Entrar
