@@ -68,7 +68,7 @@ export default async function RanqueadaJogarModePage({
   // Fetch eligible (fresh) exercises
   const baseQuery = supabaseAny
     .from('exercises')
-    .select('id, question, context, type, options, correct_answer, explanation, difficulty')
+    .select('id, question, context, type, options, correct_answer, explanation, difficulty, source')
     .in('lesson_id', lessonIds)
 
   const freshQuery = recentIds.length > 0
@@ -95,7 +95,7 @@ export default async function RanqueadaJogarModePage({
     if (oldestIds.length > 0) {
       const { data: fallbackExercises } = await supabaseAny
         .from('exercises')
-        .select('id, question, context, type, options, correct_answer, explanation, difficulty')
+        .select('id, question, context, type, options, correct_answer, explanation, difficulty, source')
         .in('id', oldestIds)
       allExercises = [...allExercises, ...(fallbackExercises ?? [])]
     }

@@ -16,6 +16,7 @@ export interface RankedExercise {
   correct_answer: string
   explanation: string
   difficulty: 'easy' | 'medium' | 'hard'
+  source?: string | null
 }
 
 interface RankedPlayerProps {
@@ -371,6 +372,11 @@ export function RankedPlayer({ exercises, difficulty, currentTier, currentDivisi
         )}
 
         <p className="font-semibold text-matema-dark text-sm leading-relaxed mb-3">
+          {exercise.source && (
+            <span className="text-matema-muted font-normal">
+              {exercise.source === 'Matema' ? '(Original Matema) ' : `(${exercise.source}) `}
+            </span>
+          )}
           <MathText>{exercise.question}</MathText>
         </p>
 
