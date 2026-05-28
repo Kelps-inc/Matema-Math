@@ -21,7 +21,7 @@ export default async function DashboardPage() {
     new GetModulesUseCase(learningRepo).execute(user.id),
     (supabase as any)
       .from('user_inventory')
-      .select('is_equipped, shop_items(name)')
+      .select('is_equipped, shop_items(name, category)')
       .eq('user_id', user.id),
     (supabase as any)
       .from('user_avatar_config')
@@ -39,7 +39,7 @@ export default async function DashboardPage() {
   ])
 
   const ownedItemNames: string[] = (inventoryResult.data ?? [])
-    .filter((row: any) => row.is_equipped !== false)
+    .filter((row: any) => row.is_equipped !== false && row.shop_items?.category === 'acessorio')
     .map((row: any) => row.shop_items?.name ?? '')
     .filter(Boolean)
 

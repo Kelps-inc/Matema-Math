@@ -46,8 +46,10 @@ export default async function AvatarPage() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const inventoryRows: any[] = inventoryResult.data ?? []
 
+  // Only equipped acessorio items affect the avatar preview (no costumes/skins)
   const ownedItemNames: string[] = inventoryRows
-    .map((r) => r.shop_items?.name ?? '')
+    .filter((r: any) => r.is_equipped !== false && r.shop_items?.category === 'acessorio')
+    .map((r: any) => r.shop_items?.name ?? '')
     .filter(Boolean)
 
   const ownedVisualItems: { id: string; name: string; category: string; icon: string }[] =
