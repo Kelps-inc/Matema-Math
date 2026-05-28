@@ -100,11 +100,28 @@ export async function saveRankedGameAction(
   const skippedIds = opts.skippedExerciseIds ?? []
   const skippedCount = skippedIds.length
 
-  const correct = answers.filter((a) => a.isCorrect).length
+  // Fetch difficulty for each answered question (server-side, don't trust client)
+  const DIFF_WEIGHT: Record<string, number> = { easy: 1, medium: 1.5, hard: 2 }
+  let weightedAccuracy = 0
+  if (answers.length > 0) {
+    const { data: exerciseRows } = await supabaseAny
+      .from('exercises')
+      .select('id, difficulty')
+      .in('id', answers.map((a) => a.exerciseId))
+    const diffMap: Record<string, number> = {}
+    for (const row of (exerciseRows ?? [])) {
+      diffMap[row.id] = DIFF_WEIGHT[row.difficulty] ?? 1
+    }
+    const weightedCorrect = answers.filter((a) => a.isCorrect).reduce((s, a) => s + (diffMap[a.exerciseId] ?? 1), 0)
+    const weightedTotal   = answers.reduce((s, a) => s + (diffMap[a.exerciseId] ?? 1), 0)
+    weightedAccuracy = (weightedCorrect / weightedTotal) * 100
+  }
+
+  const correct   = answers.filter((a) => a.isCorrect).length
   const accuracy  = answers.length > 0 ? (correct / answers.length) * 100 : 0
   const avgTimeMs = answers.length > 0 ? answers.reduce((s, a) => s + a.timeMs, 0) / answers.length : 60000
   const timeBonus = Math.max(0, Math.min(100, (1 - avgTimeMs / 1000 / 60) * 100))
-  const score     = accuracy * 0.95 + timeBonus * 0.05
+  const score     = weightedAccuracy * 0.95 + timeBonus * 0.05
 
   // Early exit with < 2 answered questions → -2 PDL + -1 per skip
   const change = opts.earlyExitPenalty
