@@ -106,9 +106,9 @@ export async function saveRankedGameAction(
   const timeBonus = Math.max(0, Math.min(100, (1 - avgTimeMs / 1000 / 60) * 100))
   const score     = accuracy * 0.95 + timeBonus * 0.05
 
-  // Early exit with < 2 answered questions → flat -2 PDL penalty
+  // Early exit with < 2 answered questions → -2 PDL + -1 per skip
   const change = opts.earlyExitPenalty
-    ? -2
+    ? -2 - skippedCount
     : lpChangeFromScore(score) - skippedCount
 
   const current = {
