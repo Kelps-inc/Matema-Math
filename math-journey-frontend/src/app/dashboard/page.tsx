@@ -76,6 +76,8 @@ export default async function DashboardPage() {
     ? Math.round((rankedStats.correct / rankedStats.total) * 100)
     : null
 
+  console.log('[DASHBOARD] rankedStats:', JSON.stringify(rankedStats))
+
   const totalLessons = modules.reduce((s, m) => s + m.totalCount, 0)
   const completedLessons = modules.reduce((s, m) => s + m.completedCount, 0)
   return (
