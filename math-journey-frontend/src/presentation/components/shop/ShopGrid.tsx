@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { cn } from '@/presentation/lib/utils'
-import { purchaseItemAction, setItemEquippedAction } from '@/app/actions/shop'
+import { purchaseItemAction } from '@/app/actions/shop'
 import { Avatar } from '@/presentation/components/avatar/Avatar'
 import type { AvatarConfig } from '@/presentation/components/avatar/AvatarConfig'
 import { DEFAULT_AVATAR_CONFIG } from '@/presentation/components/avatar/AvatarConfig'
@@ -22,7 +22,7 @@ const CATEGORY_LABELS: Record<string, string> = {
   acessorio: '✨ Acessórios',
 }
 
-type ShopTab = 'comprar' | 'adquiridos' | 'em-uso'
+type ShopTab = 'comprar' | 'adquiridos'
 
 interface ShopGridProps {
   items: ShopItemDTO[]
@@ -43,32 +43,29 @@ export function ShopGrid({
 }: ShopGridProps) {
   const [tab, setTab] = useState<ShopTab>('comprar')
   const [isPending, startTransition] = useTransition()
-  const [pendingId,       setPendingId]       = useState<string | null>(null)
-  const [pendingToggleId, setPendingToggleId] = useState<string | null>(null)
-  const [feedback,   setFeedback]   = useState<{ id: string; ok: boolean; msg: string } | null>(null)
-  const [localOwned,    setLocalOwned]    = useState<{ id: string; name: string }[]>(ownedItems)
-  const [localEquipped, setLocalEquipped] = useState<Set<string>>(new Set(equippedItemIds))
-  const [localCoins,    setLocalCoins]    = useState(userCoins)
+  const [pendingId, setPendingId] = useState<string | null>(null)
+  const [feedback,  setFeedback]  = useState<{ id: string; ok: boolean; msg: string } | null>(null)
+  const [localOwned, setLocalOwned] = useState<{ id: string; name: string }[]>(ownedItems)
+  const [localCoins, setLocalCoins] = useState(userCoins)
 
-  const ownedIds       = new Set(localOwned.map((o) => o.id))
-  // Avatar preview uses only equipped item names
-  const equippedNames  = items.filter((i) => localEquipped.has(i.id)).map((i) => i.name)
+  const ownedIds = new Set(localOwned.map((o) => o.id))
+  // Avatar preview: only acessorio items that are equipped (matches Avatar tab behaviour)
+  const equippedSet    = new Set(equippedItemIds)
+  const equippedNames  = items
+    .filter((i) => i.category === 'acessorio' && equippedSet.has(i.id))
+    .map((i) => i.name)
 
-  // Derived lists
-  const unownedItems      = items.filter((i) => !ownedIds.has(i.id))
-  const ownedItemsFull    = items.filter((i) => ownedIds.has(i.id))
-  // Visual items = avatar costumes + accessories (affect avatar appearance)
-  const ownedVisualItems  = ownedItemsFull.filter((i) => i.category === 'avatar' || i.category === 'acessorio')
+  const unownedItems   = items.filter((i) => !ownedIds.has(i.id))
+  const ownedItemsFull = items.filter((i) => ownedIds.has(i.id))
 
   const tabs: { id: ShopTab; label: string; count: number }[] = [
     { id: 'comprar',    label: 'Para comprar', count: unownedItems.length },
     { id: 'adquiridos', label: 'Adquiridos',   count: ownedItemsFull.length },
-    { id: 'em-uso',     label: 'Em uso',        count: ownedVisualItems.filter((i) => localEquipped.has(i.id)).length },
   ]
 
   const categories = ['material', 'avatar', 'acessorio'] as const
 
-  // ── Buy ────────────────────────────────────────────────────────
+  // ── Buy ──────────────────────────────────────────────────────────
   function handleBuy(item: ShopItemDTO) {
     setPendingId(item.id)
     setFeedback(null)
@@ -76,9 +73,8 @@ export function ShopGrid({
       const result = await purchaseItemAction(item.id)
       if (result.success) {
         setLocalOwned((prev) => [...prev, { id: item.id, name: item.name }])
-        setLocalEquipped((prev) => new Set([...prev, item.id])) // auto-equip on purchase
         if (result.newCoins !== undefined) setLocalCoins(result.newCoins)
-        setFeedback({ id: item.id, ok: true, msg: 'Item adquirido!' })
+        setFeedback({ id: item.id, ok: true, msg: 'Item adquirido! Equipe-o na aba Avatar.' })
       } else {
         setFeedback({ id: item.id, ok: false, msg: result.error ?? 'Erro ao comprar' })
       }
@@ -86,32 +82,15 @@ export function ShopGrid({
     })
   }
 
-  // ── Equip toggle ───────────────────────────────────────────────
-  function handleToggleEquip(item: ShopItemDTO) {
-    const nowEquipped = !localEquipped.has(item.id)
-    setPendingToggleId(item.id)
-    // Optimistic update
-    setLocalEquipped((prev) => {
-      const next = new Set(prev)
-      if (nowEquipped) next.add(item.id)
-      else next.delete(item.id)
-      return next
-    })
-    startTransition(async () => {
-      await setItemEquippedAction(item.id, nowEquipped)
-      setPendingToggleId(null)
-    })
-  }
-
   return (
     <div className="max-w-3xl mx-auto">
 
-      {/* Avatar preview — always visible, reflects equipped state */}
+      {/* Avatar preview — reflects currently equipped accessories */}
       <div className="bg-white rounded-3xl border border-matema-border p-6 mb-6 flex flex-col items-center">
         <p className="text-xs font-semibold text-matema-muted mb-4 uppercase tracking-wide">Seu personagem</p>
         <Avatar config={avatarConfig} ownedItemNames={equippedNames} size={150} />
         {equippedNames.length === 0 && (
-          <p className="text-xs text-matema-muted mt-3">Compre itens para personalizar seu personagem!</p>
+          <p className="text-xs text-matema-muted mt-3">Compre acessórios e equipe-os na aba Avatar!</p>
         )}
       </div>
 
@@ -227,61 +206,9 @@ export function ShopGrid({
                     </section>
                   )
                 })}
-              </div>
-            )
-          )}
-
-          {/* ── Em uso ── */}
-          {tab === 'em-uso' && (
-            ownedVisualItems.length === 0 ? (
-              <p className="text-center text-matema-muted text-sm py-8">
-                Nenhuma fantasia ou acessório adquirido ainda.<br />
-                <span className="text-xs">Compre itens na aba "Para comprar" para personalizar seu personagem.</span>
-              </p>
-            ) : (
-              <div className="space-y-8">
-                {(['avatar', 'acessorio'] as const).map((cat) => {
-                  const catItems = ownedVisualItems.filter((i) => i.category === cat)
-                  if (catItems.length === 0) return null
-                  return (
-                    <section key={cat}>
-                      <h2 className="text-sm font-bold text-matema-dark mb-3">{CATEGORY_LABELS[cat]}</h2>
-                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                        {catItems.map((item) => {
-                          const equipped = localEquipped.has(item.id)
-                          const loading  = isPending && pendingToggleId === item.id
-                          return (
-                            <div
-                              key={item.id}
-                              className={cn(
-                                'rounded-2xl border-2 p-4 flex flex-col items-center text-center transition-all',
-                                equipped
-                                  ? 'border-red-200 bg-red-50'
-                                  : 'border-green-200 bg-green-50',
-                              )}
-                            >
-                              <div className="text-4xl mb-2">{item.icon}</div>
-                              <p className="font-bold text-matema-dark text-sm mb-1">{item.name}</p>
-                              <p className="text-xs text-matema-muted leading-relaxed mb-3">{item.description}</p>
-                              <button
-                                onClick={() => handleToggleEquip(item)}
-                                disabled={loading}
-                                className={cn(
-                                  'px-4 py-1.5 rounded-xl text-sm font-bold transition-all mt-auto disabled:opacity-60',
-                                  equipped
-                                    ? 'bg-red-500 text-white hover:bg-red-600'
-                                    : 'bg-green-500 text-white hover:bg-green-600',
-                                )}
-                              >
-                                {loading ? '...' : equipped ? 'Remover' : 'Usar'}
-                              </button>
-                            </div>
-                          )
-                        })}
-                      </div>
-                    </section>
-                  )
-                })}
+                <p className="text-center text-xs text-matema-muted pt-2">
+                  Para equipar acessórios, acesse a aba <strong>Avatar</strong>.
+                </p>
               </div>
             )
           )}
