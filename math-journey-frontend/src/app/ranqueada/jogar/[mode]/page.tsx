@@ -4,9 +4,21 @@ import { redirect } from 'next/navigation'
 import { RankedPlayer } from '@/presentation/components/game/RankedPlayer'
 import type { EloTier } from '@/domain/user/entities/User'
 
-const RANKED_LESSON_SLUGS = ['ranqueada-facil', 'ranqueada-medio', 'ranqueada-dificil']
-const QUESTIONS_PER_GAME = 10
-const COOLDOWN_DAYS = 20
+// ── Mode config ────────────────────────────────────────────────────────────
+const MODE_CONFIG = {
+  objetivas: {
+    slugs:      ['ranqueada-facil', 'ranqueada-medio', 'ranqueada-dificil'],
+    questCount: 10,
+    cooldownDays: 20,
+  },
+  enem: {
+    slugs:      ['ranqueada-enem'],
+    questCount: 5,
+    cooldownDays: 7,
+  },
+} as const
+
+type RankedMode = keyof typeof MODE_CONFIG
 
 export default async function RanqueadaJogarModePage({
   params,
@@ -15,8 +27,8 @@ export default async function RanqueadaJogarModePage({
 }) {
   const { mode } = await params
 
-  // Only 'objetivas' is live — everything else goes back to mode selection
-  if (mode !== 'objetivas') redirect('/ranqueada/jogar')
+  if (!(mode in MODE_CONFIG)) redirect('/ranqueada/jogar')
+  const cfg = MODE_CONFIG[mode as RankedMode]
 
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -30,19 +42,19 @@ export default async function RanqueadaJogarModePage({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const supabaseAny = supabase as any
 
-  // Fetch all ranked lessons
+  // Fetch lessons for this mode
   const { data: lessons } = await supabaseAny
     .from('lessons')
     .select('id')
-    .in('slug', RANKED_LESSON_SLUGS)
+    .in('slug', cfg.slugs)
 
   if (!lessons || lessons.length === 0) redirect('/ranqueada')
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const lessonIds = (lessons as any[]).map((l: any) => l.id)
 
-  // Find exercise IDs the user answered in the last COOLDOWN_DAYS days
-  const cooldownSince = new Date(Date.now() - COOLDOWN_DAYS * 24 * 60 * 60 * 1000).toISOString()
+  // Find exercise IDs the user answered within the cooldown window
+  const cooldownSince = new Date(Date.now() - cfg.cooldownDays * 24 * 60 * 60 * 1000).toISOString()
   const { data: recentAnswers } = await supabaseAny
     .from('user_exercise_answers')
     .select('exercise_id')
@@ -53,7 +65,7 @@ export default async function RanqueadaJogarModePage({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const recentIds = Array.from(new Set<string>((recentAnswers ?? []).map((a: any) => a.exercise_id as string)))
 
-  // Fetch eligible (fresh) exercises, excluding recently answered ones
+  // Fetch eligible (fresh) exercises
   const baseQuery = supabaseAny
     .from('exercises')
     .select('id, question, context, type, options, correct_answer, explanation, difficulty')
@@ -65,11 +77,11 @@ export default async function RanqueadaJogarModePage({
 
   const { data: freshExercises } = await freshQuery
 
-  // Fallback: if not enough fresh questions, pad with the least-recently answered ones
+  // Fallback: pad with oldest answered if not enough fresh questions
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let allExercises: any[] = freshExercises ?? []
-  if (allExercises.length < QUESTIONS_PER_GAME && recentIds.length > 0) {
-    const needed = QUESTIONS_PER_GAME - allExercises.length
+  if (allExercises.length < cfg.questCount && recentIds.length > 0) {
+    const needed = cfg.questCount - allExercises.length
     const { data: oldestAnswered } = await supabaseAny
       .from('user_exercise_answers')
       .select('exercise_id')
@@ -93,7 +105,7 @@ export default async function RanqueadaJogarModePage({
     return [...(arr ?? [])].sort(() => Math.random() - 0.5).slice(0, n)
   }
 
-  const selected = pickRandom(allExercises, QUESTIONS_PER_GAME)
+  const selected = pickRandom(allExercises, cfg.questCount)
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const exercises = selected.map((e: any) => ({

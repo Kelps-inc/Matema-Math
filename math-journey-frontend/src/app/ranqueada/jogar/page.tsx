@@ -78,24 +78,24 @@ export default async function RanqueadaModoPage() {
         </div>
 
         {/* ── Modo Estilo ENEM ── */}
-        <div className="bg-white rounded-3xl border-2 border-matema-border p-4 flex flex-col gap-3 opacity-70">
+        <div className="bg-white rounded-3xl border-2 border-matema-accent/30 p-4 flex flex-col gap-3 shadow-sm hover:border-matema-accent/60 transition-colors">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-matema-accent/10 rounded-2xl flex items-center justify-center text-xl flex-shrink-0">
               📄
             </div>
             <div>
               <h2 className="font-extrabold text-matema-dark text-sm leading-tight">Estilo ENEM</h2>
-              <p className="text-xs text-matema-muted">Em breve</p>
+              <p className="text-xs text-matema-muted">Situações-problema</p>
             </div>
           </div>
 
           <p className="text-xs text-matema-muted leading-relaxed">
-            Questões com textões, contexto do mundo real, gráficos e situações-problema — exatamente como caem no ENEM.
+            Questões com contexto do mundo real e situações-problema — exatamente como caem no ENEM.
           </p>
 
           <div className="grid grid-cols-2 gap-1.5 text-xs">
             {[
-              ['📰', '5–6 questões longas'],
+              ['📰', '5 questões longas'],
               ['⏱️', '~15 minutos'],
               ['📊', 'Contexto rico'],
               ['🏆', 'Conta pro Elo'],
@@ -106,9 +106,12 @@ export default async function RanqueadaModoPage() {
             ))}
           </div>
 
-          <div className="mt-auto w-full text-center bg-matema-border text-matema-muted font-bold py-2.5 rounded-2xl cursor-not-allowed text-sm">
-            Em breve...
-          </div>
+          <Link
+            href="/ranqueada/jogar/enem"
+            className="mt-auto w-full text-center bg-matema-accent text-white font-bold py-2.5 rounded-2xl hover:opacity-90 active:scale-[0.98] transition-all text-sm"
+          >
+            Jogar agora →
+          </Link>
         </div>
 
       </div>
