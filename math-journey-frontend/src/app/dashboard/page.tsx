@@ -21,6 +21,7 @@ import {
   CheckCircle,
   XCircle,
   SkipForward,
+  ShieldCheck,
 } from 'lucide-react'
 
 export default async function DashboardPage() {
@@ -320,6 +321,26 @@ export default async function DashboardPage() {
         </div>
       </div>
 
+      {/* Painel Admin */}
+      {profile.isAdmin && (
+        <div className="mt-6 rounded-3xl border-2 border-dashed border-matema-primary/30 bg-matema-primary/5 p-5 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-matema-primary/15 flex items-center justify-center shrink-0">
+              <ShieldCheck className="w-5 h-5 text-matema-primary" strokeWidth={1.75} />
+            </div>
+            <div>
+              <p className="text-sm font-extrabold text-matema-dark">Área Admin</p>
+              <p className="text-xs text-matema-muted">Ferramentas visíveis apenas para administradores</p>
+            </div>
+          </div>
+          <Link
+            href="/admin/preview-questoes"
+            className="shrink-0 flex items-center gap-2 bg-matema-primary text-white text-sm font-bold px-4 py-2.5 rounded-2xl hover:opacity-90 transition-opacity whitespace-nowrap"
+          >
+            Preview de questões →
+          </Link>
+        </div>
+      )}
     </div>
   )
 }
