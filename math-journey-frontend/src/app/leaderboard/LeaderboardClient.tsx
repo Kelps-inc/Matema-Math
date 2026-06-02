@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState } from 'react'
 import { Avatar } from '@/presentation/components/avatar/Avatar'
 import { EloTierIcon } from '@/presentation/components/ui/EloTierIcon'
 import { ELO_TIER_LABELS } from '@/domain/user/entities/User'
@@ -13,19 +13,14 @@ function pct(correct: number, total: number): number | null {
 }
 
 function AccuracyBar({ label, correct, total, color }: {
-  label: string
-  correct: number
-  total: number
-  color: string
+  label: string; correct: number; total: number; color: string
 }) {
   const p = pct(correct, total)
   return (
     <div className="flex items-center gap-2 text-xs">
       <span className="w-12 text-matema-muted shrink-0">{label}</span>
       <div className="flex-1 h-1.5 bg-matema-border rounded-full overflow-hidden">
-        {p !== null && (
-          <div className={`h-full rounded-full ${color}`} style={{ width: `${p}%` }} />
-        )}
+        {p !== null && <div className={`h-full rounded-full ${color}`} style={{ width: `${p}%` }} />}
       </div>
       <span className="w-8 text-right font-semibold text-matema-dark shrink-0">
         {p !== null ? `${p}%` : '—'}
@@ -35,14 +30,24 @@ function AccuracyBar({ label, correct, total, color }: {
   )
 }
 
-function HoverCard({ entry }: { entry: LeaderboardEntry }) {
+interface CardPos { top: number; left: number }
+
+function HoverCard({ entry, pos }: { entry: LeaderboardEntry; pos: CardPos }) {
   const divLabel = entry.eloTier !== 'mestre' ? ` ${DIV_LABELS[entry.eloDivision] ?? ''}` : ''
-  const rankedTotal = entry.rankedEasy.total + entry.rankedMedium.total + entry.rankedHard.total
+  const rankedTotal   = entry.rankedEasy.total   + entry.rankedMedium.total   + entry.rankedHard.total
   const rankedCorrect = entry.rankedEasy.correct + entry.rankedMedium.correct + entry.rankedHard.correct
   const overallPct = pct(rankedCorrect, rankedTotal)
 
+  // Garante que não sai pela borda direita/inferior da viewport
+  const cardW = 288 // w-72
+  const safeLeft = Math.min(pos.left, window.innerWidth - cardW - 12)
+  const safeTop  = pos.top + 8
+
   return (
-    <div className="absolute left-0 top-full mt-2 z-50 w-72 bg-white rounded-2xl shadow-2xl border border-matema-border p-4 pointer-events-none">
+    <div
+      className="fixed z-[9999] w-72 bg-white rounded-2xl shadow-2xl border border-matema-border p-4 pointer-events-none"
+      style={{ top: safeTop, left: safeLeft }}
+    >
       {/* Avatar + nome */}
       <div className="flex items-start gap-3 mb-3">
         <div className="shrink-0">
@@ -67,22 +72,16 @@ function HoverCard({ entry }: { entry: LeaderboardEntry }) {
           </p>
           <div className="flex gap-4">
             <div>
-              <p className="text-xl font-extrabold text-matema-dark leading-none">
-                {entry.placementAccuracy}%
-              </p>
+              <p className="text-xl font-extrabold text-matema-dark leading-none">{entry.placementAccuracy}%</p>
               <p className="text-xs text-matema-muted mt-0.5">Precisão</p>
             </div>
             <div>
-              <p className="text-xl font-extrabold text-matema-dark leading-none">
-                {entry.placementCorrect}/{entry.placementTotal}
-              </p>
+              <p className="text-xl font-extrabold text-matema-dark leading-none">{entry.placementCorrect}/{entry.placementTotal}</p>
               <p className="text-xs text-matema-muted mt-0.5">Acertos</p>
             </div>
             {entry.placementScore !== null && (
               <div>
-                <p className="text-xl font-extrabold text-matema-dark leading-none">
-                  {entry.placementScore}
-                </p>
+                <p className="text-xl font-extrabold text-matema-dark leading-none">{entry.placementScore}</p>
                 <p className="text-xs text-matema-muted mt-0.5">Score</p>
               </div>
             )}
@@ -90,7 +89,7 @@ function HoverCard({ entry }: { entry: LeaderboardEntry }) {
         </div>
       )}
 
-      {/* Precisão ranqueada por dificuldade */}
+      {/* Precisão ranqueada */}
       <div className="border-t border-matema-border pt-3">
         <div className="flex items-center justify-between mb-2">
           <p className="text-xs font-semibold text-matema-muted uppercase tracking-wide">
@@ -104,24 +103,9 @@ function HoverCard({ entry }: { entry: LeaderboardEntry }) {
           <p className="text-xs text-matema-muted">Nenhuma partida ainda</p>
         ) : (
           <div className="space-y-2">
-            <AccuracyBar
-              label="Fácil"
-              correct={entry.rankedEasy.correct}
-              total={entry.rankedEasy.total}
-              color="bg-green-500"
-            />
-            <AccuracyBar
-              label="Médio"
-              correct={entry.rankedMedium.correct}
-              total={entry.rankedMedium.total}
-              color="bg-amber-500"
-            />
-            <AccuracyBar
-              label="Difícil"
-              correct={entry.rankedHard.correct}
-              total={entry.rankedHard.total}
-              color="bg-red-500"
-            />
+            <AccuracyBar label="Fácil"   correct={entry.rankedEasy.correct}   total={entry.rankedEasy.total}   color="bg-green-500" />
+            <AccuracyBar label="Médio"   correct={entry.rankedMedium.correct} total={entry.rankedMedium.total} color="bg-amber-500" />
+            <AccuracyBar label="Difícil" correct={entry.rankedHard.correct}   total={entry.rankedHard.total}   color="bg-red-500"   />
           </div>
         )}
       </div>
@@ -136,11 +120,16 @@ const RANK_STYLE: Record<number, string> = {
 }
 
 export function LeaderboardClient({ entries }: { entries: LeaderboardEntry[] }) {
-  const [hoveredId, setHoveredId] = useState<string | null>(null)
+  const [hovered, setHovered] = useState<{ id: string; pos: CardPos } | null>(null)
+
+  function handleEnter(e: React.SyntheticEvent, id: string) {
+    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
+    setHovered({ id, pos: { top: rect.bottom, left: rect.left } })
+  }
 
   return (
     <div className="space-y-2">
-      {/* Header row */}
+      {/* Header */}
       <div className="grid grid-cols-[2.5rem_1fr_12rem_5rem_6rem] gap-6 px-5 text-xs font-semibold text-matema-muted uppercase tracking-wide mb-1">
         <span>#</span>
         <span>Jogador</span>
@@ -150,12 +139,10 @@ export function LeaderboardClient({ entries }: { entries: LeaderboardEntry[] }) 
       </div>
 
       {entries.map((entry) => {
-        const divLabel = entry.eloTier !== 'mestre'
-          ? ` ${DIV_LABELS[entry.eloDivision] ?? ''}`
-          : ''
+        const divLabel    = entry.eloTier !== 'mestre' ? ` ${DIV_LABELS[entry.eloDivision] ?? ''}` : ''
         const rankedTotal = entry.rankedEasy.total + entry.rankedMedium.total + entry.rankedHard.total
         const rankedCorrect = entry.rankedEasy.correct + entry.rankedMedium.correct + entry.rankedHard.correct
-        const overallPct = pct(rankedCorrect, rankedTotal)
+        const overallPct  = pct(rankedCorrect, rankedTotal)
 
         return (
           <div
@@ -173,14 +160,14 @@ export function LeaderboardClient({ entries }: { entries: LeaderboardEntry[] }) 
               {entry.rank}
             </span>
 
-            {/* Nome + hover card */}
-            <div className="relative min-w-0">
+            {/* Nome */}
+            <div className="min-w-0">
               <button
                 className="text-left"
-                onMouseEnter={() => setHoveredId(entry.id)}
-                onMouseLeave={() => setHoveredId(null)}
-                onFocus={() => setHoveredId(entry.id)}
-                onBlur={() => setHoveredId(null)}
+                onMouseEnter={(e) => handleEnter(e, entry.id)}
+                onMouseLeave={() => setHovered(null)}
+                onFocus={(e) => handleEnter(e, entry.id)}
+                onBlur={() => setHovered(null)}
               >
                 <span className={`font-semibold text-sm leading-none hover:text-matema-primary transition-colors cursor-default ${entry.isCurrentUser ? 'text-matema-primary' : 'text-matema-dark'}`}>
                   {entry.displayName}
@@ -191,7 +178,6 @@ export function LeaderboardClient({ entries }: { entries: LeaderboardEntry[] }) 
                   </span>
                 )}
               </button>
-              {hoveredId === entry.id && <HoverCard entry={entry} />}
             </div>
 
             {/* Elo */}
@@ -208,7 +194,7 @@ export function LeaderboardClient({ entries }: { entries: LeaderboardEntry[] }) 
               {rankedTotal > 0 ? rankedTotal : '—'}
             </span>
 
-            {/* Precisão geral */}
+            {/* Precisão */}
             <span className={`text-sm font-semibold text-right hidden sm:block w-full ${overallPct !== null ? 'text-matema-dark' : 'text-matema-muted'}`}>
               {overallPct !== null ? `${overallPct}%` : '—'}
             </span>
@@ -220,6 +206,14 @@ export function LeaderboardClient({ entries }: { entries: LeaderboardEntry[] }) 
         <div className="text-center py-20 text-matema-muted">
           Nenhum jogador classificado ainda.
         </div>
+      )}
+
+      {/* HoverCard renderizado fora do grid via fixed positioning */}
+      {hovered && entries.find(e => e.id === hovered.id) && (
+        <HoverCard
+          entry={entries.find(e => e.id === hovered.id)!}
+          pos={hovered.pos}
+        />
       )}
     </div>
   )

@@ -10,30 +10,106 @@ function getVol(key: string) {
   return (isNaN(v) ? 50 : v) / 100
 }
 
+const FILE_TRACKS: Record<string, string> = {
+  'ghoul-helium':       '/sounds/ghoul-helium.wav',
+  'ghoul-projeto-novo': '/sounds/ghoul-projeto-novo.wav',
+}
+
+// Defaults: Washed Dreams (Projeto Novo) habilitada para novos usuários
+function getMusicEnabled(): boolean {
+  const stored = localStorage.getItem('matema_music_enabled')
+  if (stored === null) return true       // novo usuário → música ligada
+  return stored === 'true'
+}
+
+function getMusicTrack(): string {
+  return localStorage.getItem('matema_music_track') ?? 'ghoul-projeto-novo'
+}
+
+function broadcastState(playing: boolean) {
+  window.dispatchEvent(new CustomEvent('matema:music-state', { detail: { playing } }))
+}
+
 export function AudioManager() {
-  const ctxRef      = useRef<AudioContext | null>(null)
-  const handleRef   = useRef<AudioHandle | null>(null)
-  const rainRef     = useRef<AudioHandle | null>(null)
-  const clickBufRef = useRef<AudioBuffer | null>(null)
+  const ctxRef       = useRef<AudioContext | null>(null)
+  const synthRef     = useRef<AudioHandle | null>(null)
+  const rainRef      = useRef<AudioHandle | null>(null)
+  const fileAudioRef = useRef<HTMLAudioElement | null>(null)
+  const clickBufRef  = useRef<AudioBuffer | null>(null)
+  const pendingRef   = useRef(false)   // música deve tocar mas ainda aguarda interação
 
   useEffect(() => {
-    const musicEnabled = localStorage.getItem('matema_music_enabled') === 'true'
-    const rainEnabled  = localStorage.getItem('matema_rain_enabled')  === 'true'
-    if (musicEnabled) startMusic()
-    if (rainEnabled)  startRain()
+    const musicEnabled = getMusicEnabled()
+    const rainEnabled  = localStorage.getItem('matema_rain_enabled') === 'true'
 
-    function startMusic() {
-      if (!ctxRef.current) ctxRef.current = createAudioContext()
-      const ctx = ctxRef.current
-      if (!ctx) return
-      if (ctx.state === 'suspended') ctx.resume()
-      handleRef.current?.stop()
-      handleRef.current = startAmbientMusic(ctx, getVol('matema_music_volume'))
+    if (rainEnabled) startRain()
+
+    if (musicEnabled) {
+      // Tenta iniciar imediatamente; se o browser bloquear, espera primeiro clique
+      startMusicOrPend()
+    }
+
+    function startMusicOrPend() {
+      const started = tryStartMusic()
+      if (!started) {
+        pendingRef.current = true
+        broadcastState(false)
+      }
+    }
+
+    // Retorna true se conseguiu iniciar, false se foi bloqueado pelo browser
+    function tryStartMusic(): boolean {
+      stopMusicSilent()
+      const track = getMusicTrack()
+      const vol   = getVol('matema_music_volume')
+
+      if (FILE_TRACKS[track]) {
+        const audio = new Audio(FILE_TRACKS[track])
+        audio.loop   = true
+        audio.volume = vol
+        const promise = audio.play()
+        if (promise !== undefined) {
+          promise.then(() => {
+            fileAudioRef.current = audio
+            pendingRef.current = false
+            broadcastState(true)
+          }).catch(() => {
+            // Autoplay bloqueado — aguarda interação
+            audio.src = ''
+            pendingRef.current = true
+            broadcastState(false)
+          })
+        }
+        fileAudioRef.current = audio
+        return true
+      } else {
+        if (!ctxRef.current) ctxRef.current = createAudioContext()
+        const ctx = ctxRef.current
+        if (!ctx) return false
+        if (ctx.state === 'suspended') {
+          ctx.resume().catch(() => {})
+          pendingRef.current = true
+          return false
+        }
+        synthRef.current = startAmbientMusic(ctx, vol)
+        broadcastState(true)
+        return true
+      }
+    }
+
+    function stopMusicSilent() {
+      synthRef.current?.stop()
+      synthRef.current = null
+      if (fileAudioRef.current) {
+        fileAudioRef.current.pause()
+        fileAudioRef.current.src = ''
+        fileAudioRef.current = null
+      }
     }
 
     function stopMusic() {
-      handleRef.current?.stop()
-      handleRef.current = null
+      stopMusicSilent()
+      broadcastState(false)
     }
 
     function startRain() {
@@ -51,19 +127,26 @@ export function AudioManager() {
     }
 
     function handleToggle(e: Event) {
-      const detail = (e as CustomEvent<{ enabled: boolean }>).detail
-      if (detail.enabled) startMusic()
+      const { enabled } = (e as CustomEvent<{ enabled: boolean }>).detail
+      localStorage.setItem('matema_music_enabled', String(enabled))
+      if (enabled) tryStartMusic()
       else stopMusic()
     }
 
     function handleVolume(e: Event) {
       const { volume } = (e as CustomEvent<{ volume: number }>).detail
-      handleRef.current?.setVolume(volume)
+      synthRef.current?.setVolume(volume)
+      if (fileAudioRef.current) fileAudioRef.current.volume = volume
+    }
+
+    function handleTrackChange() {
+      const musicEnabled = getMusicEnabled()
+      if (musicEnabled) tryStartMusic()
     }
 
     function handleRainToggle(e: Event) {
-      const detail = (e as CustomEvent<{ enabled: boolean }>).detail
-      if (detail.enabled) startRain()
+      const { enabled } = (e as CustomEvent<{ enabled: boolean }>).detail
+      if (enabled) startRain()
       else stopRain()
     }
 
@@ -81,7 +164,16 @@ export function AudioManager() {
       } catch { /* sem som se falhar */ }
     }
 
+    function handleFirstInteraction() {
+      if (!pendingRef.current) return
+      pendingRef.current = false
+      tryStartMusic()
+    }
+
     function handleClickSfx(e: MouseEvent) {
+      // Aproveita o clique para resolver o pendente de autoplay
+      handleFirstInteraction()
+
       if (localStorage.getItem('matema_sfx_enabled') === 'false') return
       const target = e.target as HTMLElement
       if (!target.closest('button, a, [role="button"]')) return
@@ -89,13 +181,8 @@ export function AudioManager() {
       const ctx = ctxRef.current
       if (!ctx) return
       if (ctx.state === 'suspended') ctx.resume()
-
-      if (!clickBufRef.current) {
-        loadClickSound(ctx)
-        return
-      }
-
-      const src = ctx.createBufferSource()
+      if (!clickBufRef.current) { loadClickSound(ctx); return }
+      const src  = ctx.createBufferSource()
       const gain = ctx.createGain()
       src.buffer = clickBufRef.current
       gain.gain.setValueAtTime(0.6, ctx.currentTime)
@@ -106,12 +193,15 @@ export function AudioManager() {
 
     window.addEventListener('matema:music-toggle', handleToggle)
     window.addEventListener('matema:music-volume', handleVolume)
+    window.addEventListener('matema:music-track',  handleTrackChange)
     window.addEventListener('matema:rain-toggle',  handleRainToggle)
     window.addEventListener('matema:rain-volume',  handleRainVolume)
     document.addEventListener('click', handleClickSfx, true)
+
     return () => {
       window.removeEventListener('matema:music-toggle', handleToggle)
       window.removeEventListener('matema:music-volume', handleVolume)
+      window.removeEventListener('matema:music-track',  handleTrackChange)
       window.removeEventListener('matema:rain-toggle',  handleRainToggle)
       window.removeEventListener('matema:rain-volume',  handleRainVolume)
       document.removeEventListener('click', handleClickSfx, true)
