@@ -5,7 +5,9 @@ import { useRouter } from 'next/navigation'
 import { cn } from '@/presentation/lib/utils'
 import { MathText } from '@/presentation/components/ui/MathText'
 import { savePlacementAction, type PlacementAnswer } from '@/app/actions/elo'
-import { ELO_TIER_LABELS, ELO_TIER_ICONS, type EloTier } from '@/domain/user/entities/User'
+import { ELO_TIER_LABELS, type EloTier } from '@/domain/user/entities/User'
+import { EloTierIcon } from '@/presentation/components/ui/EloTierIcon'
+import { Settings, Lightbulb, Trophy } from 'lucide-react'
 
 export interface PlacementQuestion {
   id: string
@@ -114,7 +116,9 @@ export function PlacementPlayer({ questions }: PlacementPlayerProps) {
     return (
       <div className="max-w-xl mx-auto animate-fade-in">
         <div className="bg-white rounded-3xl border border-matema-border p-8 text-center shadow-sm">
-          <div className="text-6xl mb-4">🏆</div>
+          <div className="mb-4 flex justify-center">
+            <Trophy className="w-16 h-16 text-yellow-500" strokeWidth={1.75} />
+          </div>
           <h1 className="text-2xl font-extrabold text-matema-dark mb-2">Teste de Classificação</h1>
           <p className="text-matema-muted mb-6 leading-relaxed">
             Responda <strong className="text-matema-dark">15 questões</strong> para descobrir seu elo inicial.
@@ -137,8 +141,8 @@ export function PlacementPlayer({ questions }: PlacementPlayerProps) {
           </div>
 
           <div className="text-xs text-matema-muted mb-6 space-y-1">
-            <p>⚡ Precisão tem peso de 95% na classificação</p>
-            <p>⏱️ Velocidade tem peso de 5% na classificação</p>
+            <p>Precisão tem peso de 95% na classificação</p>
+            <p>Velocidade tem peso de 5% na classificação</p>
           </div>
 
           <button
@@ -157,7 +161,9 @@ export function PlacementPlayer({ questions }: PlacementPlayerProps) {
     return (
       <div className="max-w-xl mx-auto animate-fade-in">
         <div className="bg-white rounded-3xl border border-matema-border p-12 text-center shadow-sm">
-          <div className="text-5xl mb-4 animate-spin" style={{ display: 'inline-block' }}>⚙️</div>
+          <div className="mb-4 flex justify-center">
+            <Settings className="w-12 h-12 text-matema-muted animate-spin" strokeWidth={1.75} style={{ display: 'inline-block' }} />
+          </div>
           <h2 className="text-xl font-bold text-matema-dark mb-2">Calculando seu elo…</h2>
           <p className="text-matema-muted">Analisando precisão e velocidade das suas respostas</p>
           {error && <p className="mt-4 text-red-500 text-sm">{error}</p>}
@@ -168,7 +174,6 @@ export function PlacementPlayer({ questions }: PlacementPlayerProps) {
 
   // ── RESULT ─────────────────────────────────────────────────────────────────
   if (phase === 'result' && result) {
-    const tierIcon = ELO_TIER_ICONS[result.tier]
     const tierLabel = ELO_TIER_LABELS[result.tier]
     const divisionLabel = result.tier === 'mestre' ? '' : ` ${['', 'I', 'II', 'III', 'IV'][result.division] ?? result.division}`
 
@@ -176,7 +181,9 @@ export function PlacementPlayer({ questions }: PlacementPlayerProps) {
       <div className="max-w-xl mx-auto animate-fade-in">
         <div className="bg-white rounded-3xl border border-matema-border p-8 text-center shadow-sm">
           <p className="text-matema-muted mb-2 text-sm font-medium uppercase tracking-wide">Seu elo inicial</p>
-          <div className="text-8xl mb-3">{tierIcon}</div>
+          <div className="mb-3 flex justify-center">
+            <EloTierIcon tier={result.tier} size="w-20 h-20" />
+          </div>
           <h2 className="text-3xl font-extrabold text-matema-dark mb-1">
             {tierLabel}{divisionLabel}
           </h2>
@@ -211,9 +218,10 @@ export function PlacementPlayer({ questions }: PlacementPlayerProps) {
 
           <button
             onClick={() => router.push('/ranqueada')}
-            className="w-full bg-matema-primary text-white font-bold py-4 rounded-2xl text-lg hover:opacity-90 transition-opacity"
+            className="w-full bg-matema-primary text-white font-bold py-4 rounded-2xl text-lg hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
           >
-            Ver minha classificação 🏆
+            Ver minha classificação
+            <Trophy className="w-5 h-5" strokeWidth={1.75} />
           </button>
         </div>
       </div>
@@ -254,7 +262,7 @@ export function PlacementPlayer({ questions }: PlacementPlayerProps) {
       {phase === 'playing' && (
         <div className="flex justify-end mb-3">
           <span className="text-xs text-matema-muted tabular-nums">
-            ⏱️ {(elapsedMs / 1000).toFixed(1)}s
+            {(elapsedMs / 1000).toFixed(1)}s
           </span>
         </div>
       )}
@@ -324,14 +332,22 @@ export function PlacementPlayer({ questions }: PlacementPlayerProps) {
       {phase === 'answered' && (
         <div className="animate-fade-in">
           <div className="bg-white rounded-2xl border border-matema-border p-4 mb-4 text-sm text-matema-muted leading-relaxed">
-            <span className="font-semibold text-matema-dark">💡 Explicação: </span>
+            <span className="inline-flex items-center gap-1 font-semibold text-matema-dark mr-1">
+              <Lightbulb className="w-4 h-4 text-yellow-500" strokeWidth={1.75} />
+              Explicação:
+            </span>
             <MathText>{question.explanation}</MathText>
           </div>
           <button
             onClick={handleNext}
-            className="w-full bg-matema-primary text-white font-bold py-4 rounded-2xl text-base hover:opacity-90 transition-opacity"
+            className="w-full bg-matema-primary text-white font-bold py-4 rounded-2xl text-base hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
           >
-            {current + 1 < questions.length ? 'Próxima questão →' : 'Ver resultado 🏆'}
+            {current + 1 < questions.length ? 'Próxima questão →' : (
+              <>
+                Ver resultado
+                <Trophy className="w-5 h-5" strokeWidth={1.75} />
+              </>
+            )}
           </button>
         </div>
       )}

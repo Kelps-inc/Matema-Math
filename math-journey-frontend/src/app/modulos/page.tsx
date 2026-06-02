@@ -21,7 +21,7 @@ export default async function ModulosPage() {
       <div className="mb-8">
         <h1 className="text-2xl md:text-3xl font-extrabold text-matema-dark mb-2">Tutorial</h1>
         <p className="text-matema-muted">
-          Tutorialzinho para dar aquela aquecida 🔥
+          Tutorialzinho para dar aquela aquecida
         </p>
       </div>
 

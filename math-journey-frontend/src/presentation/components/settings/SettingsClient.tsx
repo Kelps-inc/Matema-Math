@@ -3,18 +3,31 @@
 import { useState, useEffect, useTransition } from 'react'
 import { cn } from '@/presentation/lib/utils'
 import { resetProgressAction, deleteAccountAction } from '@/app/actions/account'
+import {
+  Music,
+  CloudRain,
+  Bell,
+  Palette,
+  Moon,
+  Sun,
+  AlertTriangle,
+  RotateCcw,
+  Trash2,
+  CheckCircle2,
+  Volume2,
+} from 'lucide-react'
 
 function Toggle({ enabled, onToggle, label, description, icon }: {
   enabled: boolean
   onToggle: () => void
   label: string
   description: string
-  icon: string
+  icon: React.ReactNode
 }) {
   return (
     <div className="flex items-center justify-between gap-4 py-4">
       <div className="flex items-center gap-3">
-        <span className="text-2xl">{icon}</span>
+        <div className="w-9 h-9 flex items-center justify-center">{icon}</div>
         <div>
           <p className="font-semibold text-matema-dark text-sm">{label}</p>
           <p className="text-xs text-matema-muted mt-0.5">{description}</p>
@@ -145,9 +158,9 @@ export function SettingsClient() {
       </div>
 
       {/* Áudio */}
-      <Section title="🔊 Áudio">
+      <Section title="Áudio">
         <Toggle
-          icon="🎵"
+          icon={<Music className="w-5 h-5 text-matema-primary" strokeWidth={1.75} />}
           label="Música ambiente"
           description="Trilha sonora animada enquanto você estuda"
           enabled={music}
@@ -169,7 +182,7 @@ export function SettingsClient() {
           </div>
         )}
         <Toggle
-          icon="🌧️"
+          icon={<CloudRain className="w-5 h-5 text-sky-500" strokeWidth={1.75} />}
           label="Som de chuva"
           description="Som relaxante de chuva para estudar"
           enabled={rain}
@@ -191,7 +204,7 @@ export function SettingsClient() {
           </div>
         )}
         <Toggle
-          icon="🔔"
+          icon={<Bell className="w-5 h-5 text-matema-primary" strokeWidth={1.75} />}
           label="Efeitos sonoros"
           description="Sons de clique, acerto e erro nas lições"
           enabled={sfx}
@@ -215,9 +228,12 @@ export function SettingsClient() {
       </Section>
 
       {/* Tema */}
-      <Section title="🎨 Aparência">
+      <Section title="Aparência">
         <Toggle
-          icon={dark ? '🌙' : '☀️'}
+          icon={dark
+            ? <Moon className="w-5 h-5 text-indigo-500" strokeWidth={1.75} />
+            : <Sun className="w-5 h-5 text-yellow-500" strokeWidth={1.75} />
+          }
           label="Tema escuro"
           description={dark ? 'Modo escuro ativado' : 'Modo claro ativado'}
           enabled={dark}
@@ -226,11 +242,11 @@ export function SettingsClient() {
       </Section>
 
       {/* Conta */}
-      <Section title="⚠️ Conta">
+      <Section title="Conta">
         {/* Reset progresso */}
         <div className="py-4">
           <div className="flex items-start gap-3 mb-3">
-            <span className="text-2xl">🔄</span>
+            <RotateCcw className="w-5 h-5 text-matema-muted mt-0.5 flex-shrink-0" strokeWidth={1.75} />
             <div>
               <p className="font-semibold text-matema-dark text-sm">Resetar progresso</p>
               <p className="text-xs text-matema-muted mt-0.5">
@@ -240,7 +256,10 @@ export function SettingsClient() {
           </div>
 
           {resetDone && (
-            <p className="text-xs font-semibold text-green-600 mb-2">✓ Progresso resetado com sucesso!</p>
+            <p className="text-xs font-semibold text-green-600 mb-2 flex items-center gap-1">
+              <CheckCircle2 className="w-4 h-4" strokeWidth={1.75} />
+              Progresso resetado com sucesso!
+            </p>
           )}
 
           {!confirmReset ? (
@@ -274,7 +293,7 @@ export function SettingsClient() {
         {/* Apagar conta */}
         <div className="py-4">
           <div className="flex items-start gap-3 mb-3">
-            <span className="text-2xl">🗑️</span>
+            <Trash2 className="w-5 h-5 text-red-500 mt-0.5 flex-shrink-0" strokeWidth={1.75} />
             <div>
               <p className="font-semibold text-red-600 text-sm">Apagar minha conta</p>
               <p className="text-xs text-matema-muted mt-0.5">
@@ -292,7 +311,10 @@ export function SettingsClient() {
             </button>
           ) : (
             <div className="bg-red-50 border border-red-200 rounded-2xl p-4">
-              <p className="text-sm font-bold text-red-700 mb-1">⚠️ Atenção: ação irreversível</p>
+              <div className="flex items-center gap-1.5 mb-1">
+                <AlertTriangle className="w-4 h-4 text-amber-500" strokeWidth={1.75} />
+                <p className="text-sm font-bold text-red-700">Atenção: ação irreversível</p>
+              </div>
               <p className="text-xs text-red-600 mb-3">
                 Todos os seus dados (progresso, moedas, avatar, itens) serão apagados para sempre.
               </p>

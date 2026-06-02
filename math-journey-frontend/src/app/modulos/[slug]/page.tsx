@@ -6,6 +6,7 @@ import { ProgressBar } from '@/presentation/components/ui/ProgressBar'
 import { Badge } from '@/presentation/components/ui/Badge'
 import { notFound, redirect } from 'next/navigation'
 import { cn } from '@/presentation/lib/utils'
+import { Check, Lock, Zap, Coins } from 'lucide-react'
 
 interface Props {
   params: Promise<{ slug: string }>
@@ -108,7 +109,13 @@ function LessonRow({
         'w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0',
         isCompleted ? 'bg-green-100 text-green-700' : 'bg-matema-warm text-matema-muted',
       )}>
-        {isCompleted ? '✓' : isLocked ? '🔒' : index + 1}
+        {isCompleted ? (
+          <Check className="w-5 h-5 text-green-700" strokeWidth={2} />
+        ) : isLocked ? (
+          <Lock className="w-4 h-4 text-matema-muted" strokeWidth={1.75} />
+        ) : (
+          index + 1
+        )}
       </div>
 
       <div className="flex-1 min-w-0">
@@ -117,8 +124,18 @@ function LessonRow({
       </div>
 
       <div className="flex items-center gap-2 flex-shrink-0">
-        <Badge variant="gold">⚡ {lesson.xpReward}</Badge>
-        <Badge variant="default">🪙 {lesson.coinReward}</Badge>
+        <Badge variant="gold">
+          <span className="flex items-center gap-1">
+            <Zap className="w-3 h-3" strokeWidth={1.75} />
+            {lesson.xpReward}
+          </span>
+        </Badge>
+        <Badge variant="default">
+          <span className="flex items-center gap-1">
+            <Coins className="w-3 h-3" strokeWidth={1.75} />
+            {lesson.coinReward}
+          </span>
+        </Badge>
       </div>
     </div>
   )

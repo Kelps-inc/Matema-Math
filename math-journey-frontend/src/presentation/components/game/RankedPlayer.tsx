@@ -5,7 +5,18 @@ import { useRouter } from 'next/navigation'
 import { cn } from '@/presentation/lib/utils'
 import { MathText } from '@/presentation/components/ui/MathText'
 import { saveRankedGameAction, type RankedAnswer } from '@/app/actions/ranked'
-import { ELO_TIER_LABELS, ELO_TIER_ICONS, type EloTier } from '@/domain/user/entities/User'
+import { ELO_TIER_LABELS, type EloTier } from '@/domain/user/entities/User'
+import { EloTierIcon } from '@/presentation/components/ui/EloTierIcon'
+import {
+  Settings,
+  PartyPopper,
+  TrendingDown,
+  Dumbbell,
+  AlertTriangle,
+  Lightbulb,
+  Trophy,
+  SkipForward,
+} from 'lucide-react'
 
 export interface RankedExercise {
   id: string
@@ -166,7 +177,9 @@ export function RankedPlayer({ exercises, difficulty, currentTier, currentDivisi
   if (phase === 'saving') {
     return (
       <div className="max-w-xl mx-auto text-center py-20">
-        <div className="text-5xl mb-4 animate-spin inline-block">⚙️</div>
+        <div className="mb-4 flex justify-center">
+          <Settings className="w-12 h-12 text-matema-muted animate-spin" strokeWidth={1.75} />
+        </div>
         <p className="text-matema-muted">Calculando resultado…</p>
         {error && <p className="mt-4 text-red-500 text-sm">{error}</p>}
       </div>
@@ -175,7 +188,6 @@ export function RankedPlayer({ exercises, difficulty, currentTier, currentDivisi
 
   // ── RESULT ─────────────────────────────────────────────────────────────────
   if (phase === 'result' && result) {
-    const tierIcon  = ELO_TIER_ICONS[result.newTier]
     const tierLabel = ELO_TIER_LABELS[result.newTier]
     const divLabel  = result.newTier === 'mestre' ? '' : ` ${['', 'I', 'II', 'III', 'IV'][result.newDivision] ?? result.newDivision}`
     const lpSign    = result.lpChange >= 0 ? '+' : ''
@@ -186,25 +198,33 @@ export function RankedPlayer({ exercises, difficulty, currentTier, currentDivisi
         <div className="bg-white rounded-3xl border border-matema-border p-5 text-center shadow-sm">
           {result.promoted ? (
             <>
-              <div className="text-3xl mb-1">🎉</div>
+              <div className="mb-1 flex justify-center">
+                <PartyPopper className="w-8 h-8 text-matema-primary" strokeWidth={1.75} />
+              </div>
               <h2 className="text-lg font-extrabold text-matema-dark mb-0.5">Promovido!</h2>
               <p className="text-matema-muted text-xs mb-2">Você subiu de divisão!</p>
             </>
           ) : result.demoted ? (
             <>
-              <div className="text-3xl mb-1">📉</div>
+              <div className="mb-1 flex justify-center">
+                <TrendingDown className="w-8 h-8 text-red-500" strokeWidth={1.75} />
+              </div>
               <h2 className="text-lg font-extrabold text-matema-dark mb-0.5">Rebaixado</h2>
               <p className="text-matema-muted text-xs mb-2">Você desceu de divisão.</p>
             </>
           ) : (
             <>
-              <div className="text-3xl mb-1">💪</div>
+              <div className="mb-1 flex justify-center">
+                <Dumbbell className="w-8 h-8 text-matema-primary" strokeWidth={1.75} />
+              </div>
               <h2 className="text-lg font-extrabold text-matema-dark mb-0.5">Partida concluída</h2>
               <p className="text-matema-muted text-xs mb-2">Continue jogando para subir!</p>
             </>
           )}
 
-          <div className="text-5xl mb-1">{tierIcon}</div>
+          <div className="mb-1 flex justify-center">
+            <EloTierIcon tier={result.newTier} size="w-12 h-12" />
+          </div>
           <p className="text-xl font-extrabold text-matema-dark">{tierLabel}{divLabel}</p>
 
           {/* LP display */}
@@ -214,7 +234,7 @@ export function RankedPlayer({ exercises, difficulty, currentTier, currentDivisi
                 <span className={cn('font-bold text-sm', lpColor)}>
                   {lpSign}{result.lpChange} PDL
                 </span>
-                <span>{result.newLp} / 100 PDL</span>
+                <span>{result.newLp} PDL</span>
               </div>
               <div className="h-2 bg-matema-border rounded-full overflow-hidden">
                 <div
@@ -282,7 +302,6 @@ export function RankedPlayer({ exercises, difficulty, currentTier, currentDivisi
   }
   const DIFF_LABEL: Record<string, string> = { easy: 'Fácil', medium: 'Médio', hard: 'Difícil' }
 
-  const currTierIcon  = ELO_TIER_ICONS[currentTier]
   const currTierLabel = ELO_TIER_LABELS[currentTier]
   const currDivLabel  = currentTier === 'mestre' ? '' : ` ${['', 'I', 'II', 'III', 'IV'][currentDivision] ?? currentDivision}`
 
@@ -292,7 +311,10 @@ export function RankedPlayer({ exercises, difficulty, currentTier, currentDivisi
       {showExitWarning && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
           <div className="bg-white rounded-3xl p-6 max-w-sm w-full shadow-xl animate-fade-in">
-            <p className="text-xl font-extrabold text-matema-dark mb-2">⚠️ Saindo cedo</p>
+            <div className="flex items-center gap-2 mb-2">
+              <AlertTriangle className="w-5 h-5 text-amber-500" strokeWidth={1.75} />
+              <p className="text-xl font-extrabold text-matema-dark">Saindo cedo</p>
+            </div>
             <p className="text-sm text-matema-muted mb-5 leading-relaxed">
               Você respondeu apenas <strong>{answers.length}</strong> quest{answers.length === 1 ? 'ão' : 'ões'}.
               Encerrar agora custará <strong className="text-red-500">−2 PDL</strong>.
@@ -317,8 +339,9 @@ export function RankedPlayer({ exercises, difficulty, currentTier, currentDivisi
 
       {/* Tier + dificuldade */}
       <div className="flex items-center justify-between mb-1.5">
-        <span className="text-sm font-semibold text-matema-muted">
-          {currTierIcon} {currTierLabel}{currDivLabel}
+        <span className="flex items-center gap-1.5 text-sm font-semibold text-matema-muted">
+          <EloTierIcon tier={currentTier} size="w-4 h-4" />
+          {currTierLabel}{currDivLabel}
         </span>
         <span className={cn('text-xs font-semibold px-2 py-0.5 rounded-full border', DIFF_COLOR[exercise.difficulty])}>
           {DIFF_LABEL[exercise.difficulty]}
@@ -328,9 +351,8 @@ export function RankedPlayer({ exercises, difficulty, currentTier, currentDivisi
       {/* LP bar */}
       {currentTier !== 'mestre' && (
         <div className="mb-1.5">
-          <div className="flex justify-between text-xs text-matema-muted mb-0.5">
+          <div className="text-xs text-matema-muted mb-0.5">
             <span className="font-semibold">{currentLp} PDL</span>
-            <span>100 PDL</span>
           </div>
           <div className="h-1.5 bg-matema-border rounded-full overflow-hidden">
             <div
@@ -346,7 +368,7 @@ export function RankedPlayer({ exercises, difficulty, currentTier, currentDivisi
         <div className="flex justify-between text-xs text-matema-muted mb-0.5">
           <span>Questão {current + 1} de {exercises.length}</span>
           {phase === 'playing' && (
-            <span className="tabular-nums">⏱️ {(elapsedMs / 1000).toFixed(1)}s</span>
+            <span className="tabular-nums">{(elapsedMs / 1000).toFixed(1)}s</span>
           )}
         </div>
         <div className="h-1.5 bg-matema-border rounded-full overflow-hidden">
@@ -362,7 +384,10 @@ export function RankedPlayer({ exercises, difficulty, currentTier, currentDivisi
         {exercise.context && (
           <div className="bg-matema-cream rounded-2xl p-3 mb-3 border border-matema-border overflow-hidden">
             {exercise.context.trimStart().startsWith('<svg') ? (
-              <div dangerouslySetInnerHTML={{ __html: exercise.context }} />
+              <div
+                className="[&_svg]:w-full [&_svg]:h-auto [&_svg]:block"
+                dangerouslySetInnerHTML={{ __html: exercise.context }}
+              />
             ) : (
               <p className="text-sm text-matema-muted leading-relaxed">
                 <MathText>{exercise.context}</MathText>
@@ -371,12 +396,12 @@ export function RankedPlayer({ exercises, difficulty, currentTier, currentDivisi
           </div>
         )}
 
+        {exercise.source && (
+          <p className="text-xs text-matema-muted mb-1">
+            {exercise.source === 'Matema' ? 'Original Matema' : exercise.source}
+          </p>
+        )}
         <p className="font-semibold text-matema-dark text-sm leading-relaxed mb-3">
-          {exercise.source && (
-            <span className="text-matema-muted font-normal">
-              {exercise.source === 'Matema' ? '(Original Matema) ' : `(${exercise.source}) `}
-            </span>
-          )}
           <MathText>{exercise.question}</MathText>
         </p>
 
@@ -415,14 +440,21 @@ export function RankedPlayer({ exercises, difficulty, currentTier, currentDivisi
       {phase === 'answered' && (
         <div className="animate-fade-in mb-2">
           <div className="bg-white rounded-2xl border border-matema-border p-3 mb-2 text-sm text-matema-muted leading-relaxed">
-            <span className="font-semibold text-matema-dark">💡 </span>
+            <span className="inline-flex items-center gap-1 font-semibold text-matema-dark mr-1">
+              <Lightbulb className="w-4 h-4 text-yellow-500" strokeWidth={1.75} />
+            </span>
             <MathText>{exercise.explanation}</MathText>
           </div>
           <button
             onClick={handleNext}
             className="w-full bg-matema-primary text-white font-bold py-3 rounded-2xl text-sm hover:opacity-90 transition-opacity"
           >
-            {current + 1 < exercises.length ? 'Próxima →' : 'Ver resultado 🏆'}
+            {current + 1 < exercises.length ? 'Próxima →' : (
+              <span className="flex items-center justify-center gap-2">
+                Ver resultado
+                <Trophy className="w-4 h-4" strokeWidth={1.75} />
+              </span>
+            )}
           </button>
         </div>
       )}
@@ -432,9 +464,10 @@ export function RankedPlayer({ exercises, difficulty, currentTier, currentDivisi
         <div className="flex justify-center mb-1">
           <button
             onClick={handleSkip}
-            className="text-xs text-matema-muted hover:text-amber-600 px-4 py-1.5 rounded-xl hover:bg-amber-50 transition-colors"
+            className="flex items-center gap-1.5 text-xs text-matema-muted hover:text-amber-600 px-4 py-1.5 rounded-xl hover:bg-amber-50 transition-colors"
           >
-            ⏭ Pular questão <span className="opacity-60">(−1 PDL)</span>
+            <SkipForward className="w-4 h-4" strokeWidth={1.75} />
+            Pular questão <span className="opacity-60">(−1 PDL)</span>
           </button>
         </div>
       )}

@@ -9,6 +9,13 @@ import { cn } from '@/presentation/lib/utils'
 import { completeLessonAction } from '@/app/actions/progress'
 import { createAudioContext, playSfxClick, playSfxCorrect, playSfxWrong } from '@/presentation/lib/audio'
 import { MathText } from '@/presentation/components/ui/MathText'
+import {
+  BookOpen,
+  PartyPopper,
+  Lightbulb,
+  GraduationCap,
+  Trophy,
+} from 'lucide-react'
 
 export interface LessonDTO {
   id: string
@@ -239,7 +246,11 @@ export function ExercisePlayer({ lesson, exercises, nextLesson }: ExercisePlayer
           isCorrect(current, selected!) ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'
         )}>
           <div className="flex items-center gap-2 mb-2">
-            <span className="text-lg">{isCorrect(current, selected!) ? '🎉' : '💡'}</span>
+            {isCorrect(current, selected!) ? (
+              <PartyPopper className="w-5 h-5 text-green-700" strokeWidth={1.75} />
+            ) : (
+              <Lightbulb className="w-5 h-5 text-red-700" strokeWidth={1.75} />
+            )}
             <p className={cn('font-bold', isCorrect(current, selected!) ? 'text-green-800' : 'text-red-800')}>
               {isCorrect(current, selected!) ? 'Correto!' : 'Quase lá!'}
             </p>
@@ -255,7 +266,12 @@ export function ExercisePlayer({ lesson, exercises, nextLesson }: ExercisePlayer
           </Button>
         ) : (
           <Button onClick={handleNext} loading={isPending} className="flex-1" size="lg">
-            {isLast ? 'Concluir lição 🎓' : 'Próxima questão →'}
+            {isLast ? (
+              <span className="flex items-center gap-2">
+                Concluir lição
+                <GraduationCap className="w-5 h-5" strokeWidth={1.75} />
+              </span>
+            ) : 'Próxima questão →'}
           </Button>
         )}
       </div>
@@ -272,7 +288,9 @@ function IntroScreen({ lesson, totalQuestions, onStart }: {
     <div className="max-w-2xl mx-auto py-6">
       {/* Header */}
       <div className="text-center mb-6">
-        <div className="text-5xl mb-3">📖</div>
+        <div className="mb-3 flex justify-center">
+          <BookOpen className="w-12 h-12 text-matema-primary" strokeWidth={1.75} />
+        </div>
         <h2 className="text-2xl font-bold text-matema-dark mb-1">{lesson.title}</h2>
         <p className="text-matema-muted leading-relaxed">{lesson.description}</p>
       </div>
@@ -297,14 +315,14 @@ function IntroScreen({ lesson, totalQuestions, onStart }: {
       {lesson.theory && (
         <div className="bg-white rounded-3xl border border-matema-border p-6 mb-6">
           <div className="flex items-center gap-2 mb-4">
-            <span className="text-lg">💡</span>
+            <Lightbulb className="w-5 h-5 text-yellow-500" strokeWidth={1.75} />
             <h3 className="font-bold text-matema-dark">Relembre o conteúdo antes de começar</h3>
           </div>
           <div className="text-sm text-matema-dark leading-relaxed space-y-3">
             {lesson.theory.split('\n\n').map((block, i) => (
               <div key={i} className={block.startsWith('📌') ? 'font-semibold text-matema-dark mt-4' : 'text-matema-muted'}>
                 {block.split('\n').map((line, j) => (
-                  <div key={j}><MathText>{line}</MathText></div>
+                  <div key={j}><MathText>{line.replace(/^📌\s*/, '')}</MathText></div>
                 ))}
               </div>
             ))}
@@ -313,7 +331,7 @@ function IntroScreen({ lesson, totalQuestions, onStart }: {
       )}
 
       <Button onClick={onStart} size="lg" className="w-full">
-        Começar lição 🚀
+        Começar lição
       </Button>
     </div>
   )
@@ -341,7 +359,15 @@ function CompletionScreen({
           <p className="text-xs text-red-600">{error}</p>
         </div>
       )}
-      <div className="text-6xl mb-6">{percent >= 80 ? '🏆' : percent >= 60 ? '⭐' : '📚'}</div>
+      <div className="mb-6 flex justify-center">
+        {percent >= 80 ? (
+          <Trophy className="w-16 h-16 text-yellow-500" strokeWidth={1.75} />
+        ) : percent >= 60 ? (
+          <BookOpen className="w-16 h-16 text-matema-primary" strokeWidth={1.75} />
+        ) : (
+          <BookOpen className="w-16 h-16 text-matema-muted" strokeWidth={1.75} />
+        )}
+      </div>
 
       <h2 className="text-2xl font-bold text-matema-dark mb-2">
         {percent >= 80 ? 'Incrível!' : percent >= 60 ? 'Bom trabalho!' : 'Continue praticando!'}
@@ -352,7 +378,9 @@ function CompletionScreen({
 
       {result?.leveledUp && (
         <div className="bg-matema-gold/15 border border-matema-gold/30 rounded-3xl p-5 mb-5">
-          <p className="text-2xl mb-1">🎊</p>
+          <div className="mb-1 flex justify-center">
+            <PartyPopper className="w-7 h-7 text-amber-600" strokeWidth={1.75} />
+          </div>
           <p className="font-bold text-amber-800">Subiu para o Nível {result.newLevel}!</p>
         </div>
       )}

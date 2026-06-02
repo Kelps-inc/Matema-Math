@@ -3,13 +3,15 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/presentation/lib/utils'
+import { BookOpen, ShoppingBag, Trophy, UserRound, BarChart2 } from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 
-const navItems = [
-  { href: '/modulos',   icon: '📚', label: 'Tutorial'  },
-  { href: '/loja',      icon: '🛍️',  label: 'Loja'      },
-  { href: '/ranqueada', icon: '🏆', label: 'Ranqueada', featured: true },
-  { href: '/avatar',    icon: '🎭', label: 'Avatar'    },
-  { href: '/dashboard', icon: '📊', label: 'Progresso' },
+const navItems: { href: string; icon: LucideIcon; label: string; featured?: boolean }[] = [
+  { href: '/modulos',   icon: BookOpen,      label: 'Tutorial'  },
+  { href: '/loja',      icon: ShoppingBag,   label: 'Loja'      },
+  { href: '/ranqueada', icon: Trophy,        label: 'Ranqueada', featured: true },
+  { href: '/avatar',    icon: UserRound,     label: 'Avatar'    },
+  { href: '/dashboard', icon: BarChart2,     label: 'Progresso' },
 ]
 
 export function MobileBottomNav() {
@@ -18,7 +20,7 @@ export function MobileBottomNav() {
   return (
     <nav className="fixed bottom-0 left-0 right-0 h-16 z-40 bg-white border-t border-matema-border sm:hidden overflow-visible">
       <div className="flex items-end justify-around h-full px-1 pb-1">
-        {navItems.map(({ href, icon, label, featured }) => {
+        {navItems.map(({ href, icon: Icon, label, featured }) => {
           const active = pathname === href || pathname.startsWith(href + '/')
 
           if (featured) {
@@ -34,10 +36,8 @@ export function MobileBottomNav() {
                     : 'border-orange-300 bg-gradient-to-b from-orange-50 to-amber-50/80 text-orange-400',
                 )}
               >
-                <span className="text-3xl leading-none">{icon}</span>
-                <span className="text-xs font-extrabold leading-none tracking-wide">
-                  {label}
-                </span>
+                <Icon className="w-6 h-6" strokeWidth={1.75} />
+                <span className="text-xs font-extrabold leading-none tracking-wide">{label}</span>
               </Link>
             )
           }
@@ -51,7 +51,7 @@ export function MobileBottomNav() {
                 active ? 'text-matema-primary' : 'text-matema-muted',
               )}
             >
-              <span className="text-xl leading-none">{icon}</span>
+              <Icon className="w-5 h-5" strokeWidth={1.75} />
               <span className={cn(
                 'text-[10px] font-bold leading-none',
                 active ? 'text-matema-primary' : 'text-matema-muted',

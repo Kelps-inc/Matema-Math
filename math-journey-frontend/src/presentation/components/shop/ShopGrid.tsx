@@ -6,6 +6,7 @@ import { purchaseItemAction } from '@/app/actions/shop'
 import { Avatar } from '@/presentation/components/avatar/Avatar'
 import type { AvatarConfig } from '@/presentation/components/avatar/AvatarConfig'
 import { DEFAULT_AVATAR_CONFIG } from '@/presentation/components/avatar/AvatarConfig'
+import { Coins, PartyPopper } from 'lucide-react'
 
 export interface ShopItemDTO {
   id: string
@@ -17,9 +18,9 @@ export interface ShopItemDTO {
 }
 
 const CATEGORY_LABELS: Record<string, string> = {
-  material:  '🎒 Materiais',
-  avatar:    '🧑 Avatares',
-  acessorio: '✨ Acessórios',
+  material:  'Materiais',
+  avatar:    'Avatares',
+  acessorio: 'Acessórios',
 }
 
 type ShopTab = 'comprar' | 'adquiridos'
@@ -128,9 +129,10 @@ export function ShopGrid({
           {/* ── Para comprar ── */}
           {tab === 'comprar' && (
             unownedItems.length === 0 ? (
-              <p className="text-center text-matema-muted text-sm py-8">
-                🎉 Você já adquiriu todos os itens da loja!
-              </p>
+              <div className="text-center text-matema-muted text-sm py-8 flex flex-col items-center gap-2">
+                <PartyPopper className="w-7 h-7 text-matema-primary" strokeWidth={1.75} />
+                <span>Você já adquiriu todos os itens da loja!</span>
+              </div>
             ) : (
               <div className="space-y-8">
                 {categories.map((cat) => {
@@ -164,7 +166,12 @@ export function ShopGrid({
                                     : 'bg-matema-border text-matema-muted cursor-not-allowed',
                                 )}
                               >
-                                {loading ? '...' : <>🪙 {item.price}</>}
+                                {loading ? '...' : (
+                                  <>
+                                    <Coins className="w-4 h-4 text-amber-300" strokeWidth={1.75} />
+                                    {item.price}
+                                  </>
+                                )}
                               </button>
                             </div>
                           )
@@ -198,7 +205,7 @@ export function ShopGrid({
                             <p className="font-bold text-matema-dark text-sm mb-1">{item.name}</p>
                             <p className="text-xs text-matema-muted leading-relaxed mb-3">{item.description}</p>
                             <span className="text-xs font-bold text-matema-secondary bg-matema-secondary/10 px-3 py-1.5 rounded-xl mt-auto">
-                              ✓ Adquirido
+                              Adquirido
                             </span>
                           </div>
                         ))}

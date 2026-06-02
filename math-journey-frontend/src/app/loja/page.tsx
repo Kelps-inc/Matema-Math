@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation'
 import { ShopGrid } from '@/presentation/components/shop/ShopGrid'
 import { DEFAULT_AVATAR_CONFIG } from '@/presentation/components/avatar/AvatarConfig'
 import type { AvatarConfig } from '@/presentation/components/avatar/AvatarConfig'
+import { Coins } from 'lucide-react'
 
 export default async function LojaPage() {
   const supabase = await createClient()
@@ -54,7 +55,7 @@ export default async function LojaPage() {
         <h1 className="text-2xl font-extrabold text-matema-dark mb-1">Loja</h1>
         <p className="text-sm text-matema-muted">Gaste suas moedas em itens exclusivos</p>
         <div className="inline-flex items-center gap-2 bg-matema-cream border border-matema-border rounded-2xl px-4 py-2 mt-3">
-          <span>🪙</span>
+          <Coins className="w-4 h-4 text-amber-500" strokeWidth={1.75} />
           <span className="font-bold text-matema-dark">{coins} moedas disponíveis</span>
         </div>
       </div>

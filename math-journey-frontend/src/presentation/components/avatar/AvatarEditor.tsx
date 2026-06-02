@@ -33,6 +33,8 @@ import {
   GENDER_LABELS,
 } from './AvatarConfig'
 import { cn } from '@/presentation/lib/utils'
+import { Palette, Pencil, Dumbbell, Sparkles, ShoppingBag, CheckCircle2 } from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 
 interface OwnedVisualItem {
   id: string
@@ -135,11 +137,11 @@ export function AvatarEditor({
     })
   }
 
-  const tabs: { id: Tab; label: string; icon: string }[] = [
-    { id: 'aparencia',  label: 'Aparência',  icon: '🎨' },
-    { id: 'tracos',     label: 'Traços',     icon: '✏️' },
-    { id: 'corpo',      label: 'Corpo',      icon: '💪' },
-    { id: 'acessorios', label: 'Acessórios', icon: '✨' },
+  const tabs: { id: Tab; label: string; icon: LucideIcon }[] = [
+    { id: 'aparencia',  label: 'Aparência',  icon: Palette   },
+    { id: 'tracos',     label: 'Traços',     icon: Pencil    },
+    { id: 'corpo',      label: 'Corpo',      icon: Dumbbell  },
+    { id: 'acessorios', label: 'Acessórios', icon: Sparkles  },
   ]
 
   // Nomes equipados dinamicamente para a prévia do avatar
@@ -166,21 +168,24 @@ export function AvatarEditor({
         <div className="flex-1 bg-white rounded-3xl border border-matema-border overflow-hidden">
           {/* Abas */}
           <div className="flex border-b border-matema-border">
-            {tabs.map((t) => (
-              <button
-                key={t.id}
-                onClick={() => setTab(t.id)}
-                className={cn(
-                  'flex-1 py-3.5 text-sm font-semibold transition-colors flex items-center justify-center gap-1.5',
-                  tab === t.id
-                    ? 'text-matema-primary border-b-2 border-matema-primary bg-matema-primary/5'
-                    : 'text-matema-muted hover:text-matema-dark hover:bg-matema-warm',
-                )}
-              >
-                <span>{t.icon}</span>
-                <span>{t.label}</span>
-              </button>
-            ))}
+            {tabs.map((t) => {
+              const Icon = t.icon
+              return (
+                <button
+                  key={t.id}
+                  onClick={() => setTab(t.id)}
+                  className={cn(
+                    'flex-1 py-3.5 text-sm font-semibold transition-colors flex items-center justify-center gap-1.5',
+                    tab === t.id
+                      ? 'text-matema-primary border-b-2 border-matema-primary bg-matema-primary/5'
+                      : 'text-matema-muted hover:text-matema-dark hover:bg-matema-warm',
+                  )}
+                >
+                  <Icon className="w-4 h-4" strokeWidth={1.75} />
+                  <span>{t.label}</span>
+                </button>
+              )
+            })}
           </div>
 
           {/* Conteúdo da aba */}
@@ -349,7 +354,7 @@ export function AvatarEditor({
               <>
                 {ownedVisualItems.length === 0 ? (
                   <div className="flex flex-col items-center justify-center py-10 text-center gap-3">
-                    <span className="text-5xl">🛍️</span>
+                    <ShoppingBag className="w-12 h-12 text-matema-muted" strokeWidth={1.75} />
                     <p className="font-bold text-matema-dark">Nenhum item ainda</p>
                     <p className="text-sm text-matema-muted">
                       Compre acessórios e avatares na <a href="/loja" className="text-matema-primary underline">Loja</a> com suas moedas!
@@ -376,8 +381,13 @@ export function AvatarEditor({
                           <span className="text-2xl">{item.icon}</span>
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-semibold truncate">{item.name}</p>
-                            <p className="text-xs mt-0.5 font-medium">
-                              {equipped ? '✓ Equipado' : 'Equipar'}
+                            <p className="text-xs mt-0.5 font-medium flex items-center gap-1">
+                              {equipped ? (
+                                <>
+                                  <CheckCircle2 className="w-3.5 h-3.5" strokeWidth={1.75} />
+                                  Equipado
+                                </>
+                              ) : 'Equipar'}
                             </p>
                           </div>
                         </button>
@@ -394,7 +404,10 @@ export function AvatarEditor({
       {/* Botão salvar */}
       <div className="flex items-center gap-4 justify-end">
         {saved && (
-          <p className="text-sm text-green-600 font-semibold animate-fade-in">✓ Avatar salvo!</p>
+          <p className="text-sm text-green-600 font-semibold animate-fade-in flex items-center gap-1">
+            <CheckCircle2 className="w-4 h-4" strokeWidth={1.75} />
+            Avatar salvo!
+          </p>
         )}
         {saveError && (
           <p className="text-sm text-red-500 font-semibold">{saveError}</p>

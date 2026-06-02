@@ -8,7 +8,20 @@ import { Avatar } from '@/presentation/components/avatar/Avatar'
 import { DEFAULT_AVATAR_CONFIG } from '@/presentation/components/avatar/AvatarConfig'
 import type { AvatarConfig } from '@/presentation/components/avatar/AvatarConfig'
 import { redirect } from 'next/navigation'
-import { ELO_TIER_ICONS, ELO_TIER_LABELS, type EloTier } from '@/domain/user/entities/User'
+import { ELO_TIER_LABELS, type EloTier } from '@/domain/user/entities/User'
+import { EloTierIcon } from '@/presentation/components/ui/EloTierIcon'
+import {
+  Zap,
+  Coins,
+  Medal,
+  Flame,
+  CheckCircle2,
+  AlertTriangle,
+  Star,
+  CheckCircle,
+  XCircle,
+  SkipForward,
+} from 'lucide-react'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -83,7 +96,7 @@ export default async function DashboardPage() {
       {/* Saudação */}
       <div className="mb-8">
         <h1 className="text-2xl md:text-3xl font-extrabold text-matema-dark mb-1">
-          Olá, {profile.displayName.split(' ')[0]}! 👋
+          Olá, {profile.displayName.split(' ')[0]}!
         </h1>
         <p className="text-matema-muted">
           {completedLessons === 0 && rankedStats.total === 0
@@ -102,15 +115,15 @@ export default async function DashboardPage() {
           <p className="font-bold text-matema-dark text-lg mb-3">{profile.displayName}</p>
           <div className="flex flex-wrap gap-3">
             <div className="flex items-center gap-1.5 bg-matema-cream rounded-xl px-3 py-1.5">
-              <span>⚡</span>
+              <Zap className="w-4 h-4 text-yellow-500" strokeWidth={1.75} />
               <span className="text-sm font-bold text-matema-dark">{profile.xp} XP</span>
             </div>
             <div className="flex items-center gap-1.5 bg-matema-cream rounded-xl px-3 py-1.5">
-              <span>🪙</span>
+              <Coins className="w-4 h-4 text-amber-500" strokeWidth={1.75} />
               <span className="text-sm font-bold text-matema-dark">{profile.coins}</span>
             </div>
             <div className="flex items-center gap-1.5 bg-matema-cream rounded-xl px-3 py-1.5">
-              <span>🏅</span>
+              <Medal className="w-4 h-4 text-matema-primary" strokeWidth={1.75} />
               <span className="text-sm font-bold text-matema-dark">Nível {profile.level}</span>
             </div>
           </div>
@@ -126,7 +139,9 @@ export default async function DashboardPage() {
       {/* Elo + Placement */}
       {profile.placementCompleted && (
         <div className="bg-white rounded-3xl border border-matema-border p-6 mb-6 flex items-center gap-5">
-          <div className="text-5xl">{ELO_TIER_ICONS[profile.eloTier as EloTier]}</div>
+          <div className="flex-shrink-0">
+            <EloTierIcon tier={profile.eloTier as EloTier} size="w-12 h-12" />
+          </div>
           <div className="flex-1">
             <p className="text-xs text-matema-muted uppercase tracking-wide font-medium mb-0.5">Elo Ranqueada</p>
             <p className="text-xl font-extrabold text-matema-dark leading-none">
@@ -139,9 +154,8 @@ export default async function DashboardPage() {
             </p>
             {profile.eloTier !== 'mestre' ? (
               <div className="mt-2 max-w-[160px]">
-                <div className="flex justify-between text-xs text-matema-muted mb-1">
+                <div className="text-xs text-matema-muted mb-1">
                   <span className="font-semibold">{profile.eloLp} PDL</span>
-                  <span>100</span>
                 </div>
                 <div className="h-1.5 bg-matema-border rounded-full overflow-hidden">
                   <div
@@ -171,12 +185,12 @@ export default async function DashboardPage() {
               <h2 className="font-extrabold text-matema-dark text-lg">Seu progresso</h2>
               <p className="text-sm text-matema-muted">
                 {completedLessons === totalLessons && totalLessons === 16
-                  ? <>16/16 · Tutorial Completo{tutorialCompletedAt && <span className="text-matema-muted"> em {fmtDate(tutorialCompletedAt)}</span>} ✅</>
+                  ? <>16/16 · Tutorial Completo{tutorialCompletedAt && <span className="text-matema-muted"> em {fmtDate(tutorialCompletedAt)}</span>} <CheckCircle2 className="inline w-4 h-4 text-green-500" strokeWidth={1.75} /></>
                   : `Tutorial: ${completedLessons} de ${totalLessons} lições concluídas`}
               </p>
               {profile.placementCompleted && (
                 <p className="text-sm text-matema-muted mt-0.5">
-                  Teste de nivelamento completo{profile.placementCompletedAt && <span> em {fmtDate(profile.placementCompletedAt)}</span>} ✅
+                  Teste de nivelamento completo{profile.placementCompletedAt && <span> em {fmtDate(profile.placementCompletedAt)}</span>} <CheckCircle2 className="inline w-4 h-4 text-green-500" strokeWidth={1.75} />
                 </p>
               )}
             </div>
@@ -201,7 +215,7 @@ export default async function DashboardPage() {
         <div className="grid grid-cols-2 md:grid-cols-1 gap-3">
           <div className="bg-white rounded-2xl border border-matema-border p-4 flex items-center gap-3">
             <div className="w-10 h-10 bg-matema-primary/10 rounded-xl flex items-center justify-center">
-              <span className="text-xl">⚡</span>
+              <Zap className="w-5 h-5 text-yellow-500" strokeWidth={1.75} />
             </div>
             <div>
               <p className="text-xl font-extrabold text-matema-dark leading-none">{profile.xp.toLocaleString('pt-BR')}</p>
@@ -211,7 +225,7 @@ export default async function DashboardPage() {
 
           <div className="bg-white rounded-2xl border border-matema-border p-4 flex items-center gap-3">
             <div className="w-10 h-10 bg-matema-gold/15 rounded-xl flex items-center justify-center">
-              <span className="text-xl">🪙</span>
+              <Coins className="w-5 h-5 text-amber-500" strokeWidth={1.75} />
             </div>
             <div>
               <p className="text-xl font-extrabold text-matema-dark leading-none">{profile.coins}</p>
@@ -222,7 +236,7 @@ export default async function DashboardPage() {
           {profile.streakDays > 0 && (
             <div className="bg-white rounded-2xl border border-matema-border p-4 flex items-center gap-3 col-span-2 md:col-span-1">
               <div className="w-10 h-10 bg-red-50 rounded-xl flex items-center justify-center">
-                <span className="text-xl">🔥</span>
+                <Flame className="w-5 h-5 text-orange-500" strokeWidth={1.75} />
               </div>
               <div>
                 <p className="text-xl font-extrabold text-matema-dark leading-none">{profile.streakDays}</p>
@@ -241,8 +255,8 @@ export default async function DashboardPage() {
         <div className="flex items-center justify-between mb-4">
           <div className="flex flex-wrap gap-6">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center">
-                <span className="text-xl">✓</span>
+              <div className="w-10 h-10 bg-green-100 dark:bg-green-900 rounded-xl flex items-center justify-center">
+                <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" strokeWidth={1.75} />
               </div>
               <div>
                 <p className="text-sm text-matema-muted">Fáceis</p>
@@ -250,8 +264,8 @@ export default async function DashboardPage() {
               </div>
             </div>
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-yellow-100 rounded-xl flex items-center justify-center">
-                <span className="text-xl">⚠</span>
+              <div className="w-10 h-10 bg-yellow-100 dark:bg-yellow-900 rounded-xl flex items-center justify-center">
+                <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400" strokeWidth={1.75} />
               </div>
               <div>
                 <p className="text-sm text-matema-muted">Médias</p>
@@ -259,8 +273,8 @@ export default async function DashboardPage() {
               </div>
             </div>
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center">
-                <span className="text-xl">★</span>
+              <div className="w-10 h-10 bg-red-100 dark:bg-red-900 rounded-xl flex items-center justify-center">
+                <Star className="w-5 h-5 text-red-600 dark:text-red-400" strokeWidth={1.75} />
               </div>
               <div>
                 <p className="text-sm text-matema-muted">Difíceis</p>
@@ -277,21 +291,21 @@ export default async function DashboardPage() {
         {/* Correct / wrong / accuracy */}
         <div className="border-t border-matema-border pt-4 flex items-center gap-6">
           <div className="flex items-center gap-2">
-            <span className="text-green-500 text-lg">✔</span>
+            <CheckCircle2 className="w-5 h-5 text-green-500" strokeWidth={1.75} />
             <div>
               <p className="text-xs text-matema-muted">Acertos</p>
               <p className="text-base font-extrabold text-matema-dark">{rankedStats.correct}</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-red-400 text-lg">✘</span>
+            <XCircle className="w-5 h-5 text-red-400" strokeWidth={1.75} />
             <div>
               <p className="text-xs text-matema-muted">Erros</p>
               <p className="text-base font-extrabold text-matema-dark">{rankedStats.wrong}</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-amber-400 text-lg">⏭</span>
+            <SkipForward className="w-5 h-5 text-amber-400" strokeWidth={1.75} />
             <div>
               <p className="text-xs text-matema-muted">Puladas</p>
               <p className="text-base font-extrabold text-matema-dark">{rankedStats.skipped}</p>

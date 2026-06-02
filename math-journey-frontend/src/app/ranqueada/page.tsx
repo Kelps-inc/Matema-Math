@@ -2,7 +2,9 @@ import { createClient } from '@/infrastructure/supabase/server'
 import { SupabaseUserRepository } from '@/infrastructure/repositories/SupabaseUserRepository'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { ELO_TIER_LABELS, ELO_TIER_ICONS, type EloTier } from '@/domain/user/entities/User'
+import { ELO_TIER_LABELS, type EloTier } from '@/domain/user/entities/User'
+import { EloTierIcon } from '@/presentation/components/ui/EloTierIcon'
+import { Swords } from 'lucide-react'
 
 const TIER_ORDER: EloTier[] = ['bronze', 'prata', 'ouro', 'platina', 'diamante', 'mestre']
 
@@ -31,7 +33,6 @@ export default async function RanqueadaPage() {
 
   const tier = profile.eloTier as EloTier
   const division = profile.eloDivision
-  const tierIcon = ELO_TIER_ICONS[tier]
   const tierLabel = ELO_TIER_LABELS[tier]
   const divisionLabel = tier === 'mestre' ? '' : ` ${['', 'I', 'II', 'III', 'IV'][division] ?? division}`
 
@@ -39,13 +40,15 @@ export default async function RanqueadaPage() {
     <div className="animate-fade-in">
       <div className="mb-8">
         <h1 className="text-2xl md:text-3xl font-extrabold text-matema-dark mb-2">Ranqueada</h1>
-        <p className="text-matema-muted">Questões estilo ENEM para subir de elo 🔥</p>
+        <p className="text-matema-muted">Questões estilo ENEM para subir de elo</p>
       </div>
 
       {/* Current elo card */}
       <div className={`bg-gradient-to-br ${TIER_COLORS[tier]} border rounded-3xl p-8 mb-8 text-center`}>
         <p className="text-sm font-medium text-matema-muted uppercase tracking-wide mb-2">Seu elo atual</p>
-        <div className="text-7xl mb-3">{tierIcon}</div>
+        <div className="mb-3 flex justify-center">
+          <EloTierIcon tier={tier} size="w-20 h-20" />
+        </div>
         <h2 className="text-3xl font-extrabold text-matema-dark">{tierLabel}{divisionLabel}</h2>
         {tier !== 'mestre' ? (
           <div className="mt-4 max-w-xs mx-auto">
@@ -71,9 +74,12 @@ export default async function RanqueadaPage() {
       {/* Play button */}
       <Link
         href="/ranqueada/jogar"
-        className="flex flex-col items-center justify-center w-full bg-matema-primary text-white rounded-3xl py-8 mb-8 hover:opacity-90 active:scale-[0.98] transition-all shadow-md"
+        className="flex flex-col items-center justify-center w-full bg-matema-primary text-white rounded-3xl py-8 mb-8 hover:opacity-90 active:scale-[0.98] transition-all shadow-md gap-2"
       >
-        <span className="text-2xl font-extrabold mb-1">⚔️ Jogar Ranqueada</span>
+        <span className="flex items-center gap-2 text-2xl font-extrabold">
+          <Swords className="w-7 h-7" strokeWidth={1.75} />
+          Jogar Ranqueada
+        </span>
         <span className="text-sm opacity-80">60 primeiras questões</span>
       </Link>
 
@@ -92,7 +98,7 @@ export default async function RanqueadaPage() {
                     : 'bg-matema-cream'
                 }`}
               >
-                <span className="text-2xl">{ELO_TIER_ICONS[t]}</span>
+                <EloTierIcon tier={t} size="w-6 h-6" />
                 <span className={`font-semibold ${isCurrentTier ? 'text-matema-primary' : 'text-matema-dark'}`}>
                   {ELO_TIER_LABELS[t]}
                 </span>
@@ -109,4 +115,3 @@ export default async function RanqueadaPage() {
     </div>
   )
 }
-

@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { ProgressBar } from '@/presentation/components/ui/ProgressBar'
 import { cn } from '@/presentation/lib/utils'
 import type { ModuleWithProgress } from '@/application/use-cases/GetModulesUseCase'
+import { Lock } from 'lucide-react'
 
 interface ModuleCardProps {
   module: ModuleWithProgress
@@ -32,7 +33,7 @@ export function ModuleCard({ module, isAdmin = false }: ModuleCardProps) {
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
             <h3 className="font-bold text-matema-dark text-base leading-tight">{module.title}</h3>
-            {isLocked && <span className="text-sm">🔒</span>}
+            {isLocked && <Lock className="w-4 h-4 text-matema-muted" strokeWidth={1.75} />}
           </div>
           <p className="text-sm text-matema-muted leading-snug line-clamp-2 mb-3">{module.description}</p>
 

@@ -1,4 +1,5 @@
 import { cn } from '@/presentation/lib/utils'
+import { Star, Zap, Coins } from 'lucide-react'
 
 interface StatBarProps {
   xp: number
@@ -12,7 +13,7 @@ export function StatBar({ xp, coins, level, levelProgressPercent, className }: S
   return (
     <div className={cn('flex items-center gap-4 bg-white/80 backdrop-blur-sm rounded-2xl px-5 py-3 border border-matema-border shadow-sm', className)}>
       <div className="flex items-center gap-1.5">
-        <span className="text-lg">🌟</span>
+        <Star className="w-5 h-5 text-yellow-500" strokeWidth={1.75} />
         <div>
           <p className="text-xs text-matema-muted leading-none">Nível</p>
           <p className="text-base font-bold text-matema-dark leading-none">{level}</p>
@@ -22,7 +23,7 @@ export function StatBar({ xp, coins, level, levelProgressPercent, className }: S
       <div className="w-px h-8 bg-matema-border" />
 
       <div className="flex items-center gap-1.5">
-        <span className="text-lg">⚡</span>
+        <Zap className="w-5 h-5 text-yellow-500" strokeWidth={1.75} />
         <div>
           <p className="text-xs text-matema-muted leading-none">XP</p>
           <p className="text-base font-bold text-matema-dark leading-none">{xp.toLocaleString('pt-BR')}</p>
@@ -32,7 +33,7 @@ export function StatBar({ xp, coins, level, levelProgressPercent, className }: S
       <div className="w-px h-8 bg-matema-border" />
 
       <div className="flex items-center gap-1.5">
-        <span className="text-lg">🪙</span>
+        <Coins className="w-5 h-5 text-amber-500" strokeWidth={1.75} />
         <div>
           <p className="text-xs text-matema-muted leading-none">Moedas</p>
           <p className="text-base font-bold text-matema-dark leading-none">{coins}</p>

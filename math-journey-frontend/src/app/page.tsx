@@ -1,28 +1,56 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { LandingBackground } from '@/presentation/components/landing/LandingBackground'
+import { EloTierIcon } from '@/presentation/components/ui/EloTierIcon'
+import type { EloTier } from '@/domain/user/entities/User'
+import type { LucideIcon } from 'lucide-react'
+import {
+  Calculator,
+  Ruler,
+  BarChart2,
+  Puzzle,
+  Trophy,
+  TrendingUp,
+  Lightbulb,
+  Zap,
+  Coins,
+  Target,
+  Swords,
+  Sparkles,
+  Heart,
+  BookOpen,
+} from 'lucide-react'
 
-const modules = [
-  { icon: '🔢', title: 'Números e Operações', color: '#D4845A', bg: '#D4845A18', desc: 'MMC, MDC, frações, potências' },
-  { icon: '📐', title: 'Álgebra e Funções',   color: '#6B9E7A', bg: '#6B9E7A18', desc: 'Equações, funções, progressões' },
-  { icon: '📏', title: 'Geometria',            color: '#8B7CC4', bg: '#8B7CC418', desc: 'Plana, espacial e trigonometria' },
-  { icon: '📊', title: 'Estatística',          color: '#F0B429', bg: '#F0B42918', desc: 'Média, probabilidade, gráficos' },
+// DraftingCompass is not in all versions of lucide-react, use BookOpen as fallback for 📐
+const AlgebraIcon = BookOpen
+
+const modules: { icon: LucideIcon; title: string; color: string; bg: string; desc: string }[] = [
+  { icon: Calculator, title: 'Números e Operações', color: '#D4845A', bg: '#D4845A18', desc: 'MMC, MDC, frações, potências' },
+  { icon: AlgebraIcon, title: 'Álgebra e Funções',  color: '#6B9E7A', bg: '#6B9E7A18', desc: 'Equações, funções, progressões' },
+  { icon: Ruler,      title: 'Geometria',           color: '#8B7CC4', bg: '#8B7CC418', desc: 'Plana, espacial e trigonometria' },
+  { icon: BarChart2,  title: 'Estatística',         color: '#F0B429', bg: '#F0B42918', desc: 'Média, probabilidade, gráficos' },
 ]
 
-const features = [
-  { icon: '🧩', color: '#D4845A', title: 'Aprenda praticando',    desc: 'Exercícios contextualizados com o estilo do ENEM. Sem decoreba — entendimento real.' },
-  { icon: '🏆', color: '#F0B429', title: 'Ganhe recompensas',     desc: 'XP, moedas e conquistas a cada lição. Seu progresso sempre visível e motivador.' },
-  { icon: '📈', color: '#6B9E7A', title: 'Do básico ao avançado', desc: 'Trilha progressiva que acompanha seu nível. Do fundamental ao Ensino Médio completo.' },
-  { icon: '💡', color: '#8B7CC4', title: 'Explicações claras',    desc: 'Toda questão tem explicação detalhada. Errou? Entenda exatamente o porquê.' },
+const features: { icon: LucideIcon; color: string; title: string; desc: string }[] = [
+  { icon: Puzzle,     color: '#D4845A', title: 'Aprenda praticando',    desc: 'Exercícios contextualizados com o estilo do ENEM. Sem decoreba — entendimento real.' },
+  { icon: Trophy,     color: '#F0B429', title: 'Ganhe recompensas',     desc: 'XP, moedas e conquistas a cada lição. Seu progresso sempre visível e motivador.' },
+  { icon: TrendingUp, color: '#6B9E7A', title: 'Do básico ao avançado', desc: 'Trilha progressiva que acompanha seu nível. Do fundamental ao Ensino Médio completo.' },
+  { icon: Lightbulb,  color: '#8B7CC4', title: 'Explicações claras',    desc: 'Toda questão tem explicação detalhada. Errou? Entenda exatamente o porquê.' },
 ]
 
-const tiers = [
-  { icon: '🥉', label: 'Bronze',   glow: '#CD7F32' },
-  { icon: '🥈', label: 'Prata',    glow: '#94A3B8' },
-  { icon: '🥇', label: 'Ouro',     glow: '#F0B429' },
-  { icon: '💎', label: 'Platina',  glow: '#67E8F9' },
-  { icon: '💠', label: 'Diamante', glow: '#818CF8' },
-  { icon: '🔮', label: 'Mestre',   glow: '#C084FC' },
+const tiers: { tier: EloTier; label: string; glow: string }[] = [
+  { tier: 'bronze',   label: 'Bronze',   glow: '#CD7F32' },
+  { tier: 'prata',    label: 'Prata',    glow: '#94A3B8' },
+  { tier: 'ouro',     label: 'Ouro',     glow: '#F0B429' },
+  { tier: 'platina',  label: 'Platina',  glow: '#67E8F9' },
+  { tier: 'diamante', label: 'Diamante', glow: '#818CF8' },
+  { tier: 'mestre',   label: 'Mestre',   glow: '#C084FC' },
+]
+
+const eloInfoCards: { icon: LucideIcon; title: string; desc: string; glow: string }[] = [
+  { icon: Target,     title: 'Teste de classificação', desc: '15 questões que definem seu elo inicial. Precisão vale 95% da nota.', glow: '#D4845A' },
+  { icon: Swords,     title: 'Partidas ranqueadas',    desc: 'Questões nível ENEM. Acerte mais e suba de divisão — seu elo nunca cai.', glow: '#8B7CC4' },
+  { icon: TrendingUp, title: 'Evolução contínua',      desc: 'De Bronze IV a Mestre. Cada divisão conquistada é progresso real.', glow: '#6B9E7A' },
 ]
 
 export default function LandingPage() {
@@ -71,7 +99,7 @@ export default function LandingPage() {
         <div className="relative max-w-5xl mx-auto px-4 pt-4 pb-20 text-center">
           {/* Badge */}
           <div className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 mb-7 border" style={{ background: 'linear-gradient(135deg,#D4845A12,#8B7CC412)', borderColor: '#D4845A35' }}>
-            <span className="text-sm">✨</span>
+            <Sparkles className="w-4 h-4 text-matema-primary" strokeWidth={1.75} />
             <span className="text-sm font-bold text-matema-primary">Gratuito para começar</span>
           </div>
 
@@ -93,7 +121,7 @@ export default function LandingPage() {
             <Link href="/cadastro">
               <span className="inline-block p-[2.5px] rounded-2xl" style={{ background: 'linear-gradient(135deg,#D4845A,#8B7CC4,#6B9E7A)' }}>
                 <span className="flex items-center gap-2 bg-matema-primary text-white font-extrabold text-base px-8 py-4 rounded-[13px] hover:opacity-90 transition-opacity">
-                  Começar agora — é grátis 🚀
+                  Começar agora — é grátis
                 </span>
               </span>
             </Link>
@@ -117,8 +145,14 @@ export default function LandingPage() {
                     </div>
                   </div>
                   <div className="flex items-center gap-3 text-sm font-semibold">
-                    <span className="text-matema-primary bg-matema-primary/10 px-2 py-1 rounded-lg">⚡ 320</span>
-                    <span className="text-amber-600 bg-amber-50 px-2 py-1 rounded-lg">🪙 85</span>
+                    <span className="flex items-center gap-1 text-matema-primary bg-matema-primary/10 px-2 py-1 rounded-lg">
+                      <Zap className="w-3.5 h-3.5 text-yellow-500" strokeWidth={1.75} />
+                      320
+                    </span>
+                    <span className="flex items-center gap-1 text-amber-600 bg-amber-50 px-2 py-1 rounded-lg">
+                      <Coins className="w-3.5 h-3.5 text-amber-500" strokeWidth={1.75} />
+                      85
+                    </span>
                   </div>
                 </div>
                 <div className="rounded-2xl p-4 mb-4 border" style={{ background: 'linear-gradient(135deg,#FAF8F4,#F3EDE3)', borderColor: '#E8E0D4' }}>
@@ -152,15 +186,18 @@ export default function LandingPage() {
           <p className="text-matema-muted text-center mb-10">4 módulos com dezenas de lições e exercícios contextualizados</p>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {modules.map((m) => (
-              <div key={m.title} className="bg-white rounded-2xl p-5 text-center group hover:-translate-y-1 transition-transform" style={{ border: `2px solid ${m.color}25` }}>
-                <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-3xl mx-auto mb-3 transition-transform group-hover:scale-110" style={{ background: m.bg }}>
-                  {m.icon}
+            {modules.map((m) => {
+              const Icon = m.icon
+              return (
+                <div key={m.title} className="bg-white rounded-2xl p-5 text-center group hover:-translate-y-1 transition-transform" style={{ border: `2px solid ${m.color}25` }}>
+                  <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-3 transition-transform group-hover:scale-110" style={{ background: m.bg }}>
+                    <Icon className="w-7 h-7" style={{ color: m.color }} strokeWidth={1.75} />
+                  </div>
+                  <p className="font-bold text-matema-dark text-sm mb-1">{m.title}</p>
+                  <p className="text-xs text-matema-muted">{m.desc}</p>
                 </div>
-                <p className="font-bold text-matema-dark text-sm mb-1">{m.title}</p>
-                <p className="text-xs text-matema-muted">{m.desc}</p>
-              </div>
-            ))}
+              )
+            })}
           </div>
         </div>
       </section>
@@ -169,17 +206,20 @@ export default function LandingPage() {
       <section className="max-w-5xl mx-auto px-4 py-20">
         <h2 className="text-2xl md:text-3xl font-extrabold text-matema-dark text-center mb-10">Por que o Matema é diferente?</h2>
         <div className="grid md:grid-cols-2 gap-5">
-          {features.map((f) => (
-            <div key={f.title} className="bg-white rounded-3xl p-6 flex gap-4 hover:-translate-y-0.5 transition-transform" style={{ border: `1.5px solid ${f.color}30`, borderLeft: `4px solid ${f.color}` }}>
-              <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl flex-shrink-0" style={{ background: `${f.color}15` }}>
-                {f.icon}
+          {features.map((f) => {
+            const Icon = f.icon
+            return (
+              <div key={f.title} className="bg-white rounded-3xl p-6 flex gap-4 hover:-translate-y-0.5 transition-transform" style={{ border: `1.5px solid ${f.color}30`, borderLeft: `4px solid ${f.color}` }}>
+                <div className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0" style={{ background: `${f.color}15` }}>
+                  <Icon className="w-6 h-6" style={{ color: f.color }} strokeWidth={1.75} />
+                </div>
+                <div>
+                  <h3 className="font-bold text-matema-dark mb-1">{f.title}</h3>
+                  <p className="text-sm text-matema-muted leading-relaxed">{f.desc}</p>
+                </div>
               </div>
-              <div>
-                <h3 className="font-bold text-matema-dark mb-1">{f.title}</h3>
-                <p className="text-sm text-matema-muted leading-relaxed">{f.desc}</p>
-              </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
       </section>
 
@@ -194,8 +234,9 @@ export default function LandingPage() {
             <span className="inline-block text-xs font-bold tracking-widest uppercase px-3 py-1 rounded-full mb-4" style={{ background: '#ffffff10', color: '#C084FC', border: '1px solid #C084FC30' }}>
               Modo Competitivo
             </span>
-            <h2 className="text-2xl md:text-4xl font-extrabold text-white mb-3">
-              Sistema de Elos 🏆
+            <h2 className="text-2xl md:text-4xl font-extrabold text-white mb-3 flex items-center justify-center gap-3">
+              Sistema de Elos
+              <Trophy className="w-8 h-8 text-yellow-500" strokeWidth={1.75} />
             </h2>
             <p className="max-w-md mx-auto leading-relaxed" style={{ color: '#94A3B8' }}>
               Faça o teste de classificação e descubra onde você está. Jogue ranqueadas com questões ENEM para subir de divisão.
@@ -207,7 +248,7 @@ export default function LandingPage() {
             {tiers.map((t) => (
               <div key={t.label} className="flex flex-col items-center gap-2 px-5 py-4 rounded-2xl transition-transform hover:-translate-y-1"
                 style={{ background: '#ffffff08', border: `1px solid ${t.glow}30`, boxShadow: `0 0 20px ${t.glow}15` }}>
-                <span className="text-4xl">{t.icon}</span>
+                <EloTierIcon tier={t.tier} size="w-10 h-10" />
                 <span className="text-xs font-bold" style={{ color: t.glow }}>{t.label}</span>
               </div>
             ))}
@@ -215,17 +256,18 @@ export default function LandingPage() {
 
           {/* Info cards */}
           <div className="grid md:grid-cols-3 gap-4 max-w-3xl mx-auto">
-            {[
-              { icon: '🎯', title: 'Teste de classificação', desc: '15 questões que definem seu elo inicial. Precisão vale 95% da nota.', glow: '#D4845A' },
-              { icon: '⚔️', title: 'Partidas ranqueadas',    desc: 'Questões nível ENEM. Acerte mais e suba de divisão — seu elo nunca cai.', glow: '#8B7CC4' },
-              { icon: '📈', title: 'Evolução contínua',      desc: 'De Bronze IV a Mestre. Cada divisão conquistada é progresso real.', glow: '#6B9E7A' },
-            ].map((c) => (
-              <div key={c.title} className="rounded-2xl p-5" style={{ background: '#ffffff07', border: `1px solid ${c.glow}25` }}>
-                <div className="text-2xl mb-3">{c.icon}</div>
-                <p className="font-bold text-white text-sm mb-1">{c.title}</p>
-                <p className="text-xs leading-relaxed" style={{ color: '#94A3B8' }}>{c.desc}</p>
-              </div>
-            ))}
+            {eloInfoCards.map((c) => {
+              const Icon = c.icon
+              return (
+                <div key={c.title} className="rounded-2xl p-5" style={{ background: '#ffffff07', border: `1px solid ${c.glow}25` }}>
+                  <div className="mb-3">
+                    <Icon className="w-6 h-6" style={{ color: c.glow }} strokeWidth={1.75} />
+                  </div>
+                  <p className="font-bold text-white text-sm mb-1">{c.title}</p>
+                  <p className="text-xs leading-relaxed" style={{ color: '#94A3B8' }}>{c.desc}</p>
+                </div>
+              )
+            })}
           </div>
         </div>
       </section>
@@ -247,7 +289,7 @@ export default function LandingPage() {
           </p>
           <Link href="/cadastro">
             <span className="inline-flex items-center gap-2 bg-white font-extrabold text-base px-10 py-4 rounded-2xl hover:bg-matema-cream transition-colors" style={{ color: '#D4845A' }}>
-              Criar conta grátis 🚀
+              Criar conta grátis
             </span>
           </Link>
         </div>
@@ -255,7 +297,11 @@ export default function LandingPage() {
 
       {/* ── FOOTER ───────────────────────────────────────────────────────── */}
       <footer className="border-t border-matema-border py-8 text-center text-sm text-matema-muted">
-        <p>© 2026 Matema. Feito com 💛 para quem quer aprender matemática de verdade.</p>
+        <p className="flex items-center justify-center gap-1.5">
+          © 2026 Matema. Feito com
+          <Heart className="w-4 h-4 text-yellow-500 fill-yellow-400" strokeWidth={1.75} />
+          para quem quer aprender matemática de verdade.
+        </p>
       </footer>
     </div>
   )

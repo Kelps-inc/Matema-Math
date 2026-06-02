@@ -3,6 +3,7 @@ import { SupabaseUserRepository } from '@/infrastructure/repositories/SupabaseUs
 import { GameBackground } from '@/presentation/components/game/GameBackground'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
+import { Zap, Coins } from 'lucide-react'
 
 export default async function LicaoLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
@@ -25,8 +26,14 @@ export default async function LicaoLayout({ children }: { children: React.ReactN
             ✕ Sair da lição
           </Link>
           <div className="flex items-center gap-3 text-sm font-semibold">
-            <span className="text-matema-primary">⚡ {profile.xp.toLocaleString('pt-BR')} XP</span>
-            <span className="text-amber-600">🪙 {profile.coins}</span>
+            <span className="flex items-center gap-1 text-matema-primary">
+              <Zap className="w-4 h-4 text-yellow-500" strokeWidth={1.75} />
+              {profile.xp.toLocaleString('pt-BR')} XP
+            </span>
+            <span className="flex items-center gap-1 text-amber-600">
+              <Coins className="w-4 h-4 text-amber-500" strokeWidth={1.75} />
+              {profile.coins}
+            </span>
           </div>
         </div>
       </header>

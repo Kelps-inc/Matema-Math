@@ -2,8 +2,10 @@ import { createClient } from '@/infrastructure/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { MathText } from '@/presentation/components/ui/MathText'
-import { ELO_TIER_ICONS, ELO_TIER_LABELS, type EloTier } from '@/domain/user/entities/User'
+import { ELO_TIER_LABELS, type EloTier } from '@/domain/user/entities/User'
+import { EloTierIcon } from '@/presentation/components/ui/EloTierIcon'
 import type { PlacementResult } from '@/app/actions/elo'
+import { CheckCircle2, XCircle, Lightbulb, Zap, Trophy } from 'lucide-react'
 
 const DIFFICULTY_LABEL: Record<string, string> = {
   easy: 'Fácil', medium: 'Médio', hard: 'Difícil',
@@ -58,7 +60,7 @@ export default async function PlacementResultPage() {
       {/* Summary card */}
       <div className="bg-white rounded-3xl border border-matema-border p-6 mb-6">
         <div className="flex items-center gap-4 mb-5">
-          <div className="text-5xl">{ELO_TIER_ICONS[tier]}</div>
+          <EloTierIcon tier={tier} size="w-12 h-12" />
           <div>
             <p className="text-xs text-matema-muted uppercase tracking-wide font-medium">Elo classificado</p>
             <p className="text-2xl font-extrabold text-matema-dark">{ELO_TIER_LABELS[tier]}{divLabel}</p>
@@ -73,8 +75,11 @@ export default async function PlacementResultPage() {
         </div>
 
         <div className="mt-4 pt-4 border-t border-matema-border flex gap-6 text-xs text-matema-muted">
-          <span>⚡ Precisão: <strong className="text-matema-dark">{result.accuracy}% × 95%</strong></span>
-          <span>⏱️ Velocidade: <strong className="text-matema-dark">{result.timeBonus}% × 5%</strong></span>
+          <span className="flex items-center gap-1">
+            <Zap className="w-3.5 h-3.5 text-yellow-500" strokeWidth={1.75} />
+            Precisão: <strong className="text-matema-dark ml-1">{result.accuracy}% × 95%</strong>
+          </span>
+          <span>Velocidade: <strong className="text-matema-dark">{result.timeBonus}% × 5%</strong></span>
         </div>
       </div>
 
@@ -90,13 +95,17 @@ export default async function PlacementResultPage() {
           >
             {/* Header row */}
             <div className="flex items-center gap-2 mb-3 flex-wrap">
-              <span className="text-lg">{a.isCorrect ? '✅' : '❌'}</span>
+              {a.isCorrect ? (
+                <CheckCircle2 className="w-5 h-5 text-green-500 flex-shrink-0" strokeWidth={1.75} />
+              ) : (
+                <XCircle className="w-5 h-5 text-red-400 flex-shrink-0" strokeWidth={1.75} />
+              )}
               <span className="text-xs font-bold text-matema-muted">#{i + 1}</span>
               <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border ${DIFFICULTY_COLOR[a.difficulty] ?? ''}`}>
                 {DIFFICULTY_LABEL[a.difficulty] ?? a.difficulty}
               </span>
               <span className="text-xs text-matema-muted">{a.topic}</span>
-              <span className="ml-auto text-xs text-matema-muted tabular-nums">⏱️ {fmtTime(a.timeMs)}</span>
+              <span className="ml-auto text-xs text-matema-muted tabular-nums">{fmtTime(a.timeMs)}</span>
             </div>
 
             {/* Question */}
@@ -119,8 +128,8 @@ export default async function PlacementResultPage() {
             </div>
 
             {/* Explanation */}
-            <div className="text-xs text-matema-muted leading-relaxed">
-              <span className="font-semibold text-matema-dark">💡 </span>
+            <div className="text-xs text-matema-muted leading-relaxed flex items-start gap-1">
+              <Lightbulb className="w-3.5 h-3.5 text-yellow-500 flex-shrink-0 mt-0.5" strokeWidth={1.75} />
               <MathText>{a.explanation}</MathText>
             </div>
           </div>
@@ -130,9 +139,10 @@ export default async function PlacementResultPage() {
       <div className="mt-8 flex gap-3">
         <Link
           href="/ranqueada"
-          className="flex-1 text-center bg-matema-primary text-white font-bold py-4 rounded-2xl hover:opacity-90 transition-opacity"
+          className="flex-1 text-center bg-matema-primary text-white font-bold py-4 rounded-2xl hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
         >
-          Jogar Ranqueada 🏆
+          Jogar Ranqueada
+          <Trophy className="w-5 h-5" strokeWidth={1.75} />
         </Link>
       </div>
     </div>
