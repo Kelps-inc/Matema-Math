@@ -141,7 +141,7 @@ export function LeaderboardClient({ entries }: { entries: LeaderboardEntry[] }) 
   return (
     <div className="space-y-2">
       {/* Header row */}
-      <div className="grid grid-cols-[2.5rem_1fr_auto_auto_auto] gap-4 px-5 text-xs font-semibold text-matema-muted uppercase tracking-wide mb-1">
+      <div className="grid grid-cols-[2.5rem_1fr_10rem_4rem_4.5rem] gap-4 px-5 text-xs font-semibold text-matema-muted uppercase tracking-wide mb-1">
         <span>#</span>
         <span>Jogador</span>
         <span className="text-right">Elo</span>
@@ -161,7 +161,7 @@ export function LeaderboardClient({ entries }: { entries: LeaderboardEntry[] }) 
           <div
             key={entry.id}
             className={`
-              grid grid-cols-[2.5rem_1fr_auto_auto_auto] gap-4 items-center
+              grid grid-cols-[2.5rem_1fr_10rem_4rem_4.5rem] gap-4 items-center
               px-5 py-4 rounded-2xl border transition-colors
               ${entry.isCurrentUser
                 ? 'bg-matema-primary/5 border-matema-primary/30 shadow-sm'
@@ -195,21 +195,21 @@ export function LeaderboardClient({ entries }: { entries: LeaderboardEntry[] }) 
             </div>
 
             {/* Elo */}
-            <div className="flex items-center gap-1.5 justify-end">
+            <div className="flex items-center gap-1.5 justify-end w-full">
               <EloTierIcon tier={entry.eloTier} size="w-4 h-4" />
-              <span className="text-sm font-semibold text-matema-dark hidden sm:inline">
+              <span className="text-sm font-semibold text-matema-dark hidden sm:inline whitespace-nowrap">
                 {ELO_TIER_LABELS[entry.eloTier]}{divLabel}
               </span>
-              <span className="text-xs text-matema-muted">{entry.eloLp} PDL</span>
+              <span className="text-xs text-matema-muted whitespace-nowrap">{entry.eloLp} PDL</span>
             </div>
 
             {/* Partidas */}
-            <span className="text-sm text-matema-muted text-right hidden sm:block">
+            <span className="text-sm text-matema-muted text-right hidden sm:block w-full">
               {rankedTotal > 0 ? rankedTotal : '—'}
             </span>
 
             {/* Precisão geral */}
-            <span className={`text-sm font-semibold text-right hidden sm:block ${overallPct !== null ? 'text-matema-dark' : 'text-matema-muted'}`}>
+            <span className={`text-sm font-semibold text-right hidden sm:block w-full ${overallPct !== null ? 'text-matema-dark' : 'text-matema-muted'}`}>
               {overallPct !== null ? `${overallPct}%` : '—'}
             </span>
           </div>
