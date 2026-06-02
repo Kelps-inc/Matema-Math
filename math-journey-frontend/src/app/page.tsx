@@ -136,41 +136,42 @@ export default function LandingPage() {
             <div className="relative max-w-sm mx-auto">
               {/* Glow behind card */}
               <div className="absolute inset-0 rounded-3xl" style={{ background: 'linear-gradient(135deg,#D4845A30,#8B7CC430)', filter: 'blur(24px)', transform: 'scale(0.9) translateY(12px)' }} />
-              <div className="relative bg-white rounded-3xl border border-matema-border shadow-xl p-6">
+              <div className="relative rounded-3xl shadow-xl p-6" style={{ background: '#1E1A14', border: '1px solid #3A3020' }}>
                 <div className="flex items-center justify-between mb-5">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full flex items-center justify-center font-extrabold text-white text-sm" style={{ background: 'linear-gradient(135deg,#D4845A,#8B7CC4)' }}>A</div>
                     <div className="text-left">
-                      <p className="font-bold text-matema-dark text-sm">Ana Silva</p>
-                      <p className="text-xs text-matema-muted">Nível 4 · 320 XP</p>
+                      <p className="font-bold text-sm" style={{ color: '#F0E8D8' }}>Ana Silva</p>
+                      <p className="text-xs" style={{ color: '#9B9188' }}>Nível 4 · 320 XP</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3 text-sm font-semibold">
-                    <span className="flex items-center gap-1 text-matema-primary bg-matema-primary/10 px-2 py-1 rounded-lg">
-                      <Zap className="w-3.5 h-3.5 text-yellow-500" strokeWidth={1.75} />
+                    <span className="flex items-center gap-1 px-2 py-1 rounded-lg" style={{ color: '#D4845A', background: 'rgba(212,132,90,0.15)' }}>
+                      <Zap className="w-3.5 h-3.5 text-yellow-400" strokeWidth={1.75} />
                       320
                     </span>
-                    <span className="flex items-center gap-1 text-amber-600 bg-amber-50 px-2 py-1 rounded-lg">
-                      <Coins className="w-3.5 h-3.5 text-amber-500" strokeWidth={1.75} />
+                    <span className="flex items-center gap-1 px-2 py-1 rounded-lg" style={{ color: '#F0B429', background: 'rgba(240,180,41,0.15)' }}>
+                      <Coins className="w-3.5 h-3.5 text-amber-400" strokeWidth={1.75} />
                       85
                     </span>
                   </div>
                 </div>
-                <div className="rounded-2xl p-4 mb-4 border" style={{ background: 'linear-gradient(135deg,#FAF8F4,#F3EDE3)', borderColor: '#E8E0D4' }}>
+                <div className="rounded-2xl p-4 mb-4" style={{ background: '#2A2018', border: '1px solid #3A3020' }}>
                   <div className="flex justify-between items-center mb-2">
-                    <p className="text-xs text-matema-muted">Questão 3 de 5</p>
-                    <span className="text-xs font-semibold text-green-600 bg-green-50 border border-green-200 px-2 py-0.5 rounded-full">Fácil</span>
+                    <p className="text-xs" style={{ color: '#9B9188' }}>Questão 3 de 5</p>
+                    <span className="text-xs font-semibold px-2 py-0.5 rounded-full" style={{ color: '#4ade80', background: 'rgba(74,222,128,0.15)', border: '1px solid rgba(74,222,128,0.3)' }}>Fácil</span>
                   </div>
-                  <div className="w-full bg-matema-border rounded-full h-1.5 mb-3 overflow-hidden">
+                  <div className="w-full rounded-full h-1.5 mb-3 overflow-hidden" style={{ background: '#3A3020' }}>
                     <div className="h-full rounded-full" style={{ width: '40%', background: 'linear-gradient(to right,#D4845A,#8B7CC4)' }} />
                   </div>
-                  <p className="font-semibold text-matema-dark text-sm">Qual é o MMC de 12 e 18?</p>
+                  <p className="font-semibold text-sm" style={{ color: '#F0E8D8' }}>Qual é o MMC de 12 e 18?</p>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   {['6', '36', '72', '24'].map((opt, i) => (
-                    <div key={opt} className={`p-3 rounded-xl border-2 text-sm font-bold text-center transition-colors
-                      ${i === 1 ? 'text-white' : 'border-matema-border text-matema-dark'}`}
-                      style={i === 1 ? { background: 'linear-gradient(135deg,#D4845A,#8B7CC4)', borderColor: 'transparent' } : {}}
+                    <div key={opt} className="p-3 rounded-xl border-2 text-sm font-bold text-center"
+                      style={i === 1
+                        ? { background: 'linear-gradient(135deg,#D4845A,#8B7CC4)', borderColor: 'transparent', color: '#fff' }
+                        : { borderColor: '#3A3020', color: '#C8BFB5', background: '#2A2018' }}
                     >{opt}</div>
                   ))}
                 </div>
