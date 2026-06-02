@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { Avatar } from '@/presentation/components/avatar/Avatar'
 import { EloTierIcon } from '@/presentation/components/ui/EloTierIcon'
 import { ELO_TIER_LABELS } from '@/domain/user/entities/User'
@@ -30,24 +30,14 @@ function AccuracyBar({ label, correct, total, color }: {
   )
 }
 
-interface CardPos { top: number; left: number }
-
-function HoverCard({ entry, pos }: { entry: LeaderboardEntry; pos: CardPos }) {
+function HoverCard({ entry }: { entry: LeaderboardEntry }) {
   const divLabel = entry.eloTier !== 'mestre' ? ` ${DIV_LABELS[entry.eloDivision] ?? ''}` : ''
   const rankedTotal   = entry.rankedEasy.total   + entry.rankedMedium.total   + entry.rankedHard.total
   const rankedCorrect = entry.rankedEasy.correct + entry.rankedMedium.correct + entry.rankedHard.correct
   const overallPct = pct(rankedCorrect, rankedTotal)
 
-  // Garante que não sai pela borda direita/inferior da viewport
-  const cardW = 288 // w-72
-  const safeLeft = Math.min(pos.left, window.innerWidth - cardW - 12)
-  const safeTop  = pos.top + 8
-
   return (
-    <div
-      className="fixed z-[9999] w-72 bg-white rounded-2xl shadow-2xl border border-matema-border p-4 pointer-events-none"
-      style={{ top: safeTop, left: safeLeft }}
-    >
+    <div className="w-72 bg-white rounded-2xl shadow-2xl border border-matema-border p-4">
       {/* Avatar + nome */}
       <div className="flex items-start gap-3 mb-3">
         <div className="shrink-0">
@@ -92,9 +82,7 @@ function HoverCard({ entry, pos }: { entry: LeaderboardEntry; pos: CardPos }) {
       {/* Precisão ranqueada */}
       <div className="border-t border-matema-border pt-3">
         <div className="flex items-center justify-between mb-2">
-          <p className="text-xs font-semibold text-matema-muted uppercase tracking-wide">
-            Precisão Ranqueada
-          </p>
+          <p className="text-xs font-semibold text-matema-muted uppercase tracking-wide">Precisão Ranqueada</p>
           {overallPct !== null && (
             <span className="text-xs font-bold text-matema-primary">{overallPct}% geral</span>
           )}
@@ -120,56 +108,66 @@ const RANK_STYLE: Record<number, string> = {
 }
 
 export function LeaderboardClient({ entries }: { entries: LeaderboardEntry[] }) {
-  const [hovered, setHovered] = useState<{ id: string; pos: CardPos } | null>(null)
+  const [hoveredId, setHoveredId] = useState<string | null>(null)
+  const listRef = useRef<HTMLDivElement>(null)
 
-  function handleEnter(e: React.SyntheticEvent, id: string) {
-    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
-    setHovered({ id, pos: { top: rect.bottom, left: rect.left } })
-  }
+  const hoveredEntry = hoveredId ? entries.find(e => e.id === hoveredId) ?? null : null
 
   return (
-    <div className="space-y-2">
-      {/* Header */}
-      <div className="grid grid-cols-[2.5rem_1fr_12rem_5rem_6rem] gap-6 px-5 text-xs font-semibold text-matema-muted uppercase tracking-wide mb-1">
-        <span>#</span>
-        <span>Jogador</span>
-        <span>Elo</span>
-        <span className="text-right hidden sm:block">Partidas</span>
-        <span className="text-right hidden sm:block">Precisão</span>
+    // O wrapper externo é o grid de duas colunas: card à esquerda | lista à direita
+    <div className="flex gap-6 items-start">
+
+      {/* Coluna esquerda: HoverCard (largura fixa, sticky) */}
+      <div className="hidden lg:block w-72 shrink-0 sticky top-24">
+        {hoveredEntry
+          ? <HoverCard entry={hoveredEntry} />
+          : (
+            <div className="w-72 rounded-2xl border-2 border-dashed border-matema-border p-6 text-center">
+              <p className="text-sm font-semibold text-matema-dark mb-1">Detalhes do jogador</p>
+              <p className="text-xs text-matema-muted">Passe o mouse sobre um jogador para ver suas estatísticas.</p>
+            </div>
+          )
+        }
       </div>
 
-      {entries.map((entry) => {
-        const divLabel    = entry.eloTier !== 'mestre' ? ` ${DIV_LABELS[entry.eloDivision] ?? ''}` : ''
-        const rankedTotal = entry.rankedEasy.total + entry.rankedMedium.total + entry.rankedHard.total
-        const rankedCorrect = entry.rankedEasy.correct + entry.rankedMedium.correct + entry.rankedHard.correct
-        const overallPct  = pct(rankedCorrect, rankedTotal)
+      {/* Coluna direita: lista do leaderboard */}
+      <div ref={listRef} className="flex-1 min-w-0 space-y-2">
+        {/* Header */}
+        <div className="grid grid-cols-[2.5rem_1fr_12rem_5rem_6rem] gap-6 px-5 text-xs font-semibold text-matema-muted uppercase tracking-wide mb-1">
+          <span>#</span>
+          <span>Jogador</span>
+          <span>Elo</span>
+          <span className="text-right hidden sm:block">Partidas</span>
+          <span className="text-right hidden sm:block">Precisão</span>
+        </div>
 
-        return (
-          <div
-            key={entry.id}
-            className={`
-              grid grid-cols-[2.5rem_1fr_12rem_5rem_6rem] gap-6 items-center
-              px-5 py-4 rounded-2xl border transition-colors
-              ${entry.isCurrentUser
-                ? 'bg-matema-primary/5 border-matema-primary/30 shadow-sm'
-                : 'bg-white border-matema-border hover:border-matema-primary/30'}
-            `}
-          >
-            {/* Rank */}
-            <span className={RANK_STYLE[entry.rank] ?? 'text-matema-muted font-semibold'}>
-              {entry.rank}
-            </span>
+        {entries.map((entry) => {
+          const divLabel      = entry.eloTier !== 'mestre' ? ` ${DIV_LABELS[entry.eloDivision] ?? ''}` : ''
+          const rankedTotal   = entry.rankedEasy.total   + entry.rankedMedium.total   + entry.rankedHard.total
+          const rankedCorrect = entry.rankedEasy.correct + entry.rankedMedium.correct + entry.rankedHard.correct
+          const overallPct    = pct(rankedCorrect, rankedTotal)
 
-            {/* Nome */}
-            <div className="min-w-0">
-              <button
-                className="text-left"
-                onMouseEnter={(e) => handleEnter(e, entry.id)}
-                onMouseLeave={() => setHovered(null)}
-                onFocus={(e) => handleEnter(e, entry.id)}
-                onBlur={() => setHovered(null)}
-              >
-                <span className={`font-semibold text-sm leading-none hover:text-matema-primary transition-colors cursor-default ${entry.isCurrentUser ? 'text-matema-primary' : 'text-matema-dark'}`}>
+          return (
+            <div
+              key={entry.id}
+              onMouseEnter={() => setHoveredId(entry.id)}
+              onMouseLeave={() => setHoveredId(null)}
+              className={`
+                grid grid-cols-[2.5rem_1fr_12rem_5rem_6rem] gap-6 items-center
+                px-5 py-4 rounded-2xl border transition-colors cursor-default
+                ${entry.isCurrentUser
+                  ? 'bg-matema-primary/5 border-matema-primary/30 shadow-sm'
+                  : 'bg-white border-matema-border hover:border-matema-primary/30'}
+              `}
+            >
+              {/* Rank */}
+              <span className={RANK_STYLE[entry.rank] ?? 'text-matema-muted font-semibold'}>
+                {entry.rank}
+              </span>
+
+              {/* Nome */}
+              <div className="min-w-0">
+                <span className={`font-semibold text-sm leading-none ${entry.isCurrentUser ? 'text-matema-primary' : 'text-matema-dark'}`}>
                   {entry.displayName}
                 </span>
                 {entry.isCurrentUser && (
@@ -177,44 +175,36 @@ export function LeaderboardClient({ entries }: { entries: LeaderboardEntry[] }) 
                     Você
                   </span>
                 )}
-              </button>
-            </div>
+              </div>
 
-            {/* Elo */}
-            <div className="flex items-center gap-1.5 justify-start w-full">
-              <EloTierIcon tier={entry.eloTier} size="w-4 h-4" />
-              <span className="text-sm font-semibold text-matema-dark hidden sm:inline whitespace-nowrap">
-                {ELO_TIER_LABELS[entry.eloTier]}{divLabel}
+              {/* Elo */}
+              <div className="flex items-center gap-1.5 justify-start w-full">
+                <EloTierIcon tier={entry.eloTier} size="w-4 h-4" />
+                <span className="text-sm font-semibold text-matema-dark hidden sm:inline whitespace-nowrap">
+                  {ELO_TIER_LABELS[entry.eloTier]}{divLabel}
+                </span>
+                <span className="text-xs text-matema-muted whitespace-nowrap">{entry.eloLp} PDL</span>
+              </div>
+
+              {/* Partidas */}
+              <span className="text-sm text-matema-muted text-right hidden sm:block w-full">
+                {rankedTotal > 0 ? rankedTotal : '—'}
               </span>
-              <span className="text-xs text-matema-muted whitespace-nowrap">{entry.eloLp} PDL</span>
+
+              {/* Precisão */}
+              <span className={`text-sm font-semibold text-right hidden sm:block w-full ${overallPct !== null ? 'text-matema-dark' : 'text-matema-muted'}`}>
+                {overallPct !== null ? `${overallPct}%` : '—'}
+              </span>
             </div>
+          )
+        })}
 
-            {/* Partidas */}
-            <span className="text-sm text-matema-muted text-right hidden sm:block w-full">
-              {rankedTotal > 0 ? rankedTotal : '—'}
-            </span>
-
-            {/* Precisão */}
-            <span className={`text-sm font-semibold text-right hidden sm:block w-full ${overallPct !== null ? 'text-matema-dark' : 'text-matema-muted'}`}>
-              {overallPct !== null ? `${overallPct}%` : '—'}
-            </span>
+        {entries.length === 0 && (
+          <div className="text-center py-20 text-matema-muted">
+            Nenhum jogador classificado ainda.
           </div>
-        )
-      })}
-
-      {entries.length === 0 && (
-        <div className="text-center py-20 text-matema-muted">
-          Nenhum jogador classificado ainda.
-        </div>
-      )}
-
-      {/* HoverCard renderizado fora do grid via fixed positioning */}
-      {hovered && entries.find(e => e.id === hovered.id) && (
-        <HoverCard
-          entry={entries.find(e => e.id === hovered.id)!}
-          pos={hovered.pos}
-        />
-      )}
+        )}
+      </div>
     </div>
   )
 }

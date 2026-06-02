@@ -10,10 +10,11 @@ function getVol(key: string) {
   return (isNaN(v) ? 50 : v) / 100
 }
 
-const FILE_TRACKS: Record<string, string> = {
-  'ghoul-helium':       '/sounds/ghoul-helium.wav',
-  'ghoul-projeto-novo': '/sounds/ghoul-projeto-novo.wav',
-}
+// Playlist do Ghoul Soundtrack — toca em sequência e faz loop
+const GHOUL_PLAYLIST = [
+  '/sounds/ghoul-helium.wav',
+  '/sounds/ghoul-projeto-novo.wav',
+]
 
 // Defaults: Washed Dreams (Projeto Novo) habilitada para novos usuários
 function getMusicEnabled(): boolean {
@@ -23,7 +24,7 @@ function getMusicEnabled(): boolean {
 }
 
 function getMusicTrack(): string {
-  return localStorage.getItem('matema_music_track') ?? 'ghoul-projeto-novo'
+  return localStorage.getItem('matema_music_track') ?? 'ghoul'
 }
 
 function broadcastState(playing: boolean) {
@@ -31,12 +32,13 @@ function broadcastState(playing: boolean) {
 }
 
 export function AudioManager() {
-  const ctxRef       = useRef<AudioContext | null>(null)
-  const synthRef     = useRef<AudioHandle | null>(null)
-  const rainRef      = useRef<AudioHandle | null>(null)
-  const fileAudioRef = useRef<HTMLAudioElement | null>(null)
-  const clickBufRef  = useRef<AudioBuffer | null>(null)
-  const pendingRef   = useRef(false)   // música deve tocar mas ainda aguarda interação
+  const ctxRef         = useRef<AudioContext | null>(null)
+  const synthRef       = useRef<AudioHandle | null>(null)
+  const rainRef        = useRef<AudioHandle | null>(null)
+  const fileAudioRef   = useRef<HTMLAudioElement | null>(null)
+  const playlistIdxRef = useRef(0)   // índice atual na playlist Ghoul
+  const clickBufRef    = useRef<AudioBuffer | null>(null)
+  const pendingRef     = useRef(false)
 
   useEffect(() => {
     const musicEnabled = getMusicEnabled()
@@ -57,32 +59,42 @@ export function AudioManager() {
       }
     }
 
+    // Inicia uma faixa de arquivo e encadeia a próxima ao terminar (playlist)
+    function playFileTrack(src: string, vol: number) {
+      stopMusicSilent()
+      const audio = new Audio(src)
+      audio.volume = vol
+      audio.onended = () => {
+        // Avança para a próxima da playlist Ghoul
+        playlistIdxRef.current = (playlistIdxRef.current + 1) % GHOUL_PLAYLIST.length
+        playFileTrack(GHOUL_PLAYLIST[playlistIdxRef.current], getVol('matema_music_volume'))
+      }
+      const promise = audio.play()
+      if (promise !== undefined) {
+        promise.then(() => {
+          pendingRef.current = false
+          broadcastState(true)
+        }).catch(() => {
+          audio.src = ''
+          pendingRef.current = true
+          broadcastState(false)
+        })
+      }
+      fileAudioRef.current = audio
+    }
+
     // Retorna true se conseguiu iniciar, false se foi bloqueado pelo browser
     function tryStartMusic(): boolean {
       stopMusicSilent()
       const track = getMusicTrack()
       const vol   = getVol('matema_music_volume')
 
-      if (FILE_TRACKS[track]) {
-        const audio = new Audio(FILE_TRACKS[track])
-        audio.loop   = true
-        audio.volume = vol
-        const promise = audio.play()
-        if (promise !== undefined) {
-          promise.then(() => {
-            fileAudioRef.current = audio
-            pendingRef.current = false
-            broadcastState(true)
-          }).catch(() => {
-            // Autoplay bloqueado — aguarda interação
-            audio.src = ''
-            pendingRef.current = true
-            broadcastState(false)
-          })
-        }
-        fileAudioRef.current = audio
+      if (track === 'ghoul') {
+        // Playlist: começa do índice atual (preserva posição ao trocar volume etc.)
+        playFileTrack(GHOUL_PLAYLIST[playlistIdxRef.current], vol)
         return true
       } else {
+        // Trilha padrão sintetizada
         if (!ctxRef.current) ctxRef.current = createAudioContext()
         const ctx = ctxRef.current
         if (!ctx) return false

@@ -181,11 +181,10 @@ export function SettingsClient() {
             {/* Seletor de trilha */}
             <div className="pb-3">
               <p className="text-xs font-semibold text-matema-muted mb-2">Trilha sonora</p>
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-2 gap-2">
                 {[
-                  { id: 'default',            label: 'Padrão',        sub: 'Trilha sintética' },
-                  { id: 'ghoul-helium',        label: 'Ghoul — Helium',      sub: 'Soundtrack' },
-                  { id: 'ghoul-projeto-novo',  label: 'Ghoul — Projeto Novo', sub: 'Soundtrack' },
+                  { id: 'default', label: 'Padrão',           sub: 'Trilha sintética' },
+                  { id: 'ghoul',   label: 'Ghoul Soundtrack', sub: 'Helium + Projeto Novo' },
                 ].map((t) => (
                   <button
                     key={t.id}
