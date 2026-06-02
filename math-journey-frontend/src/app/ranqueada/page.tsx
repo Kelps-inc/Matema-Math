@@ -9,12 +9,12 @@ import { Swords } from 'lucide-react'
 const TIER_ORDER: EloTier[] = ['bronze', 'prata', 'ouro', 'platina', 'diamante', 'mestre']
 
 const TIER_COLORS: Record<EloTier, string> = {
-  bronze:   'from-orange-100 to-amber-50  border-orange-200',
-  prata:    'from-slate-100  to-gray-50   border-slate-200',
-  ouro:     'from-yellow-100 to-amber-50  border-yellow-200',
-  platina:  'from-cyan-100   to-sky-50    border-cyan-200',
-  diamante: 'from-blue-100   to-indigo-50 border-blue-200',
-  mestre:   'from-purple-100 to-violet-50 border-purple-200',
+  bronze:   'from-orange-100 to-amber-50   border-orange-200  dark:from-orange-950/50 dark:to-amber-950/40   dark:border-orange-800/50',
+  prata:    'from-slate-100  to-gray-50    border-slate-200   dark:from-slate-900/60  dark:to-gray-900/50   dark:border-slate-700/50',
+  ouro:     'from-yellow-100 to-amber-50   border-yellow-200  dark:from-yellow-950/50 dark:to-amber-950/40   dark:border-yellow-800/50',
+  platina:  'from-cyan-100   to-sky-50     border-cyan-200    dark:from-cyan-950/50   dark:to-sky-950/40    dark:border-cyan-800/50',
+  diamante: 'from-blue-100   to-indigo-50  border-blue-200    dark:from-blue-950/50   dark:to-indigo-950/40 dark:border-blue-800/50',
+  mestre:   'from-purple-100 to-violet-50  border-purple-200  dark:from-purple-950/50 dark:to-violet-950/40 dark:border-purple-800/50',
 }
 
 export default async function RanqueadaPage() {
@@ -56,7 +56,7 @@ export default async function RanqueadaPage() {
               <span className="font-semibold">{profile.eloLp} PDL</span>
               <span>100 PDL</span>
             </div>
-            <div className="h-3 bg-gray-200 rounded-full overflow-hidden">
+            <div className="h-3 bg-gray-200 dark:bg-white/10 rounded-full overflow-hidden">
               <div
                 className="h-full bg-matema-primary rounded-full transition-all duration-500"
                 style={{ width: `${profile.eloLp}%` }}

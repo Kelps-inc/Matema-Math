@@ -38,6 +38,34 @@ html.dark header {
   border-color: #3A3020 !important;
 }
 
+/* ── Dark mode: semantic color overrides ──────────────────
+   Corrige os hardcoded Tailwind -50/-100/-200 usados em
+   feedback de exercícios, badges, cards de elo, etc.
+────────────────────────────────────────────────────────── */
+html.dark .bg-green-50  { background-color: rgba(20,  83,  45, 0.22) !important; }
+html.dark .bg-green-100 { background-color: rgba(20,  83,  45, 0.32) !important; }
+html.dark .bg-red-50    { background-color: rgba(127, 29,  29, 0.22) !important; }
+html.dark .bg-red-100   { background-color: rgba(127, 29,  29, 0.32) !important; }
+html.dark .bg-amber-50  { background-color: rgba(120, 53,  15, 0.22) !important; }
+html.dark .bg-amber-100 { background-color: rgba(120, 53,  15, 0.32) !important; }
+html.dark .bg-yellow-50 { background-color: rgba(113, 63,  18, 0.22) !important; }
+html.dark .bg-yellow-100{ background-color: rgba(113, 63,  18, 0.32) !important; }
+html.dark .bg-gray-200  { background-color: #3A3020 !important; }
+html.dark .bg-gray-50   { background-color: #231D17 !important; }
+
+html.dark .text-green-700,
+html.dark .text-green-800 { color: #86efac !important; }
+html.dark .text-red-600,
+html.dark .text-red-700,
+html.dark .text-red-800   { color: #fca5a5 !important; }
+html.dark .text-amber-600,
+html.dark .text-amber-700 { color: #fcd34d !important; }
+
+html.dark .border-green-200 { border-color: rgba(20,  83,  45, 0.45) !important; }
+html.dark .border-red-200   { border-color: rgba(127, 29,  29, 0.45) !important; }
+html.dark .border-red-300   { border-color: rgba(127, 29,  29, 0.60) !important; }
+html.dark .border-amber-200 { border-color: rgba(120, 53,  15, 0.45) !important; }
+
 * {
   box-sizing: border-box;
 }
