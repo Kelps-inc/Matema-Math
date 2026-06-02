@@ -20,49 +20,49 @@ export function GameHeader({ user }: GameHeaderProps) {
         <img src="/matema-logo.png" alt="Matema" style={{ height: '65px', width: 'auto', display: 'block' }} />
       </Link>
 
-      <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between gap-4">
+      <div className="max-w-screen-xl mx-auto px-6 h-14 flex items-center justify-between gap-2">
         <div className="shrink-0 w-20" />
 
-        <nav className="hidden sm:flex items-center gap-1">
-          <Link href="/modulos" className="px-4 py-2 text-sm font-medium text-white/70 hover:text-white hover:bg-white/10 rounded-xl transition-colors">
+        <nav className="hidden sm:flex items-center gap-0.5">
+          <Link href="/modulos" className="px-3 py-2 text-sm font-medium text-white/70 hover:text-white hover:bg-white/10 rounded-xl transition-colors">
             Tutorial
           </Link>
-          <Link href="/loja" className="px-4 py-2 text-sm font-medium text-white/70 hover:text-white hover:bg-white/10 rounded-xl transition-colors">
+          <Link href="/loja" className="px-3 py-2 text-sm font-medium text-white/70 hover:text-white hover:bg-white/10 rounded-xl transition-colors">
             Loja
           </Link>
-          <Link href="/ranqueada" className="flex flex-col items-center justify-center gap-0.5 px-5 py-1.5 font-bold text-orange-400 border-2 border-orange-400/60 bg-orange-400/10 hover:bg-orange-400/20 rounded-xl transition-colors shadow-[0_2px_12px_rgba(251,146,60,0.3)]">
+          <Link href="/ranqueada" className="flex flex-col items-center justify-center gap-0.5 px-4 py-1.5 font-bold text-orange-400 border-2 border-orange-400/60 bg-orange-400/10 hover:bg-orange-400/20 rounded-xl transition-colors shadow-[0_2px_12px_rgba(251,146,60,0.3)]">
             <Trophy className="w-5 h-5" strokeWidth={1.75} />
             <span className="text-sm leading-none">Ranqueada</span>
           </Link>
-          <Link href="/avatar" className="px-4 py-2 text-sm font-medium text-white/70 hover:text-white hover:bg-white/10 rounded-xl transition-colors">
+          <Link href="/avatar" className="px-3 py-2 text-sm font-medium text-white/70 hover:text-white hover:bg-white/10 rounded-xl transition-colors">
             Avatar
           </Link>
-          <Link href="/dashboard" className="px-4 py-2 text-sm font-medium text-white/70 hover:text-white hover:bg-white/10 rounded-xl transition-colors">
+          <Link href="/dashboard" className="px-3 py-2 text-sm font-medium text-white/70 hover:text-white hover:bg-white/10 rounded-xl transition-colors">
             Progresso
           </Link>
-          <Link href="/leaderboard" className="px-4 py-2 text-sm font-medium text-white/70 hover:text-white hover:bg-white/10 rounded-xl transition-colors">
+          <Link href="/leaderboard" className="px-3 py-2 text-sm font-medium text-white/70 hover:text-white hover:bg-white/10 rounded-xl transition-colors">
             Ranking
           </Link>
         </nav>
 
-        <div className="flex items-center gap-3">
-          <div className="hidden md:flex items-center gap-3 bg-black/30 border border-white/15 rounded-2xl px-4 py-2">
-            <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-2">
+          <div className="hidden md:flex items-center gap-2 bg-black/30 border border-white/15 rounded-2xl px-3 py-1.5">
+            <div className="flex items-center gap-1">
               <Zap className="w-4 h-4 text-yellow-400" strokeWidth={2} />
               <span className="text-sm font-bold text-white">{user.xp.toLocaleString('pt-BR')}</span>
             </div>
             <div className="w-px h-4 bg-white/20" />
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-1">
               <Coins className="w-4 h-4 text-amber-400" strokeWidth={2} />
               <span className="text-sm font-bold text-white">{user.coins}</span>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            <div className="w-9 h-9 bg-white/20 rounded-full flex items-center justify-center text-base font-bold text-white">
+          <div className="flex items-center gap-1.5">
+            <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center text-sm font-bold text-white shrink-0">
               {user.displayName.charAt(0).toUpperCase()}
             </div>
-            <div className="hidden sm:block">
+            <div className="hidden lg:block">
               <p className="text-xs font-semibold text-white leading-none">{user.displayName}</p>
               <p className="text-xs text-white/60 leading-none">Nível {user.level}</p>
             </div>
@@ -70,16 +70,16 @@ export function GameHeader({ user }: GameHeaderProps) {
 
           <Link
             href="/configuracoes"
-            className="text-xs text-white/60 hover:text-white px-3 py-2 rounded-xl hover:bg-white/10 transition-colors flex items-center gap-1.5"
+            className="text-white/60 hover:text-white p-2 rounded-xl hover:bg-white/10 transition-colors"
+            title="Configurações"
           >
-            <span>Config</span>
-            <Settings className="w-3.5 h-3.5" strokeWidth={2} />
+            <Settings className="w-4 h-4" strokeWidth={2} />
           </Link>
 
           <form action={signOut}>
             <button
               type="submit"
-              className="text-xs text-white/60 hover:text-white px-3 py-2 rounded-xl hover:bg-white/10 transition-colors"
+              className="text-xs text-white/60 hover:text-white px-2.5 py-2 rounded-xl hover:bg-white/10 transition-colors"
             >
               Sair
             </button>
