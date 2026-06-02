@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { LandingBackground } from '@/presentation/components/landing/LandingBackground'
+import { LandingMusicPlayer } from '@/presentation/components/landing/LandingMusicPlayer'
 import { EloTierIcon } from '@/presentation/components/ui/EloTierIcon'
 import type { EloTier } from '@/domain/user/entities/User'
 import type { LucideIcon } from 'lucide-react'
@@ -294,6 +295,9 @@ export default function LandingPage() {
           </Link>
         </div>
       </section>
+
+      {/* ── MUSIC PLAYER ─────────────────────────────────────────────────── */}
+      <LandingMusicPlayer />
 
       {/* ── FOOTER ───────────────────────────────────────────────────────── */}
       <footer className="border-t border-matema-border py-8 text-center text-sm text-matema-muted">
