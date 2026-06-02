@@ -40,6 +40,9 @@ export function GameHeader({ user }: GameHeaderProps) {
           <Link href="/dashboard" className="px-4 py-2 text-sm font-medium text-white/70 hover:text-white hover:bg-white/10 rounded-xl transition-colors">
             Progresso
           </Link>
+          <Link href="/leaderboard" className="px-4 py-2 text-sm font-medium text-white/70 hover:text-white hover:bg-white/10 rounded-xl transition-colors">
+            Ranking
+          </Link>
         </nav>
 
         <div className="flex items-center gap-3">
