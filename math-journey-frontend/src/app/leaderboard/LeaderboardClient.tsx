@@ -144,7 +144,7 @@ export function LeaderboardClient({ entries }: { entries: LeaderboardEntry[] }) 
       <div className="grid grid-cols-[2.5rem_1fr_12rem_5rem_6rem] gap-6 px-5 text-xs font-semibold text-matema-muted uppercase tracking-wide mb-1">
         <span>#</span>
         <span>Jogador</span>
-        <span className="text-right">Elo</span>
+        <span>Elo</span>
         <span className="text-right hidden sm:block">Partidas</span>
         <span className="text-right hidden sm:block">Precisão</span>
       </div>
@@ -195,7 +195,7 @@ export function LeaderboardClient({ entries }: { entries: LeaderboardEntry[] }) 
             </div>
 
             {/* Elo */}
-            <div className="flex items-center gap-1.5 justify-end w-full">
+            <div className="flex items-center gap-1.5 justify-start w-full">
               <EloTierIcon tier={entry.eloTier} size="w-4 h-4" />
               <span className="text-sm font-semibold text-matema-dark hidden sm:inline whitespace-nowrap">
                 {ELO_TIER_LABELS[entry.eloTier]}{divLabel}
