@@ -23,8 +23,13 @@ function getMusicEnabled(): boolean {
   return stored === 'true'
 }
 
+// Faixas avulsas que tocam em loop simples (não entram na playlist)
+const LOOP_TRACKS: Record<string, string> = {
+  'ghoul-projeto-novo': '/sounds/ghoul-projeto-novo.wav',
+}
+
 function getMusicTrack(): string {
-  return localStorage.getItem('matema_music_track') ?? 'ghoul'
+  return localStorage.getItem('matema_music_track') ?? 'ghoul-projeto-novo'
 }
 
 function broadcastState(playing: boolean) {
@@ -104,6 +109,16 @@ export function AudioManager() {
 
       if (track === 'ghoul') {
         startGhoulPlaylist(vol)
+        return true
+      } else if (LOOP_TRACKS[track]) {
+        // Faixa avulsa em loop simples (ex: Washed Dreams no menu)
+        const audio = new Audio(LOOP_TRACKS[track])
+        audio.loop   = true
+        audio.volume = vol
+        audio.play()
+          .then(() => { pendingRef.current = false; broadcastState(true) })
+          .catch(() => { pendingRef.current = true;  broadcastState(false) })
+        fileAudioRef.current = audio
         return true
       } else {
         // Trilha padrão sintetizada

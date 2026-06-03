@@ -184,7 +184,7 @@ export function SettingsClient() {
               <div className="grid grid-cols-2 gap-2">
                 {[
                   { id: 'default', label: 'Padrão',           sub: 'Trilha sintética' },
-                  { id: 'ghoul',   label: 'Ghoul Soundtrack', sub: 'Helium + Projeto Novo' },
+                  { id: 'ghoul',   label: 'Ghoul Soundtrack', sub: 'Músicas originais feitas pelo adm (:' },
                 ].map((t) => (
                   <button
                     key={t.id}
