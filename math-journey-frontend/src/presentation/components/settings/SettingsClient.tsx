@@ -15,6 +15,7 @@ import {
   Trash2,
   CheckCircle2,
   Volume2,
+  VolumeX,
 } from 'lucide-react'
 
 function Toggle({ enabled, onToggle, label, description, icon }: {
@@ -138,6 +139,26 @@ export function SettingsClient() {
     localStorage.setItem('matema_sfx_volume', String(v))
   }
 
+  function muteAll() {
+    // Desliga música
+    if (music) {
+      setMusic(false)
+      localStorage.setItem('matema_music_enabled', 'false')
+      window.dispatchEvent(new CustomEvent('matema:music-toggle', { detail: { enabled: false } }))
+    }
+    // Desliga chuva
+    if (rain) {
+      setRain(false)
+      localStorage.setItem('matema_rain_enabled', 'false')
+      window.dispatchEvent(new CustomEvent('matema:rain-toggle', { detail: { enabled: false } }))
+    }
+    // Desliga SFX
+    if (sfx) {
+      setSfx(false)
+      localStorage.setItem('matema_sfx_enabled', 'false')
+    }
+  }
+
   function toggleTheme() {
     const next = !dark
     setDark(next)
@@ -169,6 +190,23 @@ export function SettingsClient() {
 
       {/* Áudio */}
       <Section title="Áudio">
+        {/* Botão mute geral */}
+        <div className="flex items-center justify-between py-3 border-b border-matema-border">
+          <p className="text-xs text-matema-muted">Desligar tudo de uma vez</p>
+          <button
+            onClick={muteAll}
+            disabled={!music && !rain && !sfx}
+            className={cn(
+              'flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-colors',
+              (!music && !rain && !sfx)
+                ? 'bg-matema-border text-matema-muted cursor-not-allowed'
+                : 'bg-matema-dark text-white hover:opacity-80'
+            )}
+          >
+            <VolumeX className="w-3.5 h-3.5" strokeWidth={2} />
+            Audio off
+          </button>
+        </div>
         <Toggle
           icon={<Music className="w-5 h-5 text-matema-primary" strokeWidth={1.75} />}
           label="Música ambiente"
