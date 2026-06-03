@@ -9,7 +9,7 @@ export function LandingBackground() {
         backgroundSize: 'cover',
         backgroundRepeat: 'no-repeat',
         backgroundAttachment: 'fixed',
-        opacity: 0.18,
+        opacity: 0.55,
       }}
     />
   )
