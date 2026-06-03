@@ -192,7 +192,7 @@ export default function LandingPage() {
               const Icon = m.icon
               return (
                 <div key={m.title} className="bg-white rounded-2xl p-5 text-center group hover:-translate-y-1 transition-transform" style={{ border: `2px solid ${m.color}40` }}>
-                  <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-3 transition-transform group-hover:scale-110" style={{ background: `${m.color}35` }}>
+                  <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-3 transition-transform group-hover:scale-110" style={{ background: `${m.color}70` }}>
                     <Icon className="w-7 h-7" style={{ color: m.color }} strokeWidth={1.75} />
                   </div>
                   <p className="font-bold text-matema-dark text-sm mb-1">{m.title}</p>
@@ -212,7 +212,7 @@ export default function LandingPage() {
             const Icon = f.icon
             return (
               <div key={f.title} className="bg-white rounded-3xl p-6 flex gap-4 hover:-translate-y-0.5 transition-transform" style={{ border: `1.5px solid ${f.color}40`, borderLeft: `4px solid ${f.color}` }}>
-                <div className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0" style={{ background: `${f.color}35` }}>
+                <div className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0" style={{ background: `${f.color}70` }}>
                   <Icon className="w-6 h-6" style={{ color: f.color }} strokeWidth={1.75} />
                 </div>
                 <div>

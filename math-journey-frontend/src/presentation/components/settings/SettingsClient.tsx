@@ -214,7 +214,7 @@ export function SettingsClient() {
             )}
           >
             {allOff
-              ? <><Volume2 className="w-3.5 h-3.5" strokeWidth={2} /> Ligar tudo</>
+              ? <><Volume2 className="w-3.5 h-3.5" strokeWidth={2} /> Ligar som</>
               : <><VolumeX className="w-3.5 h-3.5" strokeWidth={2} /> Audio off</>
             }
           </button>
