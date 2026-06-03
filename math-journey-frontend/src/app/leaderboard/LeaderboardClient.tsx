@@ -133,7 +133,7 @@ export function LeaderboardClient({ entries }: { entries: LeaderboardEntry[] }) 
       {/* Coluna direita: lista do leaderboard */}
       <div ref={listRef} className="flex-1 min-w-0 space-y-2">
         {/* Header */}
-        <div className="grid grid-cols-[2rem_1fr_9rem_4rem_4.5rem] gap-3 px-4 text-xs font-semibold text-matema-muted uppercase tracking-wide mb-1">
+        <div className="grid grid-cols-[2rem_1fr_9rem_5rem_5.5rem] gap-4 px-4 text-xs font-semibold text-matema-muted uppercase tracking-wide mb-1">
           <span>#</span>
           <span>Jogador</span>
           <span>Elo</span>
@@ -153,7 +153,7 @@ export function LeaderboardClient({ entries }: { entries: LeaderboardEntry[] }) 
               onMouseEnter={() => setHoveredId(entry.id)}
               onMouseLeave={() => setHoveredId(null)}
               className={`
-                grid grid-cols-[2rem_1fr_9rem_4rem_4.5rem] gap-3 items-center
+                grid grid-cols-[2rem_1fr_9rem_5rem_5.5rem] gap-4 items-center
                 px-4 py-4 rounded-2xl border transition-colors cursor-default
                 ${entry.isCurrentUser
                   ? 'bg-matema-primary/5 border-matema-primary/30 shadow-sm'

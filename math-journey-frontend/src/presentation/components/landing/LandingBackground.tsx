@@ -4,7 +4,7 @@ export function LandingBackground() {
       className="fixed inset-0 pointer-events-none overflow-hidden z-0"
       aria-hidden="true"
       style={{
-        backgroundImage: 'url(/backgrounds/landing-math.png)',
+        backgroundImage: 'url(/backgrounds/matema_background_melhorada.png)',
         backgroundPosition: 'center bottom',
         backgroundSize: 'cover',
         backgroundRepeat: 'no-repeat',
