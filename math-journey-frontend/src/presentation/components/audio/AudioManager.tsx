@@ -59,28 +59,41 @@ export function AudioManager() {
       }
     }
 
-    // Inicia uma faixa de arquivo e encadeia a próxima ao terminar (playlist)
-    function playFileTrack(src: string, vol: number) {
-      stopMusicSilent()
-      const audio = new Audio(src)
-      audio.volume = vol
-      audio.onended = () => {
-        // Avança para a próxima da playlist Ghoul
-        playlistIdxRef.current = (playlistIdxRef.current + 1) % GHOUL_PLAYLIST.length
-        playFileTrack(GHOUL_PLAYLIST[playlistIdxRef.current], getVol('matema_music_volume'))
+    // Inicia a playlist Ghoul reutilizando sempre o mesmo elemento <audio>
+    // (reusar o elemento evita que o browser bloqueie o autoplay nas faixas seguintes)
+    function startGhoulPlaylist(vol: number) {
+      synthRef.current?.stop()
+      synthRef.current = null
+
+      // Cria o elemento uma única vez
+      if (!fileAudioRef.current) {
+        const audio = new Audio()
+        audio.volume = vol
+        audio.onended = () => {
+          playlistIdxRef.current = (playlistIdxRef.current + 1) % GHOUL_PLAYLIST.length
+          if (fileAudioRef.current) {
+            fileAudioRef.current.src = GHOUL_PLAYLIST[playlistIdxRef.current]
+            fileAudioRef.current.load()
+            fileAudioRef.current.play().catch(() => {})
+          }
+        }
+        fileAudioRef.current = audio
       }
-      const promise = audio.play()
+
+      fileAudioRef.current.volume = vol
+      fileAudioRef.current.src = GHOUL_PLAYLIST[playlistIdxRef.current]
+      fileAudioRef.current.load()
+
+      const promise = fileAudioRef.current.play()
       if (promise !== undefined) {
         promise.then(() => {
           pendingRef.current = false
           broadcastState(true)
         }).catch(() => {
-          audio.src = ''
           pendingRef.current = true
           broadcastState(false)
         })
       }
-      fileAudioRef.current = audio
     }
 
     // Retorna true se conseguiu iniciar, false se foi bloqueado pelo browser
@@ -90,8 +103,7 @@ export function AudioManager() {
       const vol   = getVol('matema_music_volume')
 
       if (track === 'ghoul') {
-        // Playlist: começa do índice atual (preserva posição ao trocar volume etc.)
-        playFileTrack(GHOUL_PLAYLIST[playlistIdxRef.current], vol)
+        startGhoulPlaylist(vol)
         return true
       } else {
         // Trilha padrão sintetizada
