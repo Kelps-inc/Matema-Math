@@ -39,8 +39,15 @@ export function LandingMusicPlayer() {
     const next = !playing
     setPlaying(next)
     localStorage.setItem('matema_music_enabled', String(next))
-    // Delega ao AudioManager global — sem criar Audio próprio
-    window.dispatchEvent(new CustomEvent('matema:music-toggle', { detail: { enabled: next } }))
+
+    if (next) {
+      // Sempre força Washed Dreams na landing — nunca usa o track do localStorage
+      window.dispatchEvent(new CustomEvent('matema:music-force', {
+        detail: { track: 'ghoul-projeto-novo' }
+      }))
+    } else {
+      window.dispatchEvent(new CustomEvent('matema:music-toggle', { detail: { enabled: false } }))
+    }
   }
 
   if (!visible) return null
