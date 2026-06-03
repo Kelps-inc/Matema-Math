@@ -9,18 +9,22 @@ export function LandingMusicPlayer() {
   const [fadeIn,  setFadeIn]  = useState(false)
 
   useEffect(() => {
-    // Lê estado inicial do localStorage
     const enabled = localStorage.getItem('matema_music_enabled')
-    // Se nunca definido (novo usuário), default é true (AudioManager já inicia)
-    setPlaying(enabled === null ? true : enabled === 'true')
+    const isEnabled = enabled === null ? true : enabled === 'true'
+    setPlaying(isEnabled)
 
-    // Escuta mudanças de estado do AudioManager global
+    // Força sempre Washed Dreams do começo na landing, ignorando localStorage de track
+    if (isEnabled) {
+      window.dispatchEvent(new CustomEvent('matema:music-force', {
+        detail: { track: 'ghoul-projeto-novo' }
+      }))
+    }
+
     function onState(e: Event) {
       setPlaying((e as CustomEvent<{ playing: boolean }>).detail.playing)
     }
     window.addEventListener('matema:music-state', onState)
 
-    // Aparece após 1.2s
     const t1 = setTimeout(() => setVisible(true), 1200)
     const t2 = setTimeout(() => setFadeIn(true),  1250)
 

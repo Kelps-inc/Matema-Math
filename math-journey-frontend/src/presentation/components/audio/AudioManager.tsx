@@ -165,6 +165,23 @@ export function AudioManager() {
       rainRef.current = null
     }
 
+    // Força uma faixa específica imediatamente (sem alterar localStorage)
+    // Usado pela landing page para garantir que toca Washed Dreams
+    function handleForce(e: Event) {
+      const { track } = (e as CustomEvent<{ track: string }>).detail
+      stopMusicSilent()
+      const vol = getVol('matema_music_volume')
+      if (LOOP_TRACKS[track]) {
+        const audio = new Audio(LOOP_TRACKS[track])
+        audio.loop   = true
+        audio.volume = vol
+        audio.play()
+          .then(() => { pendingRef.current = false; broadcastState(true) })
+          .catch(() => { pendingRef.current = true;  broadcastState(false) })
+        fileAudioRef.current = audio
+      }
+    }
+
     function handleToggle(e: Event) {
       const { enabled } = (e as CustomEvent<{ enabled: boolean }>).detail
       localStorage.setItem('matema_music_enabled', String(enabled))
@@ -230,6 +247,7 @@ export function AudioManager() {
       src.start()
     }
 
+    window.addEventListener('matema:music-force',  handleForce)
     window.addEventListener('matema:music-toggle', handleToggle)
     window.addEventListener('matema:music-volume', handleVolume)
     window.addEventListener('matema:music-track',  handleTrackChange)
@@ -238,6 +256,7 @@ export function AudioManager() {
     document.addEventListener('click', handleClickSfx, true)
 
     return () => {
+      window.removeEventListener('matema:music-force',  handleForce)
       window.removeEventListener('matema:music-toggle', handleToggle)
       window.removeEventListener('matema:music-volume', handleVolume)
       window.removeEventListener('matema:music-track',  handleTrackChange)
