@@ -139,23 +139,32 @@ export function SettingsClient() {
     localStorage.setItem('matema_sfx_volume', String(v))
   }
 
+  const allOff = !music && !rain && !sfx
+
   function muteAll() {
-    // Desliga música
-    if (music) {
-      setMusic(false)
-      localStorage.setItem('matema_music_enabled', 'false')
-      window.dispatchEvent(new CustomEvent('matema:music-toggle', { detail: { enabled: false } }))
-    }
-    // Desliga chuva
-    if (rain) {
-      setRain(false)
-      localStorage.setItem('matema_rain_enabled', 'false')
-      window.dispatchEvent(new CustomEvent('matema:rain-toggle', { detail: { enabled: false } }))
-    }
-    // Desliga SFX
-    if (sfx) {
-      setSfx(false)
-      localStorage.setItem('matema_sfx_enabled', 'false')
+    if (allOff) {
+      // Religar: restaura música e SFX (padrão)
+      setMusic(true)
+      localStorage.setItem('matema_music_enabled', 'true')
+      window.dispatchEvent(new CustomEvent('matema:music-toggle', { detail: { enabled: true } }))
+      setSfx(true)
+      localStorage.setItem('matema_sfx_enabled', 'true')
+    } else {
+      // Desligar tudo
+      if (music) {
+        setMusic(false)
+        localStorage.setItem('matema_music_enabled', 'false')
+        window.dispatchEvent(new CustomEvent('matema:music-toggle', { detail: { enabled: false } }))
+      }
+      if (rain) {
+        setRain(false)
+        localStorage.setItem('matema_rain_enabled', 'false')
+        window.dispatchEvent(new CustomEvent('matema:rain-toggle', { detail: { enabled: false } }))
+      }
+      if (sfx) {
+        setSfx(false)
+        localStorage.setItem('matema_sfx_enabled', 'false')
+      }
     }
   }
 
@@ -192,19 +201,22 @@ export function SettingsClient() {
       <Section title="Áudio">
         {/* Botão mute geral */}
         <div className="flex items-center justify-between py-3 border-b border-matema-border">
-          <p className="text-xs text-matema-muted">Desligar tudo de uma vez</p>
+          <p className="text-xs text-matema-muted">
+            {allOff ? 'Som desligado' : 'Desligar tudo de uma vez'}
+          </p>
           <button
             onClick={muteAll}
-            disabled={!music && !rain && !sfx}
             className={cn(
-              'flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-colors',
-              (!music && !rain && !sfx)
-                ? 'bg-matema-border text-matema-muted cursor-not-allowed'
-                : 'bg-matema-dark text-white hover:opacity-80'
+              'flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all hover:scale-105 active:scale-95',
+              allOff
+                ? 'bg-matema-secondary text-white shadow-md'
+                : 'bg-red-500 text-white shadow-md hover:bg-red-600'
             )}
           >
-            <VolumeX className="w-3.5 h-3.5" strokeWidth={2} />
-            Audio off
+            {allOff
+              ? <><Volume2 className="w-3.5 h-3.5" strokeWidth={2} /> Ligar tudo</>
+              : <><VolumeX className="w-3.5 h-3.5" strokeWidth={2} /> Audio off</>
+            }
           </button>
         </div>
         <Toggle
