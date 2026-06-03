@@ -25,7 +25,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="pt-BR" className={`${nunito.variable} ${orbitron.variable}`}>
+    <html lang="pt-BR" className={`${nunito.variable} ${orbitron.variable}`} suppressHydrationWarning>
       <body className="min-h-screen bg-matema-cream text-matema-dark antialiased">
         {/* Aplica tema escuro antes da hidratação para evitar flash */}
         <script dangerouslySetInnerHTML={{ __html: `try{if(localStorage.getItem('matema_theme')==='dark')document.documentElement.classList.add('dark')}catch{}` }} />

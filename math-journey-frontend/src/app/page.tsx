@@ -182,21 +182,22 @@ export default function LandingPage() {
       </section>
 
       {/* ── MÓDULOS ──────────────────────────────────────────────────────── */}
-      <section className="py-20 border-y border-matema-border" style={{ background: 'linear-gradient(180deg,#F3EDE3 0%,#FAF8F4 100%)' }}>
-        <div className="max-w-5xl mx-auto px-4">
-          <h2 className="text-2xl md:text-3xl font-extrabold text-matema-dark text-center mb-2">Trilha completa para o ENEM</h2>
-          <p className="text-matema-muted text-center mb-10">4 módulos com dezenas de lições e exercícios contextualizados</p>
+      <section className="py-20 relative overflow-hidden" style={{ backgroundImage: 'url(/backgrounds/arte-fundo-matema.png)', backgroundSize: 'cover', backgroundPosition: 'center' }}>
+        <div className="absolute inset-0" style={{ background: 'rgba(0,0,0,0.35)' }} />
+        <div className="max-w-5xl mx-auto px-4 relative z-10">
+          <h2 className="text-2xl md:text-3xl font-extrabold text-center mb-2" style={{ color: '#F0E8D8' }}>Trilha completa para o ENEM</h2>
+          <p className="text-center mb-10" style={{ color: '#C8BFB5' }}>4 módulos com dezenas de lições e exercícios contextualizados</p>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {modules.map((m) => {
               const Icon = m.icon
               return (
-                <div key={m.title} className="bg-white rounded-2xl p-5 text-center group hover:-translate-y-1 transition-transform" style={{ border: `2px solid ${m.color}40` }}>
-                  <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-3 transition-transform group-hover:scale-110" style={{ background: `${m.color}70` }}>
-                    <Icon className="w-7 h-7" style={{ color: m.color }} strokeWidth={1.75} />
+                <div key={m.title} className="rounded-2xl p-5 text-center hover:-translate-y-1 transition-transform" style={{ background: 'rgba(0,0,0,0.40)', backdropFilter: 'blur(8px)', border: `2px solid ${m.color}60` }}>
+                  <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-3" style={{ background: m.color }}>
+                    <Icon className="w-7 h-7" style={{ color: '#ffffff' }} strokeWidth={1.75} />
                   </div>
-                  <p className="font-bold text-matema-dark text-sm mb-1">{m.title}</p>
-                  <p className="text-xs text-matema-muted">{m.desc}</p>
+                  <p className="font-bold text-sm mb-1" style={{ color: '#F0E8D8' }}>{m.title}</p>
+                  <p className="text-xs" style={{ color: '#C8BFB5' }}>{m.desc}</p>
                 </div>
               )
             })}
@@ -205,23 +206,26 @@ export default function LandingPage() {
       </section>
 
       {/* ── FEATURES ─────────────────────────────────────────────────────── */}
-      <section className="max-w-5xl mx-auto px-4 py-20">
-        <h2 className="text-2xl md:text-3xl font-extrabold text-matema-dark text-center mb-10">Por que o Matema é diferente?</h2>
+      <section className="py-20 relative overflow-hidden" style={{ backgroundImage: 'url(/backgrounds/arte-fundo-matema.png)', backgroundSize: 'cover', backgroundPosition: 'center' }}>
+        <div className="absolute inset-0" style={{ background: 'rgba(0,0,0,0.45)' }} />
+        <div className="max-w-5xl mx-auto px-4 relative z-10">
+        <h2 className="text-2xl md:text-3xl font-extrabold text-center mb-10" style={{ color: '#F0E8D8' }}>Por que o Matema é diferente?</h2>
         <div className="grid md:grid-cols-2 gap-5">
           {features.map((f) => {
             const Icon = f.icon
             return (
-              <div key={f.title} className="bg-white rounded-3xl p-6 flex gap-4 hover:-translate-y-0.5 transition-transform" style={{ border: `1.5px solid ${f.color}40`, borderLeft: `4px solid ${f.color}` }}>
-                <div className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0" style={{ background: `${f.color}70` }}>
-                  <Icon className="w-6 h-6" style={{ color: f.color }} strokeWidth={1.75} />
+              <div key={f.title} className="rounded-3xl p-6 flex gap-4 hover:-translate-y-0.5 transition-transform" style={{ background: 'rgba(0,0,0,0.40)', backdropFilter: 'blur(8px)', border: `1.5px solid rgba(255,255,255,0.1)`, borderLeft: `4px solid ${f.color}` }}>
+                <div className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0" style={{ background: f.color }}>
+                  <Icon className="w-6 h-6" style={{ color: '#ffffff' }} strokeWidth={1.75} />
                 </div>
                 <div>
-                  <h3 className="font-bold text-matema-dark mb-1">{f.title}</h3>
-                  <p className="text-sm text-matema-muted leading-relaxed">{f.desc}</p>
+                  <h3 className="font-bold mb-1" style={{ color: '#F0E8D8' }}>{f.title}</h3>
+                  <p className="text-sm leading-relaxed" style={{ color: '#C8BFB5' }}>{f.desc}</p>
                 </div>
               </div>
             )
           })}
+        </div>
         </div>
       </section>
 
