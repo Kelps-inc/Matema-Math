@@ -5,13 +5,12 @@ import { useRouter } from 'next/navigation'
 import { cn } from '@/presentation/lib/utils'
 import { MathText } from '@/presentation/components/ui/MathText'
 import { saveRankedGameAction, type RankedAnswer } from '@/app/actions/ranked'
-import { ELO_TIER_LABELS, type EloTier } from '@/domain/user/entities/User'
+import { type EloTier } from '@/domain/user/entities/User'
 import { EloTierIcon } from '@/presentation/components/ui/EloTierIcon'
+import { RankedResultScreen } from '@/presentation/components/game/RankedResultScreen'
+import { LevelUpModal } from '@/presentation/components/game/LevelUpModal'
 import {
   Settings,
-  PartyPopper,
-  TrendingDown,
-  Dumbbell,
   AlertTriangle,
   Lightbulb,
   Trophy,
@@ -55,7 +54,9 @@ export function RankedPlayer({ exercises, difficulty, currentTier, currentDivisi
     score: number; accuracy: number; correct: number; total: number
     lpChange: number; newLp: number; newTier: EloTier; newDivision: number
     promoted: boolean; demoted: boolean
+    xpEarned: number; coinsEarned: number; newXp: number; newLevel: number; leveledUp: boolean
   } | null>(null)
+  const [showLevelUp, setShowLevelUp] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const questionStartRef = useRef<number>(Date.now())
@@ -83,7 +84,7 @@ export function RankedPlayer({ exercises, difficulty, currentTier, currentDivisi
     setPhase('saving')
     const res = await saveRankedGameAction(answersToSave, { skippedExerciseIds: skippedIdsArg, earlyExitPenalty })
     if (res.error) { setError(res.error); return }
-    setResult({
+    const r = {
       score:       res.score!,
       accuracy:    res.accuracy!,
       correct:     res.correct!,
@@ -94,7 +95,14 @@ export function RankedPlayer({ exercises, difficulty, currentTier, currentDivisi
       newDivision: res.newDivision!,
       promoted:    res.promoted!,
       demoted:     res.demoted!,
-    })
+      xpEarned:    res.xpEarned!,
+      coinsEarned: res.coinsEarned!,
+      newXp:       res.newXp!,
+      newLevel:    res.newLevel!,
+      leveledUp:   res.leveledUp!,
+    }
+    if (r.leveledUp) setShowLevelUp(true)
+    setResult(r)
     setPhase('result')
   }, [])
 
@@ -188,101 +196,21 @@ export function RankedPlayer({ exercises, difficulty, currentTier, currentDivisi
 
   // ── RESULT ─────────────────────────────────────────────────────────────────
   if (phase === 'result' && result) {
-    const tierLabel = ELO_TIER_LABELS[result.newTier]
-    const divLabel  = result.newTier === 'mestre' ? '' : ` ${['', 'I', 'II', 'III', 'IV'][result.newDivision] ?? result.newDivision}`
-    const lpSign    = result.lpChange >= 0 ? '+' : ''
-    const lpColor   = result.lpChange >= 0 ? 'text-green-600' : 'text-red-500'
-
     return (
-      <div className="max-w-xl mx-auto animate-fade-in">
-        <div className="bg-white rounded-3xl border border-matema-border p-5 text-center shadow-sm">
-          {result.promoted ? (
-            <>
-              <div className="mb-1 flex justify-center">
-                <PartyPopper className="w-8 h-8 text-matema-primary" strokeWidth={1.75} />
-              </div>
-              <h2 className="text-lg font-extrabold text-matema-dark mb-0.5">Promovido!</h2>
-              <p className="text-matema-muted text-xs mb-2">Você subiu de divisão!</p>
-            </>
-          ) : result.demoted ? (
-            <>
-              <div className="mb-1 flex justify-center">
-                <TrendingDown className="w-8 h-8 text-red-500" strokeWidth={1.75} />
-              </div>
-              <h2 className="text-lg font-extrabold text-matema-dark mb-0.5">Rebaixado</h2>
-              <p className="text-matema-muted text-xs mb-2">Você desceu de divisão.</p>
-            </>
-          ) : (
-            <>
-              <div className="mb-1 flex justify-center">
-                <Dumbbell className="w-8 h-8 text-matema-primary" strokeWidth={1.75} />
-              </div>
-              <h2 className="text-lg font-extrabold text-matema-dark mb-0.5">Partida concluída</h2>
-              <p className="text-matema-muted text-xs mb-2">Continue jogando para subir!</p>
-            </>
-          )}
-
-          <div className="mb-1 flex justify-center">
-            <EloTierIcon tier={result.newTier} size="w-12 h-12" />
-          </div>
-          <p className="text-xl font-extrabold text-matema-dark">{tierLabel}{divLabel}</p>
-
-          {/* LP display */}
-          {result.newTier !== 'mestre' ? (
-            <div className="mt-2 mb-4">
-              <div className="flex justify-between text-xs text-matema-muted mb-1">
-                <span className={cn('font-bold text-sm', lpColor)}>
-                  {lpSign}{result.lpChange} PDL
-                </span>
-                <span>{result.newLp} PDL</span>
-              </div>
-              <div className="h-2 bg-matema-border rounded-full overflow-hidden">
-                <div
-                  className={cn(
-                    'h-full rounded-full transition-all duration-700',
-                    result.promoted ? 'bg-green-500' : result.demoted ? 'bg-red-400' : 'bg-matema-primary',
-                  )}
-                  style={{ width: `${result.newLp}%` }}
-                />
-              </div>
-            </div>
-          ) : (
-            <p className={cn('text-sm font-bold mt-1 mb-4', lpColor)}>
-              {lpSign}{result.lpChange} PDL &middot; {result.newLp} PDL total
-            </p>
-          )}
-
-          <div className="grid grid-cols-3 gap-2 mb-4 text-sm">
-            <div className="bg-matema-cream border border-matema-border rounded-2xl p-2.5">
-              <div className="text-lg font-extrabold text-matema-dark">{result.correct}/{result.total}</div>
-              <div className="text-matema-muted text-xs">Acertos</div>
-            </div>
-            <div className="bg-matema-cream border border-matema-border rounded-2xl p-2.5">
-              <div className="text-lg font-extrabold text-matema-dark">{result.accuracy}%</div>
-              <div className="text-matema-muted text-xs">Precisão</div>
-            </div>
-            <div className="bg-matema-cream border border-matema-border rounded-2xl p-2.5">
-              <div className="text-lg font-extrabold text-matema-dark">{result.score}</div>
-              <div className="text-matema-muted text-xs">Pontuação</div>
-            </div>
-          </div>
-
-          <div className="flex gap-3">
-            <button
-              onClick={() => router.push('/dashboard')}
-              className="flex-1 border-2 border-matema-border text-matema-dark font-bold py-3 rounded-2xl hover:bg-matema-warm transition-colors"
-            >
-              Sair
-            </button>
-            <button
-              onClick={() => router.push('/ranqueada/jogar')}
-              className="flex-1 bg-matema-primary text-white font-bold py-3 rounded-2xl hover:opacity-90 transition-opacity"
-            >
-              Jogar de novo
-            </button>
-          </div>
-        </div>
-      </div>
+      <>
+        {showLevelUp && (
+          <LevelUpModal
+            newLevel={result.newLevel}
+            newXp={result.newXp}
+            onDismiss={() => setShowLevelUp(false)}
+          />
+        )}
+        <RankedResultScreen
+          result={result}
+          onPlayAgain={() => router.push('/ranqueada/jogar')}
+          onExit={() => router.push('/dashboard')}
+        />
+      </>
     )
   }
 
