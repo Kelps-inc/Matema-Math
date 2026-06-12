@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { signOut } from '@/app/actions/auth'
 import { MobileBottomNav } from '@/presentation/components/game/MobileBottomNav'
+import { LogoWithEyes } from '@/presentation/components/game/LogoWithEyes'
 import { Zap, Coins, Trophy, Settings } from 'lucide-react'
 import type { User } from '@/domain/user/entities/User'
 
@@ -16,8 +17,7 @@ export function GameHeader({ user }: GameHeaderProps) {
       style={{ backgroundImage: 'url(/header-bg.png)', backgroundSize: 'cover', backgroundPosition: 'left center' }}
     >
       <Link href="/" className="absolute left-[4.5%] top-1/2 -translate-y-1/2 select-none z-10">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/matema-logo.png" alt="Matema" style={{ height: '65px', width: 'auto', display: 'block' }} />
+        <LogoWithEyes level={user.level} height={65} />
       </Link>
 
       <div className="max-w-screen-xl mx-auto px-6 h-14 flex items-center justify-between gap-2">
@@ -46,15 +46,21 @@ export function GameHeader({ user }: GameHeaderProps) {
         </nav>
 
         <div className="flex items-center gap-2">
-          <div className="hidden md:flex items-center gap-2 bg-black/30 border border-white/15 rounded-2xl px-3 py-1.5">
-            <div className="flex items-center gap-1">
-              <Zap className="w-4 h-4 text-yellow-400" strokeWidth={2} />
-              <span className="text-sm font-bold text-white">{user.xp.toLocaleString('pt-BR')}</span>
+          <div className="hidden md:flex items-center gap-3 bg-black/30 border border-white/15 rounded-2xl px-3 py-1.5">
+            <div className="flex items-center gap-1.5">
+              <Zap className="w-4 h-4 text-yellow-400 shrink-0" strokeWidth={2} />
+              <div className="flex flex-col leading-none">
+                <span className="text-sm font-bold text-white">{user.xp.toLocaleString('pt-BR')}</span>
+                <span className="text-[10px] text-white/50 font-medium">XP</span>
+              </div>
             </div>
-            <div className="w-px h-4 bg-white/20" />
-            <div className="flex items-center gap-1">
-              <Coins className="w-4 h-4 text-amber-400" strokeWidth={2} />
-              <span className="text-sm font-bold text-white">{user.coins}</span>
+            <div className="w-px h-6 bg-white/20" />
+            <div className="flex items-center gap-1.5">
+              <Coins className="w-4 h-4 text-amber-400 shrink-0" strokeWidth={2} />
+              <div className="flex flex-col leading-none">
+                <span className="text-sm font-bold text-white">{user.coins}</span>
+                <span className="text-[10px] text-white/50 font-medium">Matecoins</span>
+              </div>
             </div>
           </div>
 
