@@ -2,6 +2,13 @@
   "version": "0.0.1",
   "configurations": [
     {
+      "name": "math-journey",
+      "cwd": "C:\\projetos\\Math Journey\\math-journey-frontend",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev"],
+      "port": 3000
+    },
+    {
       "name": "font-preview",
       "runtimeExecutable": "npx",
       "runtimeArgs": ["serve", ".claude", "--listen", "4444", "--no-clipboard"],

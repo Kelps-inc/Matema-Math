@@ -186,8 +186,8 @@ export default async function DashboardPage() {
               <h2 className="font-extrabold text-matema-dark text-lg">Seu progresso</h2>
               <p className="text-sm text-matema-muted">
                 {completedLessons === totalLessons && totalLessons === 16
-                  ? <>16/16 · Tutorial Completo{tutorialCompletedAt && <span className="text-matema-muted"> em {fmtDate(tutorialCompletedAt)}</span>} <CheckCircle2 className="inline w-4 h-4 text-green-500" strokeWidth={1.75} /></>
-                  : `Tutorial: ${completedLessons} de ${totalLessons} lições concluídas`}
+                  ? <>16/16 · Treinamento Completo{tutorialCompletedAt && <span className="text-matema-muted"> em {fmtDate(tutorialCompletedAt)}</span>} <CheckCircle2 className="inline w-4 h-4 text-green-500" strokeWidth={1.75} /></>
+                  : `Treinamento: ${completedLessons} de ${totalLessons} lições concluídas`}
               </p>
               {profile.placementCompleted && (
                 <p className="text-sm text-matema-muted mt-0.5">

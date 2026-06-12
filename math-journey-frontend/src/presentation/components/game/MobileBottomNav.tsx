@@ -7,7 +7,7 @@ import { BookOpen, ShoppingBag, Trophy, UserRound, BarChart2 } from 'lucide-reac
 import type { LucideIcon } from 'lucide-react'
 
 const navItems: { href: string; icon: LucideIcon; label: string; featured?: boolean }[] = [
-  { href: '/modulos',   icon: BookOpen,      label: 'Tutorial'  },
+  { href: '/modulos',   icon: BookOpen,      label: 'Treinamento'  },
   { href: '/loja',      icon: ShoppingBag,   label: 'Loja'      },
   { href: '/ranqueada', icon: Trophy,        label: 'Ranqueada', featured: true },
   { href: '/avatar',    icon: UserRound,     label: 'Avatar'    },

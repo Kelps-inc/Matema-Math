@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition, useRef } from 'react'
+import { useState, useTransition, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/presentation/components/ui/Button'
 import { ProgressBar } from '@/presentation/components/ui/ProgressBar'
@@ -9,6 +9,7 @@ import { cn } from '@/presentation/lib/utils'
 import { completeLessonAction } from '@/app/actions/progress'
 import { createAudioContext, playSfxClick, playSfxCorrect, playSfxWrong } from '@/presentation/lib/audio'
 import { MathText } from '@/presentation/components/ui/MathText'
+import { LevelUpModal } from '@/presentation/components/game/LevelUpModal'
 import {
   BookOpen,
   PartyPopper,
@@ -81,6 +82,12 @@ export function ExercisePlayer({ lesson, exercises, nextLesson }: ExercisePlayer
   const [answers, setAnswers] = useState<AnswerState[]>([])
   const [completionResult, setCompletionResult] = useState<{ newXp: number; newLevel: number; newCoins: number; leveledUp: boolean } | null>(null)
   const [actionError, setActionError] = useState<string | null>(null)
+  const [showLevelUp, setShowLevelUp] = useState(false)
+
+  // Show level-up modal as soon as the result arrives
+  useEffect(() => {
+    if (completionResult?.leveledUp) setShowLevelUp(true)
+  }, [completionResult])
 
   const current = exercises[currentIndex]
   const isLast = currentIndex === exercises.length - 1
@@ -119,6 +126,16 @@ export function ExercisePlayer({ lesson, exercises, nextLesson }: ExercisePlayer
       setSelected(null)
       setPhase('answering')
     }
+  }
+
+  if (showLevelUp && completionResult) {
+    return (
+      <LevelUpModal
+        newLevel={completionResult.newLevel}
+        newXp={completionResult.newXp}
+        onDismiss={() => setShowLevelUp(false)}
+      />
+    )
   }
 
   if (phase === 'intro') {
@@ -376,14 +393,7 @@ function CompletionScreen({
         Você acertou {correctCount} de {total} questões
       </p>
 
-      {result?.leveledUp && (
-        <div className="bg-matema-gold/15 border border-matema-gold/30 rounded-3xl p-5 mb-5">
-          <div className="mb-1 flex justify-center">
-            <PartyPopper className="w-7 h-7 text-amber-600" strokeWidth={1.75} />
-          </div>
-          <p className="font-bold text-amber-800">Subiu para o Nível {result.newLevel}!</p>
-        </div>
-      )}
+      {/* Level-up: handled by LevelUpModal overlay before this screen */}
 
       <div className="grid grid-cols-2 gap-3 mb-8">
         <div className="bg-matema-cream rounded-2xl p-4 border border-matema-border">

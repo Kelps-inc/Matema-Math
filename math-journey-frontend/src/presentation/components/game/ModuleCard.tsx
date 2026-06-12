@@ -10,7 +10,7 @@ interface ModuleCardProps {
 }
 
 export function ModuleCard({ module, isAdmin = false }: ModuleCardProps) {
-  const isLocked = !isAdmin && !module.isFree && module.completedCount === 0
+  const isLocked = false
 
   return (
     <Link

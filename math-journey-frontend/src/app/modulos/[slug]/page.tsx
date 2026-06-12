@@ -62,7 +62,7 @@ export default async function ModuloDetailPage({ params }: Props) {
 
       <div className="space-y-3">
         {module.lessons.map((lesson, index) => {
-          const isAvailable = isAdmin || index === 0 || module.lessons[index - 1].completed
+          const isAvailable = true
           const isCompleted = lesson.completed
 
           return (

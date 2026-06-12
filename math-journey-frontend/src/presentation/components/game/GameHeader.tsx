@@ -25,7 +25,7 @@ export function GameHeader({ user }: GameHeaderProps) {
 
         <nav className="hidden sm:flex items-center gap-0.5">
           <Link href="/modulos" className="px-3 py-2 text-sm font-medium text-white/70 hover:text-white hover:bg-white/10 rounded-xl transition-colors">
-            Tutorial
+            Treinamento
           </Link>
           <Link href="/loja" className="px-3 py-2 text-sm font-medium text-white/70 hover:text-white hover:bg-white/10 rounded-xl transition-colors">
             Loja

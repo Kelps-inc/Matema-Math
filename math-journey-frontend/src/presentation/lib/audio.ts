@@ -379,6 +379,38 @@ export function playSfxCorrect(ctx: AudioContext, vol = 1) {
   })
 }
 
+/**
+ * Fanfarra ascendente — level up (vol: 0–1)
+ * C4 → E4 → G4 → C5 → E5 → C6 (sparkle)
+ */
+export function playSfxLevelUp(ctx: AudioContext, vol = 1) {
+  function note(freq: number, dt: number, dur: number, type: OscillatorType = 'sine') {
+    const osc  = ctx.createOscillator()
+    const gain = ctx.createGain()
+    const t    = ctx.currentTime + dt
+    osc.type = type
+    osc.frequency.setValueAtTime(freq, t)
+    gain.gain.setValueAtTime(0,             t)
+    gain.gain.linearRampToValueAtTime(0.28 * vol, t + 0.018)
+    gain.gain.exponentialRampToValueAtTime(0.001,  t + dur)
+    osc.connect(gain)
+    gain.connect(ctx.destination)
+    osc.start(t)
+    osc.stop(t + dur + 0.01)
+  }
+
+  // Ascending fanfare
+  note(261.63, 0.00, 0.22)           // C4
+  note(329.63, 0.12, 0.22)           // E4
+  note(392.00, 0.24, 0.22)           // G4
+  note(523.25, 0.38, 0.40)           // C5
+  note(659.25, 0.52, 0.55)           // E5
+  // Harmonic richness on the last chord
+  note(523.25, 0.52, 0.55, 'triangle')
+  // Sparkle high note
+  note(1046.50, 0.58, 0.60, 'sine')  // C6
+}
+
 /** Dois tons suaves descendentes — resposta errada (vol: 0–1) */
 export function playSfxWrong(ctx: AudioContext, vol = 1) {
   const notes: [number, number][] = [[311.13, 0], [246.94, 0.16]]
