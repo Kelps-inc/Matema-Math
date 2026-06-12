@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition, useRef, useEffect } from 'react'
+import { useState, useTransition, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/presentation/components/ui/Button'
 import { ProgressBar } from '@/presentation/components/ui/ProgressBar'
@@ -84,11 +84,6 @@ export function ExercisePlayer({ lesson, exercises, nextLesson }: ExercisePlayer
   const [actionError, setActionError] = useState<string | null>(null)
   const [showLevelUp, setShowLevelUp] = useState(false)
 
-  // Show level-up modal as soon as the result arrives
-  useEffect(() => {
-    if (completionResult?.leveledUp) setShowLevelUp(true)
-  }, [completionResult])
-
   const current = exercises[currentIndex]
   const isLast = currentIndex === exercises.length - 1
   const correctCount = answers.filter((a) => a.isCorrect).length
@@ -114,6 +109,7 @@ export function ExercisePlayer({ lesson, exercises, nextLesson }: ExercisePlayer
           answers: allAnswers,
         })
         if (result.success && result.result) {
+          if (result.result.leveledUp) setShowLevelUp(true)
           setCompletionResult(result.result)
           setPhase('completed')
         } else {
