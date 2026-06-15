@@ -33,13 +33,13 @@ Use esta tabela toda vez que finalizar uma mudança. Identifique o tipo de alter
 | Remoção de tecnologia ou biblioteca | `docs/TECH_STACK.md` | `docs/DECISIONS.md` |
 | Mudança na fórmula de XP/nível | `docs/DOMAIN_MODEL.md`, `docs/API.md` | `docs/PROJECT_OVERVIEW.md` |
 | Mudança na lógica de ELO/LP | `docs/API.md`, `docs/DOMAIN_MODEL.md` | `docs/PROJECT_OVERVIEW.md` |
-| Novo módulo ou lição de conteúdo | `docs/FILE_INGESTION_PIPELINE.md` | `docs/PROJECT_OVERVIEW.md` |
-| Mudança no pipeline de ingestão de conteúdo | `docs/FILE_INGESTION_PIPELINE.md` | `skills/004-ingestion-pipeline.md` |
-| Mudança nos padrões de integração Supabase | `docs/KGET_INTEGRATION.md` | `skills/005-kget-integration.md` |
+| Novo módulo ou lição de conteúdo | `docs/CONTENT_PIPELINE.md` | `docs/PROJECT_OVERVIEW.md` |
+| Mudança no pipeline de ingestão de conteúdo | `docs/CONTENT_PIPELINE.md` | `skills/004-content-pipeline.md` |
+| Mudança nos padrões de integração Supabase | `docs/SUPABASE_INTEGRATION.md` | `skills/005-supabase-integration.md` |
 | Mudança na arquitetura de camadas | `docs/ARCHITECTURE.md`, `docs/DDD_STRUCTURE.md` | `skills/002-architecture-rules.md`, `skills/003-ddd-guidelines.md` |
 | Nova decisão técnica relevante (escolha de lib, padrão, abordagem) | `docs/DECISIONS.md` | — |
 | Feature concluída ou iniciada | `docs/ROADMAP.md` | `docs/PROJECT_OVERVIEW.md` |
-| Nova variável de ambiente | `docs/DEVELOPMENT_GUIDE.md` | `docs/KGET_INTEGRATION.md` |
+| Nova variável de ambiente | `docs/DEVELOPMENT_GUIDE.md` | `docs/SUPABASE_INTEGRATION.md` |
 | Mudança no processo de setup/deploy | `docs/DEVELOPMENT_GUIDE.md` | — |
 | Novo termo de domínio introduzido no código | `docs/GLOSSARY.md` | — |
 | Mudança nos padrões de código | `skills/006-coding-standards.md` | `skills/002-architecture-rules.md` |
@@ -77,10 +77,10 @@ Copie e execute este checklist mentalmente (ou literalmente) antes de declarar u
     → Atualizar: docs/GLOSSARY.md
 
 [ ] Mudei como conteúdo (lições/exercícios) é inserido?
-    → Atualizar: docs/FILE_INGESTION_PIPELINE.md e skills/004-ingestion-pipeline.md
+    → Atualizar: docs/CONTENT_PIPELINE.md e skills/004-content-pipeline.md
 
 [ ] Mudei padrões de integração com Supabase?
-    → Atualizar: docs/KGET_INTEGRATION.md e skills/005-kget-integration.md
+    → Atualizar: docs/SUPABASE_INTEGRATION.md e skills/005-supabase-integration.md
 
 [ ] Mudei como a arquitetura funciona?
     → Atualizar: docs/ARCHITECTURE.md e skills/002-architecture-rules.md

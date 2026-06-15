@@ -1,4 +1,4 @@
-# Skill 004 — Content Ingestion Pipeline
+# Skill 004 — Content Pipeline
 
 ## O que é
 

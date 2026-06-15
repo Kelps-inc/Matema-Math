@@ -1,4 +1,4 @@
-# File Ingestion Pipeline — Matema
+# Content Pipeline — Matema
 
 Este documento descreve como conteúdo (módulos, lições, exercícios) é criado e inserido no banco.
 

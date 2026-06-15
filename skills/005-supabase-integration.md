@@ -1,7 +1,6 @@
 # Skill 005 — Supabase Integration Patterns
 
 > Nota: Este arquivo cobre os padrões de integração com Supabase usados no projeto.
-> (O nome "KGET" foi preservado conforme solicitado na estrutura original.)
 
 ## Clientes Supabase
 

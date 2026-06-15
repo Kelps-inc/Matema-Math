@@ -42,12 +42,12 @@ PRODUTO
 [ ] Feature foi cancelada ou descartada           → docs/ROADMAP.md (remover ou justificar)
 
 CONTEÚDO
-[ ] Mudei como exercícios/lições são inseridos    → docs/FILE_INGESTION_PIPELINE.md
-                                                     skills/004-ingestion-pipeline.md
+[ ] Mudei como exercícios/lições são inseridos    → docs/CONTENT_PIPELINE.md
+                                                     skills/004-content-pipeline.md
 
 INTEGRAÇÃO SUPABASE
-[ ] Mudei padrão de query, auth ou RPC            → docs/KGET_INTEGRATION.md
-                                                     skills/005-kget-integration.md
+[ ] Mudei padrão de query, auth ou RPC            → docs/SUPABASE_INTEGRATION.md
+                                                     skills/005-supabase-integration.md
 
 ARQUITETURA
 [ ] Mudei estrutura de pastas ou camadas DDD      → docs/ARCHITECTURE.md
@@ -65,7 +65,14 @@ GLOSSÁRIO
 
 SKILLS DE AGENTES
 [ ] Adicionei task recorrente nova ao projeto     → skills/007-future-agent-instructions.md
+
+MEMÓRIA EXTERNA (VAULT — só agentes do dono)
+[ ] Mudança arquitetural/durável E tenho vault    → espelhar no vault APÓS atualizar
+                                                     docs/+skills/ (skills/009-vault-bridge.md)
 ```
+
+> A fonte canônica é sempre `docs/`+`skills/` neste repo. O vault Obsidian é apenas
+> espelho e só existe para agentes do dono — se você não tem acesso, ignore a linha acima.
 
 ---
 
@@ -145,13 +152,13 @@ Se durante uma tarefa você descobrir que um documento existente está desatuali
 | `docs/DECISIONS.md` | Qualquer decisão técnica com trade-off deliberado |
 | `docs/ROADMAP.md` | Status de features (concluído, iniciado, cancelado) |
 | `docs/DEVELOPMENT_GUIDE.md` | Setup, env vars, deploy, scripts, troubleshooting |
-| `docs/FILE_INGESTION_PIPELINE.md` | Como conteúdo é inserido no banco |
-| `docs/KGET_INTEGRATION.md` | Padrões Supabase (clientes, auth, RPC, erros) |
+| `docs/CONTENT_PIPELINE.md` | Como conteúdo é inserido no banco |
+| `docs/SUPABASE_INTEGRATION.md` | Padrões Supabase (clientes, auth, RPC, erros) |
 | `docs/GLOSSARY.md` | Novos termos ou conceitos no codebase |
 | `docs/MAINTENANCE.md` | Regras de manutenção da própria documentação |
 | `skills/002-architecture-rules.md` | Regras de camada, templates de código |
 | `skills/003-ddd-guidelines.md` | Padrões DDD, criação de entidades/repos |
-| `skills/004-ingestion-pipeline.md` | Pipeline de conteúdo matemático |
-| `skills/005-kget-integration.md` | Integração Supabase para agentes |
+| `skills/004-content-pipeline.md` | Pipeline de conteúdo matemático |
+| `skills/005-supabase-integration.md` | Integração Supabase para agentes |
 | `skills/006-coding-standards.md` | Nomenclatura, TypeScript, comentários, Tailwind |
 | `skills/007-future-agent-instructions.md` | Tasks comuns, FAQ, referência de arquivos |

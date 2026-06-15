@@ -10,12 +10,14 @@ Este documento orienta agentes de IA que irão continuar o desenvolvimento do Ma
 2. **Leia** o documento relevante em `docs/` para a área que vai mexer
 3. **Explore** os arquivos reais no codebase — não assuma estrutura sem verificar
 4. **Verifique** se há migrations pendentes antes de sugerir schema changes
+5. **Entenda a memória do projeto** lendo `skills/009-vault-bridge.md`: a fonte canônica é `docs/`+`skills/`; há um vault Obsidian opcional só para agentes do dono. Se você não tem acesso ao vault, isso é normal — não tente acessá-lo.
 
 ### Ao finalizar qualquer tarefa
 
-5. **Execute o checklist de documentação** em `skills/008-documentation-maintenance.md`
-6. **Atualize todos os documentos indicados** — uma tarefa sem docs atualizados não está concluída
-7. **Registre decisões técnicas** em `docs/DECISIONS.md` se tomou alguma escolha não-óbvia
+6. **Execute o checklist de documentação** em `skills/008-documentation-maintenance.md`
+7. **Atualize todos os documentos indicados** — uma tarefa sem docs atualizados não está concluída
+8. **Registre decisões técnicas** em `docs/DECISIONS.md` se tomou alguma escolha não-óbvia
+9. **Se você tem acesso ao vault Obsidian**, espelhe nele as mudanças arquiteturais depois de atualizar `docs/`+`skills/` (ver `skills/009-vault-bridge.md`)
 
 ## Princípios inegociáveis
 
@@ -33,7 +35,7 @@ Este documento orienta agentes de IA que irão continuar o desenvolvimento do Ma
 ### Adicionar exercício/lição
 → `math-journey-backend/supabase/seed/001_content.sql`
 → Execute no Supabase SQL Editor
-→ Veja `skills/004-ingestion-pipeline.md`
+→ Veja `skills/004-content-pipeline.md`
 
 ### Mudar lógica de ELO/LP
 → `math-journey-frontend/src/app/actions/ranked.ts`
