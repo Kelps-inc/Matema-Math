@@ -9,8 +9,10 @@ interface Part {
 function parseMath(text: string): Part[] {
   const parts: Part[] = []
   // Matches $$...$$ (display) first, then $...$ (inline).
-  // Negative lookbehind (?<![A-Za-z]) prevents matching currency symbols like R$1.200.
-  const regex = /\$\$([^$]*?)\$\$|(?<![A-Za-z])\$([^$\n]+?)\$/g
+  // Opening $ must not follow a letter or backslash (prevents R$ and \$ false triggers).
+  // Content allows \$ sequences (escaped dollar inside math, e.g. R\$ 28.900,00).
+  // Closing $ must not be preceded by backslash.
+  const regex = /\$\$([^$]*?)\$\$|(?<![A-Za-z\\])\$((?:[^$\n]|\\\$)+?)(?<!\\)\$/g
   let lastIndex = 0
   let match
 
