@@ -13,8 +13,10 @@ export function LandingMusicPlayer() {
     const isEnabled = enabled === null ? true : enabled === 'true'
     setPlaying(isEnabled)
 
-    // Força sempre Washed Dreams do começo na landing, ignorando localStorage de track
+    // Força Washed Dreams na landing e persiste o track como 'ghoul'
+    // para que Settings e page-refresh fiquem consistentes
     if (isEnabled) {
+      localStorage.setItem('matema_music_track', 'ghoul')
       window.dispatchEvent(new CustomEvent('matema:music-force', {
         detail: { track: 'ghoul-projeto-novo' }
       }))
@@ -41,7 +43,7 @@ export function LandingMusicPlayer() {
     localStorage.setItem('matema_music_enabled', String(next))
 
     if (next) {
-      // Sempre força Washed Dreams na landing — nunca usa o track do localStorage
+      localStorage.setItem('matema_music_track', 'ghoul')
       window.dispatchEvent(new CustomEvent('matema:music-force', {
         detail: { track: 'ghoul-projeto-novo' }
       }))

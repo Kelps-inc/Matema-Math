@@ -11,9 +11,10 @@ function getVol(key: string) {
 }
 
 // Playlist do Ghoul Soundtrack — toca em sequência e faz loop
+// Washed Dreams (projeto-novo) primeiro: é a trilha da landing e o padrão inicial
 const GHOUL_PLAYLIST = [
-  '/sounds/ghoul-helium.wav',
   '/sounds/ghoul-projeto-novo.wav',
+  '/sounds/ghoul-helium.wav',
 ]
 
 // Defaults: Washed Dreams (Projeto Novo) habilitada para novos usuários
@@ -165,21 +166,19 @@ export function AudioManager() {
       rainRef.current = null
     }
 
-    // Força uma faixa específica imediatamente (sem alterar localStorage)
-    // Usado pela landing page para garantir que toca Washed Dreams
+    // Força Washed Dreams imediatamente (landing page) e persiste como trilha ghoul,
+    // de modo que Settings mostre "Ghoul Soundtrack" e um refresh mantenha a música.
     function handleForce(e: Event) {
       const { track } = (e as CustomEvent<{ track: string }>).detail
       stopMusicSilent()
       const vol = getVol('matema_music_volume')
-      if (LOOP_TRACKS[track]) {
-        const audio = new Audio(LOOP_TRACKS[track])
-        audio.loop   = true
-        audio.volume = vol
-        audio.play()
-          .then(() => { pendingRef.current = false; broadcastState(true) })
-          .catch(() => { pendingRef.current = true;  broadcastState(false) })
-        fileAudioRef.current = audio
-      }
+      // Persiste para que Settings reflita corretamente e page-refresh funcione
+      localStorage.setItem('matema_music_track', 'ghoul')
+      localStorage.setItem('matema_music_enabled', 'true')
+      // Encontra o índice da faixa na playlist e começa por ela
+      const idx = GHOUL_PLAYLIST.findIndex(p => p.includes(track))
+      playlistIdxRef.current = idx >= 0 ? idx : 0
+      startGhoulPlaylist(vol)
     }
 
     function handleToggle(e: Event) {
