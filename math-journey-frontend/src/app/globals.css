@@ -91,6 +91,10 @@ body {
 /* Headings pop more with wider tracking */
 h1, h2, h3 { letter-spacing: 0.06em; }
 
+/* KaTeX: bump inline math size so radical indices (∛, ⁴√) ficam legíveis.
+   KaTeX default = 1.21em; 1.35em dá ~11% a mais sem estourar o layout. */
+.katex { font-size: 1.35em; }
+
 /* Scrollbar cozy */
 ::-webkit-scrollbar {
   width: 6px;

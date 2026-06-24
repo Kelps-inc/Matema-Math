@@ -41,6 +41,7 @@ interface RankedPlayerProps {
 type Phase = 'playing' | 'answered' | 'saving' | 'result'
 
 const MIN_ANSWERED_TO_EXIT = 2
+const OPTION_LETTERS = ['A', 'B', 'C', 'D', 'E']
 
 export function RankedPlayer({
   exercises,
@@ -341,16 +342,27 @@ export function RankedPlayer({
 
         <div className="space-y-2">
           {options.map((option, i) => {
+            const letter     = OPTION_LETTERS[i] ?? String(i + 1)
             const isSelected = selected === option
             const isCorrect  = option.trim().toLowerCase() === exercise.correct_answer.trim().toLowerCase()
-            let optClass = 'border-matema-border bg-white text-matema-dark hover:border-matema-primary hover:bg-matema-cream'
+
+            let optClass    = 'border-matema-border bg-white text-matema-dark hover:border-matema-primary hover:bg-matema-cream'
+            let letterClass = 'border-matema-border text-matema-muted'
 
             if (phase === 'answered') {
-              if (isCorrect)        optClass = 'border-green-400 bg-green-50 text-green-800'
-              else if (isSelected)  optClass = 'border-red-400   bg-red-50   text-red-800'
-              else                  optClass = 'border-matema-border bg-white text-matema-muted opacity-60'
+              if (isCorrect) {
+                optClass    = 'border-green-400 bg-green-50 text-green-800'
+                letterClass = 'border-green-400 bg-green-400 text-white'
+              } else if (isSelected) {
+                optClass    = 'border-red-400 bg-red-50 text-red-800'
+                letterClass = 'border-red-400 bg-red-400 text-white'
+              } else {
+                optClass    = 'border-matema-border bg-white text-matema-muted opacity-60'
+                letterClass = 'border-matema-border text-matema-muted'
+              }
             } else if (isSelected) {
-              optClass = 'border-matema-primary bg-matema-primary/10 text-matema-primary'
+              optClass    = 'border-matema-primary bg-matema-primary/10 text-matema-primary'
+              letterClass = 'border-matema-primary bg-matema-primary text-white'
             }
 
             return (
@@ -359,10 +371,16 @@ export function RankedPlayer({
                 onClick={() => handleSelect(option)}
                 disabled={phase === 'answered'}
                 className={cn(
-                  'w-full text-left px-4 py-2.5 rounded-2xl border-2 font-medium transition-all text-sm',
+                  'w-full text-left px-4 py-2.5 rounded-2xl border-2 font-medium transition-all text-sm flex items-start gap-3',
                   optClass,
                 )}
               >
+                <span className={cn(
+                  'flex-shrink-0 w-5 h-5 rounded-full border-2 flex items-center justify-center text-[10px] font-extrabold mt-0.5 transition-all',
+                  letterClass,
+                )}>
+                  {letter}
+                </span>
                 <MathText>{option}</MathText>
               </button>
             )
