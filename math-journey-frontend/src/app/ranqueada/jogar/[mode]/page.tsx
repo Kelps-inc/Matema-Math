@@ -102,6 +102,7 @@ export default async function RanqueadaJogarModePage({
         .from('exercises')
         .select('id, question, context, type, options, correct_answer, explanation, difficulty, source')
         .in('id', oldestIds)
+        .in('lesson_id', lessonIds)
       allExercises = [...allExercises, ...(fallbackExercises ?? [])]
     }
   }
