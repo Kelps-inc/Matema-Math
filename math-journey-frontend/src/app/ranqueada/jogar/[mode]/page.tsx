@@ -1,7 +1,10 @@
 import { createClient } from '@/infrastructure/supabase/server'
 import { SupabaseUserRepository } from '@/infrastructure/repositories/SupabaseUserRepository'
 import { redirect } from 'next/navigation'
+import Link from 'next/link'
+import { GraduationCap } from 'lucide-react'
 import { RankedPlayer } from '@/presentation/components/game/RankedPlayer'
+import { SimuladoGate } from '@/presentation/components/game/SimuladoGate'
 import type { EloTier } from '@/domain/user/entities/User'
 
 // ── Mode config ────────────────────────────────────────────────────────────
@@ -40,7 +43,7 @@ export default async function RanqueadaJogarModePage({
   if (!user) redirect('/entrar')
 
   const userRepo = new SupabaseUserRepository(supabase)
-  const profile = await userRepo.findById(user.id)
+  const profile  = await userRepo.findById(user.id)
   if (!profile) redirect('/entrar')
   if (!profile.placementCompleted) redirect('/ranqueada/placement')
 
@@ -58,7 +61,7 @@ export default async function RanqueadaJogarModePage({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const lessonIds = (lessons as any[]).map((l: any) => l.id)
 
-  // Find exercise IDs the user answered within the cooldown window
+  // Find exercise IDs answered within cooldown window
   const cooldownSince = new Date(Date.now() - cfg.cooldownDays * 24 * 60 * 60 * 1000).toISOString()
   const { data: recentAnswers } = await supabaseAny
     .from('user_exercise_answers')
@@ -82,7 +85,7 @@ export default async function RanqueadaJogarModePage({
 
   const { data: freshExercises } = await freshQuery
 
-  // Fallback: pad with oldest answered if not enough fresh questions
+  // Fallback: pad with oldest answered if not enough fresh
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let allExercises: any[] = freshExercises ?? []
   if (allExercises.length < cfg.questCount && recentIds.length > 0) {
@@ -95,7 +98,10 @@ export default async function RanqueadaJogarModePage({
       .order('answered_at', { ascending: true })
       .limit(needed * 3)
 
-    const oldestIds = Array.from(new Set<string>((oldestAnswered ?? []).map((a: any) => a.exercise_id as string))).slice(0, needed)
+    const oldestIds = Array.from(new Set<string>(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (oldestAnswered ?? []).map((a: any) => a.exercise_id as string),
+    )).slice(0, needed)
 
     if (oldestIds.length > 0) {
       const { data: fallbackExercises } = await supabaseAny
@@ -111,14 +117,74 @@ export default async function RanqueadaJogarModePage({
     return [...(arr ?? [])].sort(() => Math.random() - 0.5).slice(0, n)
   }
 
-  const selected = pickRandom(allExercises, cfg.questCount)
-
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const exercises = selected.map((e: any) => ({
-    ...e,
-    options: Array.isArray(e.options) ? e.options : null,
-  }))
+  const normaliseExercise = (e: any) => ({ ...e, options: Array.isArray(e.options) ? e.options : null })
 
+  const selected  = pickRandom(allExercises, cfg.questCount)
+  const exercises = selected.map(normaliseExercise)
+
+  // ── SIMULADO mode: special handling ──────────────────────────────────────
+  if (mode === 'simulado') {
+    // Check for an existing saved session
+    const { data: sessionData } = await supabaseAny
+      .from('simulado_sessions')
+      .select('exercise_ids, answers, time_remaining_ms')
+      .eq('user_id', user.id)
+      .single()
+
+    let savedSession: { exerciseIds: string[]; answers: Record<string, string>; timeRemainingMs: number } | undefined
+    let savedExercises: ReturnType<typeof normaliseExercise>[] | undefined
+
+    if (sessionData) {
+      savedSession = {
+        exerciseIds:     sessionData.exercise_ids ?? [],
+        answers:         sessionData.answers ?? {},
+        timeRemainingMs: sessionData.time_remaining_ms ?? 9900000,
+      }
+      const { data: savedEx } = await supabaseAny
+        .from('exercises')
+        .select('id, question, context, type, options, correct_answer, explanation, difficulty, source')
+        .in('id', sessionData.exercise_ids)
+      savedExercises = (savedEx ?? []).map(normaliseExercise)
+    }
+
+    // Guard: need at least 45 fresh exercises (if no saved session to resume)
+    if (!savedSession && exercises.length < 45) {
+      return (
+        <div className="max-w-xl mx-auto py-20 text-center animate-fade-in">
+          <GraduationCap className="w-14 h-14 text-matema-muted mx-auto mb-4" strokeWidth={1.5} />
+          <h2 className="text-xl font-extrabold text-matema-dark mb-2">Simulado em breve</h2>
+          <p className="text-matema-muted text-sm mb-1">
+            Temos apenas <strong>{exercises.length}</strong> de 45 questões necessárias para o Simulado.
+          </p>
+          <p className="text-matema-muted text-sm mb-6">
+            Novas questões estão sendo adicionadas. Volte em breve!
+          </p>
+          <Link
+            href="/ranqueada/jogar"
+            className="inline-block bg-matema-primary text-white font-bold px-6 py-3 rounded-2xl hover:opacity-90 transition-opacity"
+          >
+            ← Escolher outro modo
+          </Link>
+        </div>
+      )
+    }
+
+    return (
+      <div className="animate-fade-in">
+        <SimuladoGate
+          freshExercises={exercises}
+          savedSession={savedSession}
+          savedExercises={savedExercises}
+          currentTier={profile.eloTier as EloTier}
+          currentDivision={profile.eloDivision}
+          currentLp={profile.eloLp}
+        />
+      </div>
+    )
+  }
+
+  // ── Other modes: regular RankedPlayer ────────────────────────────────────
   if (exercises.length === 0) redirect('/ranqueada')
 
   return (
@@ -129,7 +195,7 @@ export default async function RanqueadaJogarModePage({
         currentTier={profile.eloTier as EloTier}
         currentDivision={profile.eloDivision}
         currentLp={profile.eloLp}
-        isSimulado={mode === 'simulado'}
+        useSerif={mode === 'enem'}
       />
     </div>
   )

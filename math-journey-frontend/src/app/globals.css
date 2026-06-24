@@ -15,6 +15,7 @@
   /* Fonts */
   --font-sans:     var(--font-orbitron-var), sans-serif;
   --font-orbitron: var(--font-orbitron-var), sans-serif;
+  --font-lora:     var(--font-lora-var), serif;
 
   /* Border radius */
   --radius-4xl: 2rem;
