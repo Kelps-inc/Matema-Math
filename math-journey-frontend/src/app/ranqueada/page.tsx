@@ -49,7 +49,7 @@ export default async function RanqueadaPage() {
         <div className="mb-3 flex justify-center">
           <EloTierIcon tier={tier} size="w-20 h-20" />
         </div>
-        <h2 className="text-3xl font-extrabold text-matema-dark">{tierLabel}{divisionLabel}</h2>
+        <h2 className="text-3xl font-extrabold text-black">{tierLabel}{divisionLabel}</h2>
         {tier !== 'mestre' ? (
           <div className="mt-4 max-w-xs mx-auto">
             <div className="flex justify-between text-xs text-matema-muted mb-1.5">
