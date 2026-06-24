@@ -80,7 +80,7 @@ export default async function RanqueadaPage() {
           <Swords className="w-7 h-7" strokeWidth={1.75} />
           Jogar Ranqueada
         </span>
-        <span className="text-sm opacity-80">60 primeiras questões</span>
+        <span className="text-sm opacity-80">Objetivas · Estilo ENEM · Simulado</span>
       </Link>
 
       {/* Elo ladder */}

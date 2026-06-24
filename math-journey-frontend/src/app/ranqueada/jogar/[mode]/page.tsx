@@ -7,14 +7,19 @@ import type { EloTier } from '@/domain/user/entities/User'
 // ── Mode config ────────────────────────────────────────────────────────────
 const MODE_CONFIG = {
   objetivas: {
-    slugs:      ['ranqueada-facil', 'ranqueada-medio', 'ranqueada-dificil'],
-    questCount: 10,
+    slugs:        ['ranqueada-facil', 'ranqueada-medio', 'ranqueada-dificil'],
+    questCount:   10,
     cooldownDays: 20,
   },
   enem: {
-    slugs:      ['ranqueada-enem'],
-    questCount: 5,
+    slugs:        ['ranqueada-enem'],
+    questCount:   5,
     cooldownDays: 7,
+  },
+  simulado: {
+    slugs:        ['ranqueada-enem'],
+    questCount:   45,
+    cooldownDays: 30,
   },
 } as const
 
@@ -123,6 +128,7 @@ export default async function RanqueadaJogarModePage({
         currentTier={profile.eloTier as EloTier}
         currentDivision={profile.eloDivision}
         currentLp={profile.eloLp}
+        isSimulado={mode === 'simulado'}
       />
     </div>
   )

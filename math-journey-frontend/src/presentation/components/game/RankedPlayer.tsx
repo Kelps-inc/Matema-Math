@@ -8,6 +8,7 @@ import { saveRankedGameAction, type RankedAnswer } from '@/app/actions/ranked'
 import { ELO_TIER_LABELS, type EloTier } from '@/domain/user/entities/User'
 import { EloTierIcon } from '@/presentation/components/ui/EloTierIcon'
 import { RankedResultScreen } from '@/presentation/components/game/RankedResultScreen'
+import { SimuladoReportScreen } from '@/presentation/components/game/SimuladoReportScreen'
 import { LevelUpModal } from '@/presentation/components/game/LevelUpModal'
 import {
   Settings,
@@ -15,6 +16,7 @@ import {
   Lightbulb,
   Trophy,
   SkipForward,
+  Clock,
 } from 'lucide-react'
 
 export interface RankedExercise {
@@ -35,13 +37,31 @@ interface RankedPlayerProps {
   currentTier: EloTier
   currentDivision: number
   currentLp: number
+  isSimulado?: boolean
 }
 
 type Phase = 'playing' | 'answered' | 'saving' | 'result'
 
-const MIN_ANSWERED_TO_EXIT = 2 // fewer than this triggers the -2 PDL warning
+const MIN_ANSWERED_TO_EXIT = 2
+const SIMULADO_TOTAL_SECS  = 165 * 60   // 2h45
+const SIMULADO_QUEST_MS    = 3 * 60 * 1000  // 3 min per question
 
-export function RankedPlayer({ exercises, difficulty, currentTier, currentDivision, currentLp }: RankedPlayerProps) {
+function fmtCountdown(s: number): string {
+  const h   = Math.floor(s / 3600)
+  const m   = Math.floor((s % 3600) / 60)
+  const sec = s % 60
+  if (h > 0) return `${h}:${m.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`
+  return `${m}:${sec.toString().padStart(2, '0')}`
+}
+
+export function RankedPlayer({
+  exercises,
+  difficulty,
+  currentTier,
+  currentDivision,
+  currentLp,
+  isSimulado = false,
+}: RankedPlayerProps) {
   const router = useRouter()
   const [phase, setPhase] = useState<Phase>('playing')
   const [current, setCurrent] = useState(0)
@@ -59,6 +79,15 @@ export function RankedPlayer({ exercises, difficulty, currentTier, currentDivisi
   const [showLevelUp, setShowLevelUp] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  // Simulado: total countdown
+  const [totalRemaining, setTotalRemaining] = useState(SIMULADO_TOTAL_SECS)
+  const [timerExpired, setTimerExpired] = useState(false)
+  const [answersSnapshot, setAnswersSnapshot] = useState<RankedAnswer[]>([])
+
+  // Refs to hold latest answers/skipped for the timer auto-save
+  const answersRef    = useRef<RankedAnswer[]>([])
+  const skippedIdsRef = useRef<string[]>([])
+
   const questionStartRef = useRef<number>(Date.now())
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
@@ -75,12 +104,36 @@ export function RankedPlayer({ exercises, difficulty, currentTier, currentDivisi
     return () => { if (timerRef.current) clearInterval(timerRef.current) }
   }, [phase, current])
 
+  // ── Simulado: total countdown ──────────────────────────────────────────────
+  useEffect(() => {
+    if (!isSimulado) return
+    const start = Date.now()
+    let expired = false
+    const iv = setInterval(() => {
+      const remaining = Math.max(0, Math.floor((SIMULADO_TOTAL_SECS * 1000 - (Date.now() - start)) / 1000))
+      setTotalRemaining(remaining)
+      if (remaining === 0 && !expired) {
+        expired = true
+        clearInterval(iv)
+        setTimerExpired(true)
+      }
+    }, 1000)
+    return () => clearInterval(iv)
+  }, [isSimulado])
+
+  // ── Simulado: auto-save when time runs out ─────────────────────────────────
+  useEffect(() => {
+    if (!timerExpired || phase === 'saving' || phase === 'result') return
+    saveGame(answersRef.current, skippedIdsRef.current)
+  }, [timerExpired])  // eslint-disable-line react-hooks/exhaustive-deps
+
   // ── shared save helper ────────────────────────────────────────────────────
   const saveGame = useCallback(async (
     answersToSave: RankedAnswer[],
     skippedIdsArg: string[],
     earlyExitPenalty = false,
   ) => {
+    setAnswersSnapshot(answersToSave)
     setPhase('saving')
     const res = await saveRankedGameAction(answersToSave, { skippedExerciseIds: skippedIdsArg, earlyExitPenalty })
     if (res.error) { setError(res.error); return }
@@ -123,6 +176,7 @@ export function RankedPlayer({ exercises, difficulty, currentTier, currentDivisi
       { exerciseId: exercise.id, answer: selected, isCorrect, timeMs },
     ]
     setAnswers(newAnswers)
+    answersRef.current = newAnswers
 
     if (current + 1 < exercises.length) {
       setCurrent((c) => c + 1)
@@ -137,20 +191,18 @@ export function RankedPlayer({ exercises, difficulty, currentTier, currentDivisi
     if (phase !== 'playing' || !exercise) return
     const newSkippedIds = [...skippedIds, exercise.id]
     setSkippedIds(newSkippedIds)
+    skippedIdsRef.current = newSkippedIds
 
     if (current + 1 < exercises.length) {
       setCurrent((c) => c + 1)
       setSelected(null)
       setPhase('playing')
     } else {
-      // Skipped last question — save what we have
       await saveGame(answers, newSkippedIds)
     }
   }, [phase, exercise, current, exercises.length, skippedIds, answers, saveGame])
 
   const handleExit = useCallback(() => {
-    const answeredCount = answers.length + (phase === 'answered' ? 1 : 0)
-    // Note: we count what's already in state; current question answered but not committed is counted
     const exitAnswers: RankedAnswer[] = phase === 'answered' && selected && exercise
       ? [...answers, {
           exerciseId: exercise.id,
@@ -205,11 +257,21 @@ export function RankedPlayer({ exercises, difficulty, currentTier, currentDivisi
             onDismiss={() => setShowLevelUp(false)}
           />
         )}
-        <RankedResultScreen
-          result={result}
-          onPlayAgain={() => router.push('/ranqueada/jogar')}
-          onExit={() => router.push('/dashboard')}
-        />
+        {isSimulado ? (
+          <SimuladoReportScreen
+            result={result}
+            answers={answersSnapshot}
+            exercises={exercises}
+            onPlayAgain={() => router.push('/ranqueada/jogar')}
+            onExit={() => router.push('/dashboard')}
+          />
+        ) : (
+          <RankedResultScreen
+            result={result}
+            onPlayAgain={() => router.push('/ranqueada/jogar')}
+            onExit={() => router.push('/dashboard')}
+          />
+        )}
       </>
     )
   }
@@ -232,6 +294,14 @@ export function RankedPlayer({ exercises, difficulty, currentTier, currentDivisi
 
   const currTierLabel = ELO_TIER_LABELS[currentTier]
   const currDivLabel  = currentTier === 'mestre' ? '' : ` ${['', 'I', 'II', 'III', 'IV'][currentDivision] ?? currentDivision}`
+
+  // Bar fill ratio for simulado per-question gauge
+  const questBarPct = isSimulado ? Math.min(100, (elapsedMs / SIMULADO_QUEST_MS) * 100) : 0
+  const questBarColor = elapsedMs < SIMULADO_QUEST_MS * 0.7
+    ? 'bg-green-400'
+    : elapsedMs < SIMULADO_QUEST_MS
+    ? 'bg-amber-400'
+    : 'bg-red-400'
 
   return (
     <div className="max-w-xl mx-auto animate-fade-in">
@@ -265,6 +335,27 @@ export function RankedPlayer({ exercises, difficulty, currentTier, currentDivisi
         </div>
       )}
 
+      {/* Simulado: total countdown timer */}
+      {isSimulado && (
+        <div className={cn(
+          'flex items-center justify-between mb-2 px-3 py-2 rounded-2xl border',
+          totalRemaining < 600
+            ? 'bg-red-50 border-red-200'
+            : 'bg-matema-cream border-matema-border',
+        )}>
+          <span className="flex items-center gap-1.5 text-xs font-semibold text-matema-muted">
+            <Clock className="w-3.5 h-3.5" strokeWidth={1.75} />
+            Tempo restante
+          </span>
+          <span className={cn(
+            'text-sm font-extrabold tabular-nums',
+            totalRemaining < 600 ? 'text-red-500' : 'text-matema-dark',
+          )}>
+            {fmtCountdown(totalRemaining)}
+          </span>
+        </div>
+      )}
+
       {/* Tier + dificuldade */}
       <div className="flex items-center justify-between mb-1.5">
         <span className="flex items-center gap-1.5 text-sm font-semibold text-matema-muted">
@@ -295,7 +386,7 @@ export function RankedPlayer({ exercises, difficulty, currentTier, currentDivisi
       <div className="mb-1">
         <div className="flex justify-between text-xs text-matema-muted mb-0.5">
           <span>Questão {current + 1} de {exercises.length}</span>
-          {phase === 'playing' && (
+          {phase === 'playing' && !isSimulado && (
             <span className="tabular-nums">{(elapsedMs / 1000).toFixed(1)}s</span>
           )}
         </div>
@@ -306,6 +397,24 @@ export function RankedPlayer({ exercises, difficulty, currentTier, currentDivisi
           />
         </div>
       </div>
+
+      {/* Simulado: per-question suggested time bar */}
+      {isSimulado && phase === 'playing' && (
+        <div className="mb-1.5">
+          <div className="flex justify-between text-xs mb-0.5">
+            <span className="text-matema-muted">Sugerido: 3:00 / questão</span>
+            {elapsedMs > SIMULADO_QUEST_MS && (
+              <span className="text-amber-500 font-semibold">Acima do sugerido</span>
+            )}
+          </div>
+          <div className="h-1.5 bg-matema-border rounded-full overflow-hidden">
+            <div
+              className={cn('h-full rounded-full transition-all', questBarColor)}
+              style={{ width: `${questBarPct}%` }}
+            />
+          </div>
+        </div>
+      )}
 
       {/* Question card */}
       <div className="bg-white rounded-3xl border border-matema-border p-4 shadow-sm mb-2">
