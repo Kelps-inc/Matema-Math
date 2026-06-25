@@ -156,14 +156,17 @@ export function SimuladoPlayer({
 
   const confirmAbandon = useCallback(async () => {
     setIsAbandoning(true)
-    await upsertSimuladoSessionAction({
-      exerciseIds:     exercises.map(e => e.id),
-      answers:         answersRef.current,
-      timeRemainingMs: remainingRef.current * 1000,
-    })
-    await abandonSimuladoAction()
-    router.push('/ranqueada')
-  }, [exercises, router])
+    try {
+      await upsertSimuladoSessionAction({
+        exerciseIds:     exercises.map(e => e.id),
+        answers:         answersRef.current,
+        timeRemainingMs: remainingRef.current * 1000,
+      })
+      await abandonSimuladoAction()
+    } finally {
+      window.location.href = '/ranqueada'
+    }
+  }, [exercises])
 
   // ── SUBMITTING ──────────────────────────────────────────────────────────────
   if (phase === 'submitting') {
