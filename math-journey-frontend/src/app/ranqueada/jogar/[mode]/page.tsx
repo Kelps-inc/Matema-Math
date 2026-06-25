@@ -148,32 +148,49 @@ export default async function RanqueadaJogarModePage({
       savedExercises = (savedEx ?? []).map(normaliseExercise)
     }
 
-    // Guard: need at least 45 fresh exercises (if no saved session to resume)
-    if (!savedSession && exercises.length < 45) {
-      return (
-        <div className="max-w-xl mx-auto py-20 text-center animate-fade-in">
-          <GraduationCap className="w-14 h-14 text-matema-muted mx-auto mb-4" strokeWidth={1.5} />
-          <h2 className="text-xl font-extrabold text-matema-dark mb-2">Simulado em breve</h2>
-          <p className="text-matema-muted text-sm mb-1">
-            Temos apenas <strong>{exercises.length}</strong> de 45 questões necessárias para o Simulado.
-          </p>
-          <p className="text-matema-muted text-sm mb-6">
-            Novas questões estão sendo adicionadas. Volte em breve!
-          </p>
-          <Link
-            href="/ranqueada/jogar"
-            className="inline-block bg-matema-primary text-white font-bold px-6 py-3 rounded-2xl hover:opacity-90 transition-opacity"
-          >
-            ← Escolher outro modo
-          </Link>
-        </div>
-      )
+    // Guard: need at least 45 exercises (if no saved session to resume)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let simuladoExercises: any[] = exercises
+    if (!savedSession && simuladoExercises.length < 45) {
+      if (!profile.isAdmin) {
+        return (
+          <div className="max-w-xl mx-auto py-20 text-center animate-fade-in">
+            <GraduationCap className="w-14 h-14 text-matema-muted mx-auto mb-4" strokeWidth={1.5} />
+            <h2 className="text-xl font-extrabold text-matema-dark mb-2">Simulado em breve</h2>
+            <p className="text-matema-muted text-sm mb-1">
+              Temos apenas <strong>{simuladoExercises.length}</strong> de 45 questões necessárias para o Simulado.
+            </p>
+            <p className="text-matema-muted text-sm mb-6">
+              Novas questões estão sendo adicionadas. Volte em breve!
+            </p>
+            <Link
+              href="/ranqueada/jogar"
+              className="inline-block bg-matema-primary text-white font-bold px-6 py-3 rounded-2xl hover:opacity-90 transition-opacity"
+            >
+              ← Escolher outro modo
+            </Link>
+          </div>
+        )
+      }
+
+      // Admin: pad to 45 with any available questions from the same lessons (repeats OK)
+      const { data: anyEx } = await supabaseAny
+        .from('exercises')
+        .select('id, question, context, type, options, correct_answer, explanation, difficulty, source')
+        .in('lesson_id', lessonIds)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const pool = (anyEx ?? []).map((e: any) => normaliseExercise(e))
+      if (pool.length > 0) {
+        const padded = [...simuladoExercises]
+        while (padded.length < 45) padded.push(pool[Math.floor(Math.random() * pool.length)])
+        simuladoExercises = padded
+      }
     }
 
     return (
       <div className="animate-fade-in">
         <SimuladoGate
-          freshExercises={exercises}
+          freshExercises={simuladoExercises}
           savedSession={savedSession}
           savedExercises={savedExercises}
           currentTier={profile.eloTier as EloTier}
