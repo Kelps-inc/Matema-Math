@@ -2,7 +2,6 @@ import Link from 'next/link'
 import { signOut } from '@/app/actions/auth'
 import { MobileBottomNav } from '@/presentation/components/game/MobileBottomNav'
 import { LogoWithEyes } from '@/presentation/components/game/LogoWithEyes'
-import { NinjaIcon } from '@/presentation/components/game/NinjaIcon'
 import { Zap, Coins, Trophy, Settings } from 'lucide-react'
 import type { User } from '@/domain/user/entities/User'
 
@@ -36,7 +35,7 @@ export function GameHeader({ user }: GameHeaderProps) {
             <span className="text-sm leading-none">Ranqueada</span>
           </Link>
           <Link href="/duelo" className="flex flex-col items-center justify-center gap-0.5 px-3 py-1.5 font-bold text-matema-accent/90 border-2 border-matema-accent/40 bg-matema-accent/10 hover:bg-matema-accent/20 rounded-xl transition-colors shadow-[0_2px_10px_rgba(139,124,196,0.2)]">
-            <NinjaIcon className="w-4 h-4" strokeWidth={1.75} />
+            <span className="text-xl leading-none">🥷</span>
             <span className="text-xs leading-none">Duelo</span>
           </Link>
           <Link href="/avatar" className="px-3 py-2 text-sm font-medium text-white/70 hover:text-white hover:bg-white/10 rounded-xl transition-colors">
