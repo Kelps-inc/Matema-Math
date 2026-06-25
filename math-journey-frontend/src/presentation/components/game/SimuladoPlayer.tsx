@@ -60,6 +60,7 @@ export function SimuladoPlayer({
   const [showLevelUp, setShowLevelUp]     = useState(false)
   const [error, setError]                 = useState<string | null>(null)
   const [isPending, startTransition]      = useTransition()
+  const [isAbandoning, setIsAbandoning]   = useState(false)
 
   const questionRefs  = useRef<(HTMLDivElement | null)[]>([])
   const answersRef    = useRef(answers)
@@ -153,16 +154,16 @@ export function SimuladoPlayer({
     setPhase('playing')
   }, [])
 
-  const confirmAbandon = useCallback(() => {
-    startTransition(async () => {
-      await upsertSimuladoSessionAction({
-        exerciseIds:     exercises.map(e => e.id),
-        answers:         answersRef.current,
-        timeRemainingMs: remainingRef.current * 1000,
-      })
-      await abandonSimuladoAction() // server action chama redirect('/ranqueada') internamente
+  const confirmAbandon = useCallback(async () => {
+    setIsAbandoning(true)
+    await upsertSimuladoSessionAction({
+      exerciseIds:     exercises.map(e => e.id),
+      answers:         answersRef.current,
+      timeRemainingMs: remainingRef.current * 1000,
     })
-  }, [exercises])
+    await abandonSimuladoAction()
+    router.push('/ranqueada')
+  }, [exercises, router])
 
   // ── SUBMITTING ──────────────────────────────────────────────────────────────
   if (phase === 'submitting') {
@@ -230,10 +231,10 @@ export function SimuladoPlayer({
               </button>
               <button
                 onClick={confirmAbandon}
-                disabled={isPending}
+                disabled={isAbandoning}
                 className="flex-1 bg-red-500 text-white py-2.5 rounded-2xl font-bold hover:bg-red-600 transition-colors text-sm disabled:opacity-60"
               >
-                {isPending ? 'Salvando…' : 'Abandonar (−5 PDL)'}
+                {isAbandoning ? 'Salvando…' : 'Abandonar (−5 PDL)'}
               </button>
             </div>
           </div>
