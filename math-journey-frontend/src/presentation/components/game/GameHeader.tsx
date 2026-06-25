@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { signOut } from '@/app/actions/auth'
 import { MobileBottomNav } from '@/presentation/components/game/MobileBottomNav'
 import { LogoWithEyes } from '@/presentation/components/game/LogoWithEyes'
-import { Zap, Coins, Trophy, Settings } from 'lucide-react'
+import { Zap, Coins, Trophy, Settings, Users } from 'lucide-react'
 import type { User } from '@/domain/user/entities/User'
 
 interface GameHeaderProps {
@@ -29,6 +29,10 @@ export function GameHeader({ user }: GameHeaderProps) {
           </Link>
           <Link href="/loja" className="px-3 py-2 text-sm font-medium text-white/70 hover:text-white hover:bg-white/10 rounded-xl transition-colors">
             Loja
+          </Link>
+          <Link href="/amigos" className="flex flex-col items-center justify-center gap-0.5 px-3 py-1.5 font-bold text-matema-secondary/90 border-2 border-matema-secondary/40 bg-matema-secondary/10 hover:bg-matema-secondary/20 rounded-xl transition-colors shadow-[0_2px_10px_rgba(107,158,122,0.2)]">
+            <Users className="w-4 h-4" strokeWidth={1.75} />
+            <span className="text-xs leading-none">Amigos</span>
           </Link>
           <Link href="/ranqueada" className="flex flex-col items-center justify-center gap-0.5 px-4 py-1.5 font-bold text-orange-400 border-2 border-orange-400/60 bg-orange-400/10 hover:bg-orange-400/20 rounded-xl transition-colors shadow-[0_2px_12px_rgba(251,146,60,0.3)]">
             <Trophy className="w-5 h-5" strokeWidth={1.75} />
