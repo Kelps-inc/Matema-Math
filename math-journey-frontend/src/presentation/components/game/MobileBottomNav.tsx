@@ -4,7 +4,6 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/presentation/lib/utils'
 import { BookOpen, ShoppingBag, Trophy, UserRound } from 'lucide-react'
-import { NinjaIcon } from '@/presentation/components/game/NinjaIcon'
 
 export function MobileBottomNav() {
   const pathname = usePathname()
@@ -52,7 +51,7 @@ export function MobileBottomNav() {
         {item('/modulos',   'Treino',    <BookOpen    className="w-5 h-5" strokeWidth={1.75} />)}
         {item('/loja',      'Loja',      <ShoppingBag className="w-5 h-5" strokeWidth={1.75} />)}
         {item('/ranqueada', 'Ranqueada', <Trophy      className="w-6 h-6" strokeWidth={1.75} />, true)}
-        {item('/duelo',     'Duelo',     <NinjaIcon   className="w-5 h-5" />)}
+        {item('/duelo',     'Duelo',     <span className="text-2xl leading-none">🥷</span>)}
         {item('/avatar',    'Avatar',    <UserRound   className="w-5 h-5" strokeWidth={1.75} />)}
       </div>
     </nav>
