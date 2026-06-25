@@ -2,6 +2,7 @@
 
 import { createClient } from '@/infrastructure/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { redirect } from 'next/navigation'
 import type { EloTier } from '@/domain/user/entities/User'
 
 export type SimuladoSessionData = {
@@ -97,6 +98,5 @@ export async function abandonSimuladoAction(): Promise<{ error?: string }> {
 
   revalidatePath('/ranqueada')
   revalidatePath('/dashboard')
-
-  return {}
+  redirect('/ranqueada')
 }

@@ -95,17 +95,14 @@ h1, h2, h3 { letter-spacing: 0.06em; }
    KaTeX default = 1.21em; 1.35em dá ~11% a mais sem estourar o layout. */
 .katex { font-size: 1.35em; }
 
-/* Scrollbar cozy */
-::-webkit-scrollbar {
-  width: 6px;
-}
-::-webkit-scrollbar-track {
-  background: var(--color-matema-warm);
-}
-::-webkit-scrollbar-thumb {
-  background: var(--color-matema-border);
-  border-radius: 99px;
-}
+/* Scrollbar */
+::-webkit-scrollbar       { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: var(--color-matema-warm); border-radius: 99px; }
+::-webkit-scrollbar-thumb { background: var(--color-matema-muted); border-radius: 99px; border: 2px solid var(--color-matema-warm); }
+::-webkit-scrollbar-thumb:hover { background: var(--color-matema-dark); }
+
+/* Firefox */
+* { scrollbar-width: thin; scrollbar-color: var(--color-matema-muted) var(--color-matema-warm); }
 
 /* Animações */
 @keyframes fadeIn {

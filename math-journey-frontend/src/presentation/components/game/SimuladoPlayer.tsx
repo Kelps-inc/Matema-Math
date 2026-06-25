@@ -160,10 +160,9 @@ export function SimuladoPlayer({
         answers:         answersRef.current,
         timeRemainingMs: remainingRef.current * 1000,
       })
-      await abandonSimuladoAction()
-      router.push('/ranqueada')
+      await abandonSimuladoAction() // server action chama redirect('/ranqueada') internamente
     })
-  }, [exercises, router])
+  }, [exercises])
 
   // ── SUBMITTING ──────────────────────────────────────────────────────────────
   if (phase === 'submitting') {
