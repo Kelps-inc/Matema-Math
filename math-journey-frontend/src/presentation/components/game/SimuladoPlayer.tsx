@@ -2,10 +2,11 @@
 
 import { useState, useEffect, useRef, useCallback, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
+// NOTE: abandonSimuladoAction no longer used here — handled by /api/simulado/abandon route
 import { cn } from '@/presentation/lib/utils'
 import { MathText } from '@/presentation/components/ui/MathText'
 import { saveRankedGameAction, type RankedAnswer } from '@/app/actions/ranked'
-import { upsertSimuladoSessionAction, deleteSimuladoSessionAction, abandonSimuladoAction } from '@/app/actions/simulado'
+import { upsertSimuladoSessionAction, deleteSimuladoSessionAction } from '@/app/actions/simulado'
 import { ELO_TIER_LABELS, type EloTier } from '@/domain/user/entities/User'
 import { EloTierIcon } from '@/presentation/components/ui/EloTierIcon'
 import { SimuladoReportScreen } from '@/presentation/components/game/SimuladoReportScreen'
@@ -60,8 +61,6 @@ export function SimuladoPlayer({
   const [showLevelUp, setShowLevelUp]     = useState(false)
   const [error, setError]                 = useState<string | null>(null)
   const [isPending, startTransition]      = useTransition()
-  const [isAbandoning, setIsAbandoning]   = useState(false)
-
   const questionRefs  = useRef<(HTMLDivElement | null)[]>([])
   const answersRef    = useRef(answers)
   const remainingRef  = useRef(totalRemaining)
@@ -154,18 +153,19 @@ export function SimuladoPlayer({
     setPhase('playing')
   }, [])
 
-  const confirmAbandon = useCallback(async () => {
-    setIsAbandoning(true)
-    try {
-      await upsertSimuladoSessionAction({
+  const confirmAbandon = useCallback(() => {
+    // keepalive garante que o request completa mesmo após page unload
+    fetch('/api/simulado/abandon', {
+      method:    'POST',
+      headers:   { 'Content-Type': 'application/json' },
+      body:      JSON.stringify({
         exerciseIds:     exercises.map(e => e.id),
         answers:         answersRef.current,
         timeRemainingMs: remainingRef.current * 1000,
-      })
-      await abandonSimuladoAction()
-    } finally {
-      window.location.href = '/ranqueada'
-    }
+      }),
+      keepalive: true,
+    }).catch(() => {})
+    window.location.href = '/ranqueada'
   }, [exercises])
 
   // ── SUBMITTING ──────────────────────────────────────────────────────────────
@@ -213,7 +213,7 @@ export function SimuladoPlayer({
 
       {/* ── Abandon confirm modal ──────────────────────────────────────────── */}
       {phase === 'confirm-abandon' && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[9999] px-4">
           <div className="bg-white rounded-3xl p-6 max-w-sm w-full shadow-xl animate-fade-in">
             <div className="flex items-center gap-2 mb-2">
               <AlertTriangle className="w-5 h-5 text-amber-500" strokeWidth={1.75} />
@@ -234,10 +234,9 @@ export function SimuladoPlayer({
               </button>
               <button
                 onClick={confirmAbandon}
-                disabled={isAbandoning}
-                className="flex-1 bg-red-500 text-white py-2.5 rounded-2xl font-bold hover:bg-red-600 transition-colors text-sm disabled:opacity-60"
+                className="flex-1 bg-red-500 text-white py-2.5 rounded-2xl font-bold hover:bg-red-600 transition-colors text-sm"
               >
-                {isAbandoning ? 'Salvando…' : 'Abandonar (−5 PDL)'}
+                Abandonar (−5 PDL)
               </button>
             </div>
           </div>
