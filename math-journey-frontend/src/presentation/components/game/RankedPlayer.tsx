@@ -324,7 +324,7 @@ export function RankedPlayer({
                 dangerouslySetInnerHTML={{ __html: exercise.context }}
               />
             ) : (
-              <p className={cn('text-sm text-matema-muted leading-relaxed', useSerif && 'font-lora')}>
+              <p className="text-sm text-matema-muted leading-relaxed" style={useSerif ? { fontFamily: "var(--font-lora-var), Georgia, serif" } : undefined}>
                 <MathText>{exercise.context}</MathText>
               </p>
             )}
@@ -336,7 +336,7 @@ export function RankedPlayer({
             {exercise.source === 'Matema' ? 'Original Matema' : exercise.source}
           </p>
         )}
-        <p className={cn('font-semibold text-matema-dark text-sm leading-relaxed mb-3', useSerif && 'font-lora')}>
+        <p className="font-semibold text-matema-dark text-sm leading-relaxed mb-3" style={useSerif ? { fontFamily: "var(--font-lora-var), Georgia, serif" } : undefined}>
           <MathText>{exercise.question}</MathText>
         </p>
 

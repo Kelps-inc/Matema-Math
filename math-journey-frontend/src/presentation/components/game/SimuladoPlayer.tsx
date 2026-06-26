@@ -369,7 +369,7 @@ export function SimuladoPlayer({
                           dangerouslySetInnerHTML={{ __html: ex.context }}
                         />
                       ) : (
-                        <p className="text-sm text-matema-dark leading-relaxed font-lora">
+                        <p className="text-sm text-matema-dark leading-relaxed" style={{ fontFamily: "var(--font-lora-var), Georgia, serif" }}>
                           <MathText>{ex.context}</MathText>
                         </p>
                       )}
@@ -377,7 +377,7 @@ export function SimuladoPlayer({
                   )}
 
                   {/* Question */}
-                  <p className="font-semibold text-matema-dark text-sm leading-relaxed mb-4 font-lora">
+                  <p className="font-semibold text-matema-dark text-sm leading-relaxed mb-4" style={{ fontFamily: "var(--font-lora-var), Georgia, serif" }}>
                     <MathText>{ex.question}</MathText>
                   </p>
 
