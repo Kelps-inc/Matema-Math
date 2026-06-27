@@ -20,41 +20,41 @@ export function GameHeader({ user }: GameHeaderProps) {
         <LogoWithEyes level={user.level} height={65} />
       </Link>
 
-      <div className="max-w-screen-xl mx-auto px-6 h-14 flex items-center justify-between gap-2">
-        <div className="shrink-0 w-20" />
+      <div className="max-w-screen-2xl mx-auto px-3 h-14 flex items-center justify-between gap-1">
+        <div className="shrink-0 w-16" />
 
         <nav className="hidden sm:flex items-center gap-0.5">
-          <Link href="/modulos" className="px-3 py-2 text-sm font-medium text-white/70 hover:text-white hover:bg-white/10 rounded-xl transition-colors">
+          <Link href="/modulos" className="px-2.5 py-2 text-sm font-medium text-white/70 hover:text-white hover:bg-white/10 rounded-xl transition-colors">
             Treinamento
           </Link>
-          <Link href="/loja" className="px-3 py-2 text-sm font-medium text-white/70 hover:text-white hover:bg-white/10 rounded-xl transition-colors">
+          <Link href="/loja" className="px-2.5 py-2 text-sm font-medium text-white/70 hover:text-white hover:bg-white/10 rounded-xl transition-colors">
             Loja
           </Link>
-          <Link href="/amigos" className="flex flex-col items-center justify-center gap-0.5 px-3 py-1.5 font-bold text-matema-secondary/90 border-2 border-matema-secondary/40 bg-matema-secondary/10 hover:bg-matema-secondary/20 rounded-xl transition-colors shadow-[0_2px_10px_rgba(107,158,122,0.2)]">
+          <Link href="/amigos" className="flex flex-col items-center justify-center gap-0.5 px-2.5 py-1.5 font-bold text-matema-secondary/90 border-2 border-matema-secondary/40 bg-matema-secondary/10 hover:bg-matema-secondary/20 rounded-xl transition-colors shadow-[0_2px_10px_rgba(107,158,122,0.2)]">
             <Users className="w-4 h-4" strokeWidth={1.75} />
             <span className="text-xs leading-none">Amigos</span>
           </Link>
-          <Link href="/ranqueada" className="flex flex-col items-center justify-center gap-0.5 px-4 py-1.5 font-bold text-orange-400 border-2 border-orange-400/60 bg-orange-400/10 hover:bg-orange-400/20 rounded-xl transition-colors shadow-[0_2px_12px_rgba(251,146,60,0.3)]">
+          <Link href="/ranqueada" className="flex flex-col items-center justify-center gap-0.5 px-3 py-1.5 font-bold text-orange-400 border-2 border-orange-400/60 bg-orange-400/10 hover:bg-orange-400/20 rounded-xl transition-colors shadow-[0_2px_12px_rgba(251,146,60,0.3)]">
             <Trophy className="w-5 h-5" strokeWidth={1.75} />
             <span className="text-sm leading-none">Ranqueada</span>
           </Link>
-          <Link href="/duelo" className="flex flex-col items-center justify-center gap-0.5 px-3 py-1.5 font-bold text-matema-accent/90 border-2 border-matema-accent/40 bg-matema-accent/10 hover:bg-matema-accent/20 rounded-xl transition-colors shadow-[0_2px_10px_rgba(139,124,196,0.2)]">
+          <Link href="/duelo" className="flex flex-col items-center justify-center gap-0.5 px-2.5 py-1.5 font-bold text-matema-accent/90 border-2 border-matema-accent/40 bg-matema-accent/10 hover:bg-matema-accent/20 rounded-xl transition-colors shadow-[0_2px_10px_rgba(139,124,196,0.2)]">
             <span className="text-xl leading-none">🥷</span>
             <span className="text-xs leading-none">Duelo</span>
           </Link>
-          <Link href="/avatar" className="px-3 py-2 text-sm font-medium text-white/70 hover:text-white hover:bg-white/10 rounded-xl transition-colors">
+          <Link href="/avatar" className="px-2.5 py-2 text-sm font-medium text-white/70 hover:text-white hover:bg-white/10 rounded-xl transition-colors">
             Avatar
           </Link>
-          <Link href="/dashboard" className="px-3 py-2 text-sm font-medium text-white/70 hover:text-white hover:bg-white/10 rounded-xl transition-colors">
+          <Link href="/dashboard" className="px-2.5 py-2 text-sm font-medium text-white/70 hover:text-white hover:bg-white/10 rounded-xl transition-colors">
             Progresso
           </Link>
-          <Link href="/leaderboard" className="px-3 py-2 text-sm font-medium text-white/70 hover:text-white hover:bg-white/10 rounded-xl transition-colors">
+          <Link href="/leaderboard" className="px-2.5 py-2 text-sm font-medium text-white/70 hover:text-white hover:bg-white/10 rounded-xl transition-colors">
             Ranking
           </Link>
         </nav>
 
-        <div className="flex items-center gap-2">
-          <div className="hidden md:flex items-center gap-3 bg-black/30 border border-white/15 rounded-2xl px-3 py-1.5">
+        <div className="flex items-center gap-1.5">
+          <div className="hidden md:flex items-center gap-2.5 bg-black/30 border border-white/15 rounded-2xl px-2.5 py-1.5">
             <div className="flex items-center gap-1.5">
               <Zap className="w-4 h-4 text-yellow-400 shrink-0" strokeWidth={2} />
               <div className="flex flex-col leading-none">
