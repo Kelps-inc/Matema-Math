@@ -43,7 +43,7 @@ function HoverCard({ entry }: { entry: LeaderboardEntry }) {
       {/* Avatar + nome */}
       <div className="flex items-start gap-3 mb-3">
         <div className="shrink-0">
-          <Avatar config={entry.avatarConfig} size={64} />
+          <Avatar config={entry.avatarConfig} ownedItemNames={entry.equippedItems} size={64} />
         </div>
         <div className="flex-1 min-w-0">
           <p className="font-extrabold text-matema-dark leading-tight truncate">{entry.displayName}</p>

@@ -27,7 +27,8 @@ export interface LeaderboardEntry {
   duelWins:   number
   duelLosses: number
   // Avatar
-  avatarConfig: AvatarConfig
+  avatarConfig:     AvatarConfig
+  equippedItems:    string[]
 }
 
 const TIER_RANK: Record<string, number> = {
@@ -42,7 +43,7 @@ export default async function LeaderboardPage() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const sb = supabase as any
 
-  const [profilesResult, answersResult, avatarsResult] = await Promise.all([
+  const [profilesResult, answersResult, avatarsResult, itemsResult] = await Promise.all([
     sb.from('user_profiles')
       .select('id, display_name, elo_tier, elo_division, elo_lp, placement_result, duel_rating, duel_wins, duel_losses')
       .eq('placement_completed', true),
@@ -53,6 +54,10 @@ export default async function LeaderboardPage() {
 
     sb.from('user_avatar_config')
       .select('user_id, skin_tone, eye_color, eye_style, nose_style, brow_style, mouth_style, body_type, height_type, hair_style, hair_color, gender'),
+
+    sb.from('user_items')
+      .select('user_id, shop_items(name, category)')
+      .eq('is_equipped', true),
   ])
 
   // ── Build avatar map ─────────────────────────────────────────────────────
@@ -72,6 +77,17 @@ export default async function LeaderboardPage() {
       hairColor:  r.hair_color  ?? 'castanho',
       gender:     r.gender      ?? 'masculino',
     }
+  }
+
+  // ── Build equipped accessories map ───────────────────────────────────────
+  const equippedMap: Record<string, string[]> = {}
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  for (const r of (itemsResult.data ?? []) as any[]) {
+    if (r.shop_items?.category !== 'acessorio') continue
+    const name = r.shop_items?.name as string
+    if (!name) continue
+    if (!equippedMap[r.user_id]) equippedMap[r.user_id] = []
+    equippedMap[r.user_id].push(name)
   }
 
   // ── Build ranked stats map ────────────────────────────────────────────────
@@ -132,7 +148,8 @@ export default async function LeaderboardPage() {
       duelRating:       row.duel_rating  ?? 1000,
       duelWins:         row.duel_wins    ?? 0,
       duelLosses:       row.duel_losses  ?? 0,
-      avatarConfig:     avatarMap[row.id] ?? DEFAULT_AVATAR_CONFIG,
+      avatarConfig:     avatarMap[row.id]   ?? DEFAULT_AVATAR_CONFIG,
+      equippedItems:    equippedMap[row.id] ?? [],
     }
   })
 
