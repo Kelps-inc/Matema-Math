@@ -249,7 +249,11 @@ Autosave da sessão em andamento (upsert por `user_id`).
 Remove a sessão (ao concluir/abandonar).
 
 #### `abandonSimuladoAction()`
-Abandona o simulado em andamento. **Output:** `{ error? }`.
+Server Action de abandono (salva sessão + aplica −5 PDL). **Output:** `{ error? }`.
+
+> ⚠️ **No cliente, o botão "Abandonar" do `SimuladoPlayer` NÃO usa esta action** — ele
+> chama a rota `POST /api/simulado/abandon` (ver abaixo) e depois redireciona para
+> `/ranqueada/jogar`. A `abandonSimuladoAction` permanece como equivalente em Server Action.
 
 > A pontuação do Simulado é salva via `ranked.ts` → `saveRankedGameAction`, que
 > **revalida `isCorrect` no servidor** contra o gabarito (anti-cheat). Ver `answers.ts`.
@@ -305,9 +309,7 @@ const repo = new SupabaseLearningRepository(supabase)
 const modules = await repo.findAllModules()
 ```
 
-## API Route
-
-Apenas uma:
+## API Routes
 
 ### `GET /auth/callback`
 **Arquivo:** `src/app/auth/callback/route.ts`
@@ -319,3 +321,12 @@ GET /auth/callback?code=xxx&next=/dashboard
 → supabase.auth.exchangeCodeForSession(code)
 → redirect(next)
 ```
+
+### `POST /api/simulado/abandon`
+**Arquivo:** `src/app/api/simulado/abandon/route.ts`
+
+Usada pelo botão "Abandonar" do `SimuladoPlayer` (em vez da `abandonSimuladoAction`).
+Recebe `{ exerciseIds, answers, timeRemainingMs }`, faz upsert da sessão em
+`simulado_sessions` e aplica **−5 PDL** ao perfil. O cliente `await` a resposta e
+então navega para `/ranqueada/jogar` (seleção de modo). **Output:** `{ ok: true }`
+ou `{ error }` (401 se não autenticado).

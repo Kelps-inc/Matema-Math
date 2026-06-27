@@ -153,19 +153,25 @@ export function SimuladoPlayer({
     setPhase('playing')
   }, [])
 
-  const confirmAbandon = useCallback(() => {
-    // keepalive garante que o request completa mesmo após page unload
-    fetch('/api/simulado/abandon', {
-      method:    'POST',
-      headers:   { 'Content-Type': 'application/json' },
-      body:      JSON.stringify({
-        exerciseIds:     exercises.map(e => e.id),
-        answers:         answersRef.current,
-        timeRemainingMs: remainingRef.current * 1000,
-      }),
-      keepalive: true,
-    }).catch(() => {})
-    window.location.href = '/ranqueada'
+  const confirmAbandon = useCallback(async () => {
+    // Aguarda o request concluir (salva sessão + aplica −5 PDL) ANTES de navegar,
+    // garantindo consistência e que o redirect realmente ocorra.
+    try {
+      await fetch('/api/simulado/abandon', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({
+          exerciseIds:     exercises.map(e => e.id),
+          answers:         answersRef.current,
+          timeRemainingMs: remainingRef.current * 1000,
+        }),
+        keepalive: true,
+      })
+    } catch {
+      // Mesmo se o request falhar, leva o usuário de volta à seleção de modo.
+    }
+    // Redireciona para a SELEÇÃO DE MODO da ranqueada (não para o hub /ranqueada).
+    window.location.href = '/ranqueada/jogar'
   }, [exercises])
 
   // ── SUBMITTING ──────────────────────────────────────────────────────────────

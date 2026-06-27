@@ -35,13 +35,9 @@ export const metadata: Metadata = {
   keywords: ['matemática', 'ENEM', 'aprendizado', 'gamificação', 'ensino médio'],
   applicationName: 'Matema',
   manifest: '/manifest.webmanifest',
-  icons: {
-    icon: [
-      { url: '/favicon.ico', sizes: 'any' },
-      { url: '/icon.png', type: 'image/png', sizes: '512x512' },
-    ],
-    apple: '/apple-icon.png',
-  },
+  // Ícones derivados das convenções do App Router: app/favicon.ico (aba),
+  // app/icon.png (rel=icon) e app/apple-icon.png. Não declarar metadata.icons
+  // aqui evita referência ao caminho inexistente /icon.png (o real é /icon).
   openGraph: {
     type: 'website',
     locale: 'pt_BR',
