@@ -5,13 +5,14 @@ import { createClient } from '@/infrastructure/supabase/server'
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 // Nomes canônicos dos power-ups (devem bater com shop_items.name).
-export const POWERUP_NAMES = {
+// Não exportado: arquivos 'use server' só podem exportar funções async.
+const POWERUP_NAMES = {
   bomba:  'Bomba',
   heart:  'Coração',
   double: 'Multiplicador 2x',
 } as const
 
-export type PowerupKey = keyof typeof POWERUP_NAMES
+type PowerupKey = keyof typeof POWERUP_NAMES
 
 export interface MyPowerups {
   // itemId por chave + quantidade em mãos
