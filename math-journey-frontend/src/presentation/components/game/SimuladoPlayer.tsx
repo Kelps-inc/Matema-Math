@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback, useTransition } from 'react'
+import { createPortal } from 'react-dom'
 import { useRouter } from 'next/navigation'
 // NOTE: abandonSimuladoAction no longer used here — handled by /api/simulado/abandon route
 import { cn } from '@/presentation/lib/utils'
@@ -218,7 +219,12 @@ export function SimuladoPlayer({
     <div className="animate-fade-in">
 
       {/* ── Abandon confirm modal ──────────────────────────────────────────── */}
-      {phase === 'confirm-abandon' && (
+      {/* Portal para document.body: o wrapper da página tem `animate-fade-in`
+          (transform), o que faria um modal `fixed` se ancorar no container das
+          45 questões em vez da viewport — deixando o card centralizado fora da
+          tela (só a sombra aparecia). O portal escapa de qualquer ancestral
+          transformado. */}
+      {phase === 'confirm-abandon' && typeof document !== 'undefined' && createPortal(
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[9999] px-4">
           <div className="bg-white rounded-3xl p-6 max-w-sm w-full shadow-xl animate-fade-in">
             <div className="flex items-center gap-2 mb-2">
@@ -246,7 +252,8 @@ export function SimuladoPlayer({
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body,
       )}
 
       {/* ── Sticky header ─────────────────────────────────────────────────── */}
