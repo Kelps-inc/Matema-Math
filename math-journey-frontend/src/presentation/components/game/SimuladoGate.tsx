@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { ClipboardList, Play, RotateCcw } from 'lucide-react'
+import { ClipboardList, Play, RotateCcw, ArrowLeft } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 import { deleteSimuladoSessionAction } from '@/app/actions/simulado'
 import { SimuladoPlayer } from './SimuladoPlayer'
 import type { RankedExercise } from './RankedPlayer'
@@ -32,6 +33,7 @@ export function SimuladoGate({
 }: Props) {
   const [choice, setChoice]          = useState<'none' | 'continue' | 'restart'>('none')
   const [isPending, startTransition] = useTransition()
+  const router = useRouter()
 
   const playerProps = { currentTier, currentDivision, currentLp }
 
@@ -68,14 +70,23 @@ export function SimuladoGate({
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
       <div className="bg-white rounded-3xl p-6 max-w-sm w-full shadow-xl animate-fade-in">
 
-        <div className="flex items-center gap-2 mb-4">
-          <div className="w-10 h-10 bg-amber-50 rounded-2xl flex items-center justify-center flex-shrink-0">
-            <ClipboardList className="w-5 h-5 text-amber-600" strokeWidth={1.75} />
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <div className="w-10 h-10 bg-amber-50 rounded-2xl flex items-center justify-center flex-shrink-0">
+              <ClipboardList className="w-5 h-5 text-amber-600" strokeWidth={1.75} />
+            </div>
+            <div>
+              <p className="font-extrabold text-matema-dark">Simulado em andamento</p>
+              <p className="text-xs text-matema-muted">Você tem um simulado salvo</p>
+            </div>
           </div>
-          <div>
-            <p className="font-extrabold text-matema-dark">Simulado em andamento</p>
-            <p className="text-xs text-matema-muted">Você tem um simulado salvo</p>
-          </div>
+          <button
+            onClick={() => router.push('/ranqueada')}
+            className="p-2 rounded-xl text-matema-muted hover:text-matema-dark hover:bg-matema-warm transition-colors"
+            title="Voltar"
+          >
+            <ArrowLeft className="w-5 h-5" strokeWidth={1.75} />
+          </button>
         </div>
 
         <div className="bg-matema-cream rounded-2xl p-3 mb-5 border border-matema-border flex justify-between text-sm">
