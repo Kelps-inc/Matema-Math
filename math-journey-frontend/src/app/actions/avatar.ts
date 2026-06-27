@@ -35,8 +35,14 @@ export async function saveAvatarConfigAction(
 
   if (error) return { error: error.message }
 
+  // Revalida TODAS as rotas que renderizam o avatar (RSC), senão o Router Cache do
+  // Next serve a versão antiga ao navegar. O leaderboard lê user_avatar_config no
+  // servidor — sem isto, a miniatura não atualizava após editar o avatar.
+  // ⚠️ Ao criar uma nova rota que mostre o avatar, adicione-a aqui.
   revalidatePath('/dashboard')
   revalidatePath('/loja')
   revalidatePath('/avatar')
+  revalidatePath('/leaderboard')
+  revalidatePath('/usuarios')
   return { success: true }
 }
