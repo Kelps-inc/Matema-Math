@@ -117,7 +117,15 @@ export function SimuladoGate({
           </button>
         </div>
 
-        <p className="mt-4 text-center text-[11px] text-matema-muted leading-relaxed">
+        <button
+          onClick={() => router.push('/ranqueada')}
+          className="mt-3 w-full text-matema-muted font-bold py-2.5 rounded-2xl hover:bg-matema-warm hover:text-matema-dark transition-colors flex items-center justify-center gap-2 text-sm"
+        >
+          <ArrowLeft className="w-4 h-4" strokeWidth={1.75} />
+          Voltar à Ranqueada
+        </button>
+
+        <p className="mt-3 text-center text-[11px] text-matema-muted leading-relaxed">
           Recomeçar não custa PDL — você já pagou quando abandonou.
         </p>
       </div>
