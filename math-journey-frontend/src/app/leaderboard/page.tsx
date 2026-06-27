@@ -55,7 +55,7 @@ export default async function LeaderboardPage() {
     sb.from('user_avatar_config')
       .select('user_id, skin_tone, eye_color, eye_style, nose_style, brow_style, mouth_style, body_type, height_type, hair_style, hair_color, gender'),
 
-    sb.from('user_items')
+    sb.from('user_inventory')
       .select('user_id, shop_items(name, category)')
       .eq('is_equipped', true),
   ])
