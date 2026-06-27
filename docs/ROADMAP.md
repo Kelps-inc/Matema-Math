@@ -29,6 +29,7 @@
 - **Amigos** (busca de usuários, pedidos/aceite — `friendships`)
 - Validação de respostas server-side + recompensa anti-cheat (migration `002`)
 - PWA (manifest + ícones) e otimização de imagens (WebP)
+- **Versão Pro** (AbacatePay): assinatura no cartão + PIX avulso + trial de 7 dias; libera o Simulado ENEM (admins têm bypass)
 - Admin: preview de questões
 
 ---
@@ -68,7 +69,7 @@
 
 ## Decisões de produto pendentes
 
-- Modelo de monetização (freemium? assinatura?)
+- ~~Modelo de monetização~~ → **definido:** freemium com Pro (Simulado ENEM gated). Falta definir preço final e o que mais o Pro libera no futuro.
 - Quais módulos serão `is_free = false`
 - Política de reset de ELO (temporada?)
 - Limite de partidas ranqueadas por dia

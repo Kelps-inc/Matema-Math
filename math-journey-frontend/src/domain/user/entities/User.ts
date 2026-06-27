@@ -37,7 +37,15 @@ export class User {
     readonly placementCompleted: boolean = false,
     readonly eloLp: number = 0,
     readonly placementCompletedAt: Date | null = null,
+    readonly proUntil: Date | null = null,
+    readonly subscriptionStatus: 'none' | 'trial' | 'active' | 'cancelled' = 'none',
   ) {}
+
+  /** Acesso Pro ativo: admins sempre; demais enquanto `proUntil` for futuro. */
+  hasProAccess(now: Date = new Date()): boolean {
+    if (this.isAdmin) return true
+    return this.proUntil != null && this.proUntil.getTime() > now.getTime()
+  }
 
   xpToNextLevel(): number {
     const nextLevel = this.level + 1

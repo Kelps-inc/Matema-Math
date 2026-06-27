@@ -27,6 +27,11 @@ Perfil do jogador (1:1 com `auth.users`).
 | duel_rating | int (default 1000) | Rating de Duelo (separado do ELO) — migration `004` |
 | duel_wins | int (default 0) | Vitórias em Duelo |
 | duel_losses | int (default 0) | Derrotas em Duelo |
+| pro_until | timestamptz | Acesso Pro ativo enquanto `> now()` — migration `005` |
+| subscription_status | text | `none`/`trial`/`active`/`cancelled` |
+| trial_started_at | timestamptz | Quando ativou o trial de 7 dias (impede repetir) |
+| abacatepay_customer_id | text | Id do cliente no AbacatePay (`cust_...`) |
+| abacatepay_subscription_id | text | Id da assinatura/cobrança (`bill_...`) |
 | placement_completed | bool | Passou pelo placement? |
 | placement_completed_at | timestamptz | Quando completou |
 | last_active_at | timestamptz | Última atividade |
@@ -266,6 +271,17 @@ RPC `SECURITY DEFINER` que credita o resultado de um Duelo de forma atômica: aj
 > timestamp aplicada direto no remoto, depois consolidada). Ver ADR-011 em `DECISIONS.md`.
 > Ao mexer nesse RPC, materialize-o numa migration `005_*` ou rode `supabase db pull`.
 
+### `start_pro_trial() → json`
+RPC `SECURITY DEFINER` (migration `005`) que ativa o **trial de 7 dias** do Pro para o
+usuário autenticado (`auth.uid()`), uma única vez (`trial_started_at`). Seta `pro_until`
+e `subscription_status='trial'`. `grant execute` só para `authenticated`. O acesso pago é
+liberado pelo **webhook** (`/api/abacatepay/webhook`) via service role, não por RPC.
+
+> ⚠️ A política RLS de `user_profiles` permite o usuário dar `UPDATE` no próprio registro
+> (qualquer coluna). Por isso campos sensíveis (`pro_until`, `xp`, `elo_*`) **devem** ser
+> escritos só por RPC `security definer` ou pelo webhook (service role) — nunca confie em
+> update direto do cliente. Endurecer essa policy (column-level / WITH CHECK) é um TODO.
+
 ### `handle_new_user() → trigger`
 Dispara após INSERT em `auth.users`:
 - Cria linha em `user_profiles` com defaults
@@ -297,6 +313,7 @@ math-journey-backend/supabase/migrations/
   002_harden_lesson_rewards.sql # Anti-cheat: RPC award_lesson_completion (2 args)
   003_simulado_sessions.sql     # Tabela simulado_sessions + RLS
   004_duels_and_friendships.sql # Tabelas duels/friendships + colunas de duelo
+  005_pro_subscription.sql      # Versão Pro: colunas de assinatura + RPC start_pro_trial
 
 math-journey-backend/supabase/seed/
   001_content.sql               # 4 módulos, lições e exercícios iniciais

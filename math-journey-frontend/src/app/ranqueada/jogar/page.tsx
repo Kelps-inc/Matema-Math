@@ -4,7 +4,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { ELO_TIER_LABELS, type EloTier } from '@/domain/user/entities/User'
 import { EloTierIcon } from '@/presentation/components/ui/EloTierIcon'
-import { Zap, FileText, Timer, Target, Trophy, Newspaper, BarChart2, ClipboardList, Clock } from 'lucide-react'
+import { Zap, FileText, Timer, Target, Trophy, Newspaper, BarChart2, ClipboardList, Clock, Crown, Lock } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
 export default async function RanqueadaModoPage() {
@@ -17,6 +17,7 @@ export default async function RanqueadaModoPage() {
   if (!profile) redirect('/entrar')
   if (!profile.placementCompleted) redirect('/ranqueada/placement')
 
+  const hasPro    = profile.hasProAccess()
   const tier      = profile.eloTier as EloTier
   const tierLabel = ELO_TIER_LABELS[tier]
   const divLabel  = tier === 'mestre' ? '' : ` ${['','I','II','III','IV'][profile.eloDivision] ?? profile.eloDivision}`
@@ -139,8 +140,8 @@ export default async function RanqueadaModoPage() {
             <div>
               <div className="flex items-center gap-2">
                 <h2 className="font-extrabold text-matema-dark text-sm leading-tight">Simulado ENEM</h2>
-                <span className="text-[10px] font-bold uppercase tracking-wide text-amber-600 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded-full">
-                  Completo
+                <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide text-amber-600 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded-full">
+                  <Crown className="w-3 h-3" strokeWidth={2} /> Pro
                 </span>
               </div>
               <p className="text-xs text-matema-muted">Exame de verdade</p>
@@ -160,12 +161,21 @@ export default async function RanqueadaModoPage() {
             ))}
           </div>
 
-          <Link
-            href="/ranqueada/jogar/simulado"
-            className="mt-auto w-full text-center bg-amber-500 text-white font-bold py-2.5 rounded-2xl hover:bg-amber-600 active:scale-[0.98] transition-all text-sm"
-          >
-            Iniciar simulado →
-          </Link>
+          {hasPro ? (
+            <Link
+              href="/ranqueada/jogar/simulado"
+              className="mt-auto w-full text-center bg-amber-500 text-white font-bold py-2.5 rounded-2xl hover:bg-amber-600 active:scale-[0.98] transition-all text-sm"
+            >
+              Iniciar simulado →
+            </Link>
+          ) : (
+            <Link
+              href="/pro"
+              className="mt-auto w-full flex items-center justify-center gap-1.5 bg-amber-500 text-white font-bold py-2.5 rounded-2xl hover:bg-amber-600 active:scale-[0.98] transition-all text-sm"
+            >
+              <Lock className="w-4 h-4" strokeWidth={2} /> Desbloquear com Pro
+            </Link>
+          )}
         </div>
 
       </div>

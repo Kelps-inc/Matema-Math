@@ -23,6 +23,9 @@
 | **Duelo** | Partida 1v1 assíncrona entre dois jogadores (estilo Perguntados), com rating próprio |
 | **Duel Rating** | Pontuação de Duelo (`duel_rating`, default 1000), separada do ELO ranqueado |
 | **Amigo** | Outro usuário com amizade `accepted` (tabela `friendships`) |
+| **Pro** | Assinatura paga que libera o Simulado ENEM. Acesso ativo enquanto `pro_until > now()`; admins têm bypass |
+| **Trial** | Teste grátis de 7 dias do Pro, uma vez por usuário (`start_pro_trial`) |
+| **AbacatePay** | Gateway de pagamento (PIX + cartão + assinatura) usado na versão Pro |
 | **Gabarito** | Resposta correta (`correct_answer`); não é enviada ao cliente fora do Simulado (anti-cheat) |
 | **Acessório** | Item cosmético equipável no avatar (comprado na loja) |
 | **Avatar** | Representação visual do jogador (SVG procedural customizável) |

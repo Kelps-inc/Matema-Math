@@ -264,3 +264,34 @@ corrente. ADR-001 permanece como registro histórico da escolha original.
 **Impacto na doc:** `TECH_STACK.md`, `ARCHITECTURE.md` e `skills/001-project-context.md`
 atualizados para refletir Next 16/React 19. O `AGENTS.md` do frontend já alerta que esta
 versão tem breaking changes — **leia `node_modules/next/dist/docs/` antes de codar**.
+
+---
+
+## ADR-013: Versão Pro com AbacatePay (Simulado ENEM gated)
+
+**Contexto:** monetizar o Matema. O modo **Simulado ENEM** passa a ser exclusivo de
+assinantes **Pro**; admins têm acesso sem pagar.
+
+**Decisão:**
+- **Gateway: AbacatePay.** Três caminhos de aquisição: **trial de 7 dias** (uma vez, RPC
+  `start_pro_trial`), **PIX avulso** (checkout `/v2/checkouts/create`, libera 30 dias) e
+  **assinatura recorrente no cartão** (`/v2/subscriptions/create`). A API de assinatura só
+  aceita CARD; por isso o PIX entra como cobrança avulsa renovável.
+- **Fonte da verdade do acesso = `user_profiles.pro_until`.** `hasProAccess()` no domínio =
+  `isAdmin || pro_until > now()`. Gate aplicado no server (`jogar/[mode]/page.tsx` redireciona
+  para `/pro`) e no card de modos.
+- **Concessão de acesso só pelo servidor confiável.** O acesso pago é liberado pelo **webhook**
+  `/api/abacatepay/webhook` (eventos `checkout.completed`, `subscription.completed|renewed|
+  cancelled`), validado por `webhookSecret` na query + HMAC opcional. O webhook usa
+  **service role** (`createServiceClient`) — exceção justificada à regra "sem service_role":
+  é contexto de servidor sem sessão de usuário e a chave nunca chega ao cliente.
+- **Mapeamento usuário↔pagamento:** `externalId` e `metadata.userId` = `user.id` no create,
+  lidos de volta no webhook.
+
+**Trade-offs / riscos conhecidos:**
+- A policy RLS de `user_profiles` permite `UPDATE` de qualquer coluna pelo próprio usuário —
+  logo `pro_until` (e `xp`/`elo_*`) só são escritos por RPC `security definer`/webhook, nunca
+  por update direto do cliente. **TODO de hardening:** restringir colunas sensíveis na policy.
+- Expiração é "lazy" (checada em `pro_until > now()`); não há job de varredura — o status só
+  muda quando o webhook renova/cancela ou o tempo passa.
+- Preço/produto vivem no painel do AbacatePay (`ABACATEPAY_PRO_PRODUCT_ID`), fora do código.

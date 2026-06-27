@@ -144,7 +144,15 @@ npm run lint     # ESLint
 |---|---|---|
 | `NEXT_PUBLIC_SUPABASE_URL` | ✅ | URL do projeto Supabase |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | ✅ | Chave pública anon |
-| `SUPABASE_SERVICE_ROLE_KEY` | ❌ | Chave admin (operações admin) |
+| `SUPABASE_SERVICE_ROLE_KEY` | ✅ (Pro) | Chave service role — usada **só** no webhook do AbacatePay (server) para liberar o Pro. Nunca no cliente. |
+| `NEXT_PUBLIC_SITE_URL` | ✅ | URL pública do site (returnUrl/completionUrl do checkout) |
+| `ABACATEPAY_API_KEY` | ✅ (Pro) | API key do AbacatePay (`sk_...`) |
+| `ABACATEPAY_PRO_PRODUCT_ID` | ✅ (Pro) | Id do produto "Matema Pro" (com ciclo mensal) criado no painel (`prod_...`) |
+| `ABACATEPAY_WEBHOOK_SECRET` | ✅ (Pro) | Segredo passado na query do webhook (`?webhookSecret=...`) |
+| `ABACATEPAY_WEBHOOK_SIGNING_KEY` | ❌ | Chave p/ validar o HMAC `X-Webhook-Signature` (defesa extra opcional) |
+
+> **Setup do Pro (AbacatePay):** no painel, crie o produto "Matema Pro" com ciclo mensal e copie o `prod_...`; gere a API key; crie um webhook apontando para
+> `https://SEU_DOMINIO/api/abacatepay/webhook?webhookSecret=SEU_SEGREDO`. Ver ADR-013.
 
 ## Deploy (Vercel)
 

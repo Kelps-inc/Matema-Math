@@ -36,6 +36,8 @@ export class SupabaseUserRepository implements IUserRepository {
       d.placement_completed ?? false,
       d.elo_lp ?? 0,
       d.placement_completed_at ? new Date(d.placement_completed_at) : null,
+      d.pro_until ? new Date(d.pro_until) : null,
+      (d.subscription_status ?? 'none') as 'none' | 'trial' | 'active' | 'cancelled',
     )
   }
 

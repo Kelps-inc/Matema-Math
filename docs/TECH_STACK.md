@@ -20,7 +20,8 @@
 | Supabase | Banco de dados + Auth | PostgreSQL gerenciado + RLS + Auth integrado |
 | PostgreSQL | Banco relacional | Suporte a JSONB, funções, RLS por linha |
 | Supabase Auth | Autenticação | Email/senha, OAuth pronto, integrado com RLS |
-| Supabase Functions (SQL) | Operações atômicas | award_lesson_completion, purchase_item, apply_duel_ratings |
+| Supabase Functions (SQL) | Operações atômicas | award_lesson_completion, purchase_item, apply_duel_ratings, start_pro_trial |
+| AbacatePay | Pagamentos (Pro) | Checkout PIX/cartão + assinatura recorrente; webhooks para liberar acesso |
 
 ## Ferramentas de desenvolvimento
 

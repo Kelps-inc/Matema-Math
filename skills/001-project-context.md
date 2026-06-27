@@ -47,6 +47,7 @@ math-journey-backend/supabase/
 - XP + nível + moedas
 - ELO ranqueado (Bronze → Mestre, LP 0–99) — modos Objetivas, Estilo ENEM e **Simulado ENEM** (45 questões)
 - **Duelos 1v1** assíncronos (rating próprio `duel_rating`) + página de **Amigos**
+- **Versão Pro** (AbacatePay): assinatura cartão + PIX + trial 7d; libera o Simulado ENEM (admin tem bypass)
 - Avatar SVG procedural
 - Loja de cosméticos
 - Renderização LaTeX ($...$ e $$...$$)

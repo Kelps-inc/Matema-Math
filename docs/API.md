@@ -285,6 +285,20 @@ Pedido, aceite e listagem de amizades (`friendships`). **Output:** `{ error? }` 
 
 ---
 
+### `pro.ts`
+Versão Pro (assinatura via AbacatePay). O Pro libera o Simulado ENEM; admins têm bypass.
+
+#### `startProTrialAction()`
+Ativa o trial de 7 dias (uma vez por usuário) via RPC `start_pro_trial`. **Output:** `{ error? }`.
+
+#### `startProCheckoutAction(plan: 'pix' | 'subscription')`
+Garante o cliente no AbacatePay e cria a cobrança: `pix` → checkout avulso (PIX/cartão, 30
+dias); `subscription` → assinatura recorrente no cartão. Envia `externalId`/`metadata.userId`
+= id do usuário para o webhook mapear. **Output:** `{ url }` (redirecionar o cliente) ou `{ error }`.
+> O acesso Pro **não** é concedido aqui — só quando o webhook confirma o pagamento.
+
+---
+
 ## Autenticação nos Server Actions
 
 Todos os Server Actions autenticados seguem o padrão:
@@ -330,3 +344,15 @@ Recebe `{ exerciseIds, answers, timeRemainingMs }`, faz upsert da sessão em
 `simulado_sessions` e aplica **−5 PDL** ao perfil. O cliente `await` a resposta e
 então navega para `/ranqueada/jogar` (seleção de modo). **Output:** `{ ok: true }`
 ou `{ error }` (401 se não autenticado).
+
+### `POST /api/abacatepay/webhook`
+**Arquivo:** `src/app/api/abacatepay/webhook/route.ts`
+
+Recebe os eventos do AbacatePay. Valida `?webhookSecret=` (gate principal) + HMAC opcional
+(`X-Webhook-Signature`). Usa **service role** (`createServiceClient`) para liberar/revogar o
+Pro mapeando o usuário por `data.externalId`/`data.metadata.userId`:
+- `checkout.completed` → `pro_until = now()+30d`, status `active` (PIX/cartão avulso)
+- `subscription.completed` / `subscription.renewed` → `pro_until = now()+32d`, status `active`
+- `subscription.cancelled` → status `cancelled` (mantém acesso até `pro_until` expirar)
+
+Sempre responde `200` (com `ignored` quando não há ação), evitando reenvios desnecessários.

@@ -125,6 +125,9 @@ export default async function RanqueadaJogarModePage({
 
   // ── SIMULADO mode: special handling ──────────────────────────────────────
   if (mode === 'simulado') {
+    // Gate Pro: Simulado ENEM exige assinatura Pro (admins têm bypass).
+    if (!profile.hasProAccess()) redirect('/pro')
+
     // Check for an existing saved session
     const { data: sessionData } = await supabaseAny
       .from('simulado_sessions')
