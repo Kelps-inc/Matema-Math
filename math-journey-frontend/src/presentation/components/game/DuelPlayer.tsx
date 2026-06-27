@@ -121,7 +121,14 @@ export function DuelPlayer({ duelId, exercises, opponentName }: DuelPlayerProps)
       <div className="bg-white rounded-3xl border border-matema-border p-5 shadow-sm">
         {exercise.context && (
           <div className="bg-matema-cream rounded-2xl p-3 mb-4 text-sm text-matema-muted leading-relaxed">
-            <MathText>{exercise.context}</MathText>
+            {exercise.context.trimStart().startsWith('<svg') ? (
+              <div
+                className="[&_svg]:w-full [&_svg]:h-auto [&_svg]:block"
+                dangerouslySetInnerHTML={{ __html: exercise.context }}
+              />
+            ) : (
+              <MathText>{exercise.context}</MathText>
+            )}
           </div>
         )}
         <p className="font-semibold text-matema-dark mb-4 leading-relaxed text-sm">

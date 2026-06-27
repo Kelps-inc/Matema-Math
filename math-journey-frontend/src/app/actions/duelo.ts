@@ -229,17 +229,14 @@ export async function submitDuelAnswersAction(
       completed_at: now,
     }).eq('id', duelId)
 
-    await db.from('user_profiles').update({
-      duel_rating: Math.max(0, cRating + cChange),
-      duel_wins:   (cProfile?.duel_wins   ?? 0) + (cResult === 1 ? 1 : 0),
-      duel_losses: (cProfile?.duel_losses ?? 0) + (cResult === 0 ? 1 : 0),
-    }).eq('id', duel.challenger_id)
-
-    await db.from('user_profiles').update({
-      duel_rating: Math.max(0, oRating + oChange),
-      duel_wins:   (oProfile?.duel_wins   ?? 0) + (oResult === 1 ? 1 : 0),
-      duel_losses: (oProfile?.duel_losses ?? 0) + (oResult === 0 ? 1 : 0),
-    }).eq('id', duel.opponent_id)
+    // SECURITY DEFINER RPC — bypasses RLS para atualizar perfis de ambos os jogadores
+    await db.rpc('apply_duel_ratings', {
+      p_duel_id: duelId,
+      p_c_delta: cChange,
+      p_o_delta: oChange,
+      p_c_won:   cResult === 1,
+      p_o_won:   oResult === 1,
+    })
 
     revalidatePath('/duelo')
     revalidatePath(`/duelo/${duelId}`)
