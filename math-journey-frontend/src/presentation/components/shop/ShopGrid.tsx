@@ -13,12 +13,12 @@ export interface ShopItemDTO {
   name: string
   description: string
   price: number
-  category: 'material' | 'avatar' | 'acessorio'
+  category: 'avatar' | 'acessorio' | 'powerup'
   icon: string
 }
 
 const CATEGORY_LABELS: Record<string, string> = {
-  material:  'Materiais',
+  powerup:   'Power-ups',
   avatar:    'Avatares',
   acessorio: 'Acessórios',
 }
@@ -29,6 +29,7 @@ interface ShopGridProps {
   items: ShopItemDTO[]
   ownedItems: { id: string; name: string }[]
   equippedItemIds: string[]
+  quantities?: Record<string, number>
   userCoins: number
   avatarConfig?: AvatarConfig
   isAdmin?: boolean
@@ -38,6 +39,7 @@ export function ShopGrid({
   items,
   ownedItems,
   equippedItemIds,
+  quantities = {},
   userCoins,
   avatarConfig = DEFAULT_AVATAR_CONFIG,
   isAdmin = false,
@@ -48,6 +50,7 @@ export function ShopGrid({
   const [feedback,  setFeedback]  = useState<{ id: string; ok: boolean; msg: string } | null>(null)
   const [localOwned, setLocalOwned] = useState<{ id: string; name: string }[]>(ownedItems)
   const [localCoins, setLocalCoins] = useState(userCoins)
+  const [localQty,   setLocalQty]   = useState<Record<string, number>>(quantities)
 
   const ownedIds = new Set(localOwned.map((o) => o.id))
   // Avatar preview: only acessorio items that are equipped (matches Avatar tab behaviour)
@@ -56,15 +59,19 @@ export function ShopGrid({
     .filter((i) => i.category === 'acessorio' && equippedSet.has(i.id))
     .map((i) => i.name)
 
-  const unownedItems   = items.filter((i) => !ownedIds.has(i.id))
-  const ownedItemsFull = items.filter((i) => ownedIds.has(i.id))
+  // Power-ups são consumíveis: sempre compráveis, nunca vão para "adquiridos".
+  const powerupItems   = items.filter((i) => i.category === 'powerup')
+  const cosmeticItems  = items.filter((i) => i.category !== 'powerup')
+  const unownedCosmetics = cosmeticItems.filter((i) => !ownedIds.has(i.id))
+  const ownedCosmetics   = cosmeticItems.filter((i) => ownedIds.has(i.id))
 
   const tabs: { id: ShopTab; label: string; count: number }[] = [
-    { id: 'comprar',    label: 'Para comprar', count: unownedItems.length },
-    { id: 'adquiridos', label: 'Adquiridos',   count: ownedItemsFull.length },
+    { id: 'comprar',    label: 'Para comprar', count: powerupItems.length + unownedCosmetics.length },
+    { id: 'adquiridos', label: 'Adquiridos',   count: ownedCosmetics.length },
   ]
 
-  const categories = ['material', 'avatar', 'acessorio'] as const
+  const buyCategories: ShopItemDTO['category'][] = ['powerup', 'avatar', 'acessorio']
+  const ownedCategories: ShopItemDTO['category'][] = ['avatar', 'acessorio']
 
   // ── Buy ──────────────────────────────────────────────────────────
   function handleBuy(item: ShopItemDTO) {
@@ -73,9 +80,14 @@ export function ShopGrid({
     startTransition(async () => {
       const result = await purchaseItemAction(item.id)
       if (result.success) {
-        setLocalOwned((prev) => [...prev, { id: item.id, name: item.name }])
+        if (item.category === 'powerup') {
+          setLocalQty((prev) => ({ ...prev, [item.id]: (prev[item.id] ?? 0) + 1 }))
+          setFeedback({ id: item.id, ok: true, msg: 'Power-up comprado! Use na Ranqueada.' })
+        } else {
+          setLocalOwned((prev) => [...prev, { id: item.id, name: item.name }])
+          setFeedback({ id: item.id, ok: true, msg: 'Item adquirido! Equipe-o na aba Avatar.' })
+        }
         if (result.newCoins !== undefined) setLocalCoins(result.newCoins)
-        setFeedback({ id: item.id, ok: true, msg: 'Item adquirido! Equipe-o na aba Avatar.' })
       } else {
         setFeedback({ id: item.id, ok: false, msg: result.error ?? 'Erro ao comprar' })
       }
@@ -128,72 +140,85 @@ export function ShopGrid({
 
           {/* ── Para comprar ── */}
           {tab === 'comprar' && (
-            unownedItems.length === 0 ? (
-              <div className="text-center text-matema-muted text-sm py-8 flex flex-col items-center gap-2">
-                <PartyPopper className="w-7 h-7 text-matema-primary" strokeWidth={1.75} />
-                <span>Você já adquiriu todos os itens da loja!</span>
-              </div>
-            ) : (
-              <div className="space-y-8">
-                {categories.map((cat) => {
-                  const catItems = unownedItems.filter((i) => i.category === cat)
-                  if (catItems.length === 0) return null
-                  return (
-                    <section key={cat}>
-                      <h2 className="text-sm font-bold text-matema-dark mb-3">{CATEGORY_LABELS[cat]}</h2>
-                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                        {catItems.map((item) => {
-                          const canAfford = isAdmin || localCoins >= item.price
-                          const loading   = isPending && pendingId === item.id
-                          const fb        = feedback?.id === item.id ? feedback : null
-                          return (
-                            <div key={item.id} className="bg-matema-cream rounded-2xl border border-matema-border p-4 flex flex-col items-center text-center">
-                              <div className="text-4xl mb-2">{item.icon}</div>
-                              <p className="font-bold text-matema-dark text-sm mb-1">{item.name}</p>
-                              <p className="text-xs text-matema-muted leading-relaxed mb-3">{item.description}</p>
-                              {fb && (
-                                <p className={cn('text-xs font-semibold mb-2', fb.ok ? 'text-green-600' : 'text-red-500')}>
-                                  {fb.msg}
-                                </p>
+            <div className="space-y-8">
+              {buyCategories.map((cat) => {
+                const catItems = cat === 'powerup'
+                  ? powerupItems
+                  : unownedCosmetics.filter((i) => i.category === cat)
+                if (catItems.length === 0) return null
+                return (
+                  <section key={cat}>
+                    <h2 className="text-sm font-bold text-matema-dark mb-1">{CATEGORY_LABELS[cat]}</h2>
+                    {cat === 'powerup' && (
+                      <p className="text-xs text-matema-muted mb-3">Consumíveis para usar nas partidas ranqueadas. Compre quantos quiser.</p>
+                    )}
+                    {cat !== 'powerup' && <div className="mb-3" />}
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                      {catItems.map((item) => {
+                        const canAfford = isAdmin || localCoins >= item.price
+                        const loading   = isPending && pendingId === item.id
+                        const fb        = feedback?.id === item.id ? feedback : null
+                        const owned     = item.category === 'powerup' ? (localQty[item.id] ?? 0) : 0
+                        return (
+                          <div key={item.id} className="bg-matema-cream rounded-2xl border border-matema-border p-4 flex flex-col items-center text-center">
+                            <div className="text-4xl mb-2 relative">
+                              {item.icon}
+                              {item.category === 'powerup' && owned > 0 && (
+                                <span className="absolute -top-1 -right-3 text-[10px] font-extrabold text-white bg-matema-accent rounded-full px-1.5 py-0.5 leading-none">
+                                  ×{owned}
+                                </span>
                               )}
-                              <button
-                                onClick={() => handleBuy(item)}
-                                disabled={!canAfford || loading}
-                                className={cn(
-                                  'flex items-center gap-1.5 px-4 py-1.5 rounded-xl text-sm font-bold transition-all mt-auto',
-                                  canAfford
-                                    ? 'bg-matema-primary text-white hover:bg-matema-primary/90'
-                                    : 'bg-matema-border text-matema-muted cursor-not-allowed',
-                                )}
-                              >
-                                {loading ? '...' : (
-                                  <>
-                                    <Coins className="w-4 h-4 text-amber-300" strokeWidth={1.75} />
-                                    {item.price}
-                                  </>
-                                )}
-                              </button>
                             </div>
-                          )
-                        })}
-                      </div>
-                    </section>
-                  )
-                })}
-              </div>
-            )
+                            <p className="font-bold text-matema-dark text-sm mb-1">{item.name}</p>
+                            <p className="text-xs text-matema-muted leading-relaxed mb-3">{item.description}</p>
+                            {fb && (
+                              <p className={cn('text-xs font-semibold mb-2', fb.ok ? 'text-green-600' : 'text-red-500')}>
+                                {fb.msg}
+                              </p>
+                            )}
+                            <button
+                              onClick={() => handleBuy(item)}
+                              disabled={!canAfford || loading}
+                              className={cn(
+                                'flex items-center gap-1.5 px-4 py-1.5 rounded-xl text-sm font-bold transition-all mt-auto',
+                                canAfford
+                                  ? 'bg-matema-primary text-white hover:bg-matema-primary/90'
+                                  : 'bg-matema-border text-matema-muted cursor-not-allowed',
+                              )}
+                            >
+                              {loading ? '...' : (
+                                <>
+                                  <Coins className="w-4 h-4 text-amber-300" strokeWidth={1.75} />
+                                  {item.price}
+                                </>
+                              )}
+                            </button>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </section>
+                )
+              })}
+              {powerupItems.length === 0 && unownedCosmetics.length === 0 && (
+                <div className="text-center text-matema-muted text-sm py-8 flex flex-col items-center gap-2">
+                  <PartyPopper className="w-7 h-7 text-matema-primary" strokeWidth={1.75} />
+                  <span>Você já adquiriu todos os itens da loja!</span>
+                </div>
+              )}
+            </div>
           )}
 
-          {/* ── Adquiridos ── */}
+          {/* ── Adquiridos ── (só cosméticos; power-ups são consumíveis) */}
           {tab === 'adquiridos' && (
-            ownedItemsFull.length === 0 ? (
+            ownedCosmetics.length === 0 ? (
               <p className="text-center text-matema-muted text-sm py-8">
                 Você ainda não adquiriu nenhum item.
               </p>
             ) : (
               <div className="space-y-8">
-                {categories.map((cat) => {
-                  const catItems = ownedItemsFull.filter((i) => i.category === cat)
+                {ownedCategories.map((cat) => {
+                  const catItems = ownedCosmetics.filter((i) => i.category === cat)
                   if (catItems.length === 0) return null
                   return (
                     <section key={cat}>

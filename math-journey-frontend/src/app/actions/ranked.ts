@@ -80,7 +80,7 @@ export interface RankedAnswer {
 
 export async function saveRankedGameAction(
   answers: RankedAnswer[],
-  opts: { skippedExerciseIds?: string[]; earlyExitPenalty?: boolean } = {},
+  opts: { skippedExerciseIds?: string[]; earlyExitPenalty?: boolean; useDouble?: boolean } = {},
 ) {
   const supabase = await createClient()
   const { data: { user }, error: authError } = await supabase.auth.getUser()
@@ -165,8 +165,30 @@ export async function saveRankedGameAction(
   const xpPerCorrect   = 15
   const coinsPerCorrect = 5
   const accuracyBonus  = accuracy >= 90 ? 50 : accuracy >= 75 ? 25 : accuracy >= 60 ? 10 : 0
-  const xpEarned   = correct * xpPerCorrect + accuracyBonus
-  const coinsEarned = correct * coinsPerCorrect
+  let xpEarned    = correct * xpPerCorrect + accuracyBonus
+  let coinsEarned = correct * coinsPerCorrect
+
+  // Power-up Multiplicador 2x: verifica e CONSOME no servidor (anti-spoof).
+  let doubled = false
+  if (opts.useDouble) {
+    const { data: dblItem } = await supabaseAny
+      .from('shop_items')
+      .select('id')
+      .eq('category', 'powerup')
+      .eq('name', 'Multiplicador 2x')
+      .single()
+    if (dblItem?.id) {
+      const { data: consumed } = await supabaseAny.rpc('consume_powerup', {
+        p_user_id: user.id,
+        p_item_id: dblItem.id,
+      })
+      if (consumed?.success) {
+        xpEarned    *= 2
+        coinsEarned *= 2
+        doubled = true
+      }
+    }
+  }
 
   // Level formula: xpForLevel(n) = (n-1)² × 50  →  level = floor(√(xp/50)) + 1
   const newXp    = (profile.xp ?? 0) + xpEarned
@@ -236,5 +258,6 @@ export async function saveRankedGameAction(
     newXp,
     newLevel,
     leveledUp,
+    doubled,
   }
 }

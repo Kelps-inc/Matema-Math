@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { GraduationCap } from 'lucide-react'
 import { RankedPlayer } from '@/presentation/components/game/RankedPlayer'
 import { SimuladoGate } from '@/presentation/components/game/SimuladoGate'
+import { getMyPowerupsAction } from '@/app/actions/powerups'
 import type { EloTier } from '@/domain/user/entities/User'
 
 // ── Mode config ────────────────────────────────────────────────────────────
@@ -207,6 +208,8 @@ export default async function RanqueadaJogarModePage({
   // ── Other modes: regular RankedPlayer ────────────────────────────────────
   if (exercises.length === 0) redirect('/ranqueada')
 
+  const powerups = await getMyPowerupsAction()
+
   return (
     <div className="animate-fade-in">
       <RankedPlayer
@@ -216,6 +219,7 @@ export default async function RanqueadaJogarModePage({
         currentDivision={profile.eloDivision}
         currentLp={profile.eloLp}
         useSerif={mode === 'enem'}
+        powerups={powerups}
       />
     </div>
   )

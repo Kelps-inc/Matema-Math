@@ -14,7 +14,7 @@ export default async function LojaPage() {
   const [{ data: items }, { data: profile }, inventoryResult, avatarResult] = await Promise.all([
     (supabase as any).from('shop_items').select('*').eq('is_available', true).order('category').order('price'),
     (supabase as any).from('user_profiles').select('coins, is_admin').eq('id', user.id).single(),
-    (supabase as any).from('user_inventory').select('item_id, is_equipped, shop_items(name)').eq('user_id', user.id),
+    (supabase as any).from('user_inventory').select('item_id, is_equipped, quantity, shop_items(name)').eq('user_id', user.id),
     (supabase as any).from('user_avatar_config').select('*').eq('user_id', user.id).single(),
   ])
 
@@ -27,6 +27,10 @@ export default async function LojaPage() {
   const equippedItemIds: string[] = (inventoryResult.data ?? [])
     .filter((o: any) => o.is_equipped !== false)
     .map((o: any) => o.item_id as string)
+  const quantities: Record<string, number> = {}
+  for (const o of (inventoryResult.data ?? [])) {
+    quantities[o.item_id as string] = (o as any).quantity ?? 1
+  }
 
   const avatarRow = avatarResult.data as any
   const avatarConfig: AvatarConfig = avatarRow
@@ -64,6 +68,7 @@ export default async function LojaPage() {
         items={(items ?? []) as any[]}
         ownedItems={ownedItems}
         equippedItemIds={equippedItemIds}
+        quantities={quantities}
         userCoins={coins}
         avatarConfig={avatarConfig}
         isAdmin={isAdmin}

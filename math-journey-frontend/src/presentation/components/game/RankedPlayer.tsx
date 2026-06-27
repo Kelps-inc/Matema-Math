@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { cn } from '@/presentation/lib/utils'
 import { MathText } from '@/presentation/components/ui/MathText'
 import { saveRankedGameAction, type RankedAnswer } from '@/app/actions/ranked'
-import { checkExerciseAnswerAction } from '@/app/actions/answers'
+import { submitRankedAnswerAction, useRankedBombaAction, type MyPowerups } from '@/app/actions/powerups'
 import { ELO_TIER_LABELS, type EloTier } from '@/domain/user/entities/User'
 import { EloTierIcon } from '@/presentation/components/ui/EloTierIcon'
 import { RankedResultScreen } from '@/presentation/components/game/RankedResultScreen'
@@ -16,6 +16,7 @@ import {
   Lightbulb,
   Trophy,
   SkipForward,
+  Heart,
 } from 'lucide-react'
 
 export interface RankedExercise {
@@ -41,6 +42,13 @@ interface RankedPlayerProps {
   currentDivision: number
   currentLp: number
   useSerif?: boolean
+  powerups?: MyPowerups
+}
+
+const EMPTY_POWERUPS: MyPowerups = {
+  bomba:  { itemId: null, qty: 0 },
+  heart:  { itemId: null, qty: 0 },
+  double: { itemId: null, qty: 0 },
 }
 
 type Phase = 'playing' | 'answered' | 'saving' | 'result'
@@ -48,7 +56,7 @@ type Phase = 'playing' | 'answered' | 'saving' | 'result'
 const MIN_ANSWERED_TO_EXIT = 2 // fewer than this triggers the -2 PDL warning
 const OPTION_LETTERS = ['A', 'B', 'C', 'D', 'E']
 
-export function RankedPlayer({ exercises, difficulty, currentTier, currentDivision, currentLp, useSerif = false }: RankedPlayerProps) {
+export function RankedPlayer({ exercises, difficulty, currentTier, currentDivision, currentLp, useSerif = false, powerups = EMPTY_POWERUPS }: RankedPlayerProps) {
   const router = useRouter()
   const [phase, setPhase] = useState<Phase>('playing')
   const [current, setCurrent] = useState(0)
@@ -59,11 +67,24 @@ export function RankedPlayer({ exercises, difficulty, currentTier, currentDivisi
   const [skippedIds, setSkippedIds] = useState<string[]>([])
   const [showExitWarning, setShowExitWarning] = useState(false)
   const [elapsedMs, setElapsedMs] = useState(0)
+
+  // ── Power-ups ──────────────────────────────────────────────────────────────
+  const [bombaQty,  setBombaQty]  = useState(powerups.bomba.qty)
+  const [heartQty,  setHeartQty]  = useState(powerups.heart.qty)
+  const [doubleQty] = useState(powerups.double.qty)
+  const [eliminated, setEliminated] = useState<string[]>([])  // alternativas removidas (bomba / 2ª chance)
+  const [heartArmed, setHeartArmed] = useState(false)         // coração ativado para a questão atual
+  const [doubleArmed, setDoubleArmed] = useState(false)       // 2x ativado para a partida
+  const [checking, setChecking] = useState(false)
+  const [secondChance, setSecondChance] = useState(false)    // flash "2ª chance!" na questão atual
+  const doubleArmedRef = useRef(false)
+  useEffect(() => { doubleArmedRef.current = doubleArmed }, [doubleArmed])
   const [result, setResult] = useState<{
     score: number; accuracy: number; correct: number; total: number
     lpChange: number; newLp: number; newTier: EloTier; newDivision: number
     promoted: boolean; demoted: boolean
     xpEarned: number; coinsEarned: number; newXp: number; newLevel: number; leveledUp: boolean
+    doubled: boolean
   } | null>(null)
   const [showLevelUp, setShowLevelUp] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -91,7 +112,11 @@ export function RankedPlayer({ exercises, difficulty, currentTier, currentDivisi
     earlyExitPenalty = false,
   ) => {
     setPhase('saving')
-    const res = await saveRankedGameAction(answersToSave, { skippedExerciseIds: skippedIdsArg, earlyExitPenalty })
+    const res = await saveRankedGameAction(answersToSave, {
+      skippedExerciseIds: skippedIdsArg,
+      earlyExitPenalty,
+      useDouble: doubleArmedRef.current,
+    })
     if (res.error) { setError(res.error); return }
     const r = {
       score:       res.score!,
@@ -109,6 +134,7 @@ export function RankedPlayer({ exercises, difficulty, currentTier, currentDivisi
       newXp:       res.newXp!,
       newLevel:    res.newLevel!,
       leveledUp:   res.leveledUp!,
+      doubled:     res.doubled ?? false,
     }
     if (r.leveledUp) setShowLevelUp(true)
     setResult(r)
@@ -116,17 +142,41 @@ export function RankedPlayer({ exercises, difficulty, currentTier, currentDivisi
   }, [])
 
   const handleSelect = useCallback(async (option: string) => {
-    if (phase !== 'playing' || !exercise) return
+    if (phase !== 'playing' || !exercise || checking) return
     const timeMs = Date.now() - questionStartRef.current
+    const useHeart = heartArmed && heartQty > 0
+    setChecking(true)
+    // O gabarito não vem ao cliente: validamos no servidor e revelamos o veredito.
+    const res = await submitRankedAnswerAction(exercise.id, option, useHeart)
+    setChecking(false)
+    if ('error' in res) { setError(res.error); return }
+
+    // 2ª chance: errou com o Coração armado → consome, esconde a errada e segue jogando
+    if (res.secondChance) {
+      setHeartQty((q) => Math.max(0, q - 1))
+      setHeartArmed(false)
+      setEliminated((prev) => [...prev, option])
+      setSelected(null)
+      setSecondChance(true)
+      return
+    }
+
     if (timerRef.current) clearInterval(timerRef.current)
     setAnsweredTimeMs(timeMs)
     setSelected(option)
+    setRevealed({ isCorrect: res.isCorrect, correctAnswer: res.correctAnswer! })
     setPhase('answered')
-    // O gabarito não vem ao cliente: validamos no servidor e revelamos o veredito.
-    const res = await checkExerciseAnswerAction(exercise.id, option)
-    if ('error' in res) setError(res.error)
-    else setRevealed(res)
-  }, [phase, exercise])
+  }, [phase, exercise, checking, heartArmed, heartQty])
+
+  const handleBomba = useCallback(async () => {
+    if (phase !== 'playing' || !exercise || checking || bombaQty <= 0) return
+    setChecking(true)
+    const res = await useRankedBombaAction(exercise.id)
+    setChecking(false)
+    if ('error' in res) return
+    setEliminated((prev) => Array.from(new Set([...prev, ...res.eliminated])))
+    setBombaQty(res.remaining)
+  }, [phase, exercise, checking, bombaQty])
 
   const handleNext = useCallback(async () => {
     if (!selected || !exercise) return
@@ -142,6 +192,9 @@ export function RankedPlayer({ exercises, difficulty, currentTier, currentDivisi
       setCurrent((c) => c + 1)
       setSelected(null)
       setRevealed(null)
+      setEliminated([])
+      setHeartArmed(false)
+      setSecondChance(false)
       setPhase('playing')
     } else {
       await saveGame(newAnswers, skippedIds)
@@ -156,6 +209,9 @@ export function RankedPlayer({ exercises, difficulty, currentTier, currentDivisi
     if (current + 1 < exercises.length) {
       setCurrent((c) => c + 1)
       setSelected(null)
+      setEliminated([])
+      setHeartArmed(false)
+      setSecondChance(false)
       setPhase('playing')
     } else {
       // Skipped last question — save what we have
@@ -356,11 +412,15 @@ export function RankedPlayer({ exercises, difficulty, currentTier, currentDivisi
             const letter     = OPTION_LETTERS[i] ?? String(i + 1)
             const isSelected = selected === option
             const isCorrect  = revealed != null && option.trim().toLowerCase() === revealed.correctAnswer.trim().toLowerCase()
+            const isEliminated = eliminated.includes(option)
 
             let optClass    = 'border-matema-border bg-white text-matema-dark hover:border-matema-primary hover:bg-matema-cream'
             let letterClass = 'border-matema-border text-matema-muted'
 
-            if (phase === 'answered') {
+            if (isEliminated && phase === 'playing') {
+              optClass    = 'border-matema-border bg-matema-warm text-matema-muted opacity-40 line-through cursor-not-allowed'
+              letterClass = 'border-matema-border text-matema-muted'
+            } else if (phase === 'answered') {
               if (isCorrect) {
                 optClass    = 'border-green-400 bg-green-50 text-green-800'
                 letterClass = 'border-green-400 bg-green-400 text-white'
@@ -380,7 +440,7 @@ export function RankedPlayer({ exercises, difficulty, currentTier, currentDivisi
               <button
                 key={`${exercise.id}-${i}`}
                 onClick={() => handleSelect(option)}
-                disabled={phase === 'answered'}
+                disabled={phase === 'answered' || checking || isEliminated}
                 className={cn(
                   'w-full text-left px-4 py-2.5 rounded-2xl border-2 font-medium transition-all text-sm flex items-start gap-3',
                   optClass,
@@ -398,6 +458,75 @@ export function RankedPlayer({ exercises, difficulty, currentTier, currentDivisi
           })}
         </div>
       </div>
+
+      {/* Power-ups — disponíveis durante a jogada */}
+      {phase === 'playing' && (bombaQty > 0 || heartQty > 0 || doubleQty > 0) && (
+        <div className="mb-2">
+          {secondChance && (
+            <p className="text-center text-xs font-bold text-matema-secondary mb-1.5 animate-fade-in">
+              ❤️ 2ª chance! Tente novamente.
+            </p>
+          )}
+          <div className="flex items-center justify-center gap-2">
+            {/* Bomba */}
+            {bombaQty > 0 && (
+              <button
+                onClick={handleBomba}
+                disabled={
+                  checking ||
+                  eliminated.length > 0 ||
+                  exercise.type !== 'multiple_choice' ||
+                  options.length < 4
+                }
+                title="Elimina 2 alternativas erradas"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl border-2 border-matema-border bg-white text-sm font-bold text-matema-dark hover:border-red-300 hover:bg-red-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:border-matema-border"
+              >
+                <span className="text-base leading-none">💣</span>
+                <span className="text-xs">×{bombaQty}</span>
+              </button>
+            )}
+            {/* Coração — 2ª chance */}
+            {heartQty > 0 && (
+              <button
+                onClick={() => setHeartArmed((a) => !a)}
+                disabled={checking}
+                title="Ganhe uma 2ª chance se errar"
+                className={cn(
+                  'flex items-center gap-1.5 px-3 py-1.5 rounded-2xl border-2 text-sm font-bold transition-colors disabled:opacity-40',
+                  heartArmed
+                    ? 'border-red-400 bg-red-50 text-red-600'
+                    : 'border-matema-border bg-white text-matema-dark hover:border-red-300 hover:bg-red-50',
+                )}
+              >
+                <Heart className={cn('w-4 h-4', heartArmed && 'fill-red-500 text-red-500')} strokeWidth={1.75} />
+                <span className="text-xs">×{heartQty}</span>
+              </button>
+            )}
+            {/* 2x — multiplicador da partida */}
+            {doubleQty > 0 && (
+              <button
+                onClick={() => setDoubleArmed((a) => !a)}
+                disabled={checking}
+                title="Dobra XP e moedas da partida"
+                className={cn(
+                  'flex items-center gap-1.5 px-3 py-1.5 rounded-2xl border-2 text-sm font-bold transition-colors disabled:opacity-40',
+                  doubleArmed
+                    ? 'border-matema-accent bg-matema-accent/10 text-matema-accent'
+                    : 'border-matema-border bg-white text-matema-dark hover:border-matema-accent/40 hover:bg-matema-accent/5',
+                )}
+              >
+                <span className="text-base leading-none">✖️2</span>
+                <span className="text-xs">×{doubleQty}</span>
+              </button>
+            )}
+          </div>
+          {doubleArmed && (
+            <p className="text-center text-[11px] text-matema-accent font-semibold mt-1.5">
+              Multiplicador 2x ativo — será consumido ao fim da partida.
+            </p>
+          )}
+        </div>
+      )}
 
       {/* Answered: explicação + próxima */}
       {phase === 'answered' && (

@@ -11,6 +11,7 @@ export interface RankedResult {
   lpChange: number; newLp: number; newTier: EloTier; newDivision: number
   promoted: boolean; demoted: boolean
   xpEarned: number; coinsEarned: number; newXp: number; newLevel: number; leveledUp: boolean
+  doubled?: boolean
 }
 
 interface Props {
@@ -158,7 +159,14 @@ export function RankedResultScreen({ result, onPlayAgain, onExit }: Props) {
 
       {/* Rewards — CoD style, staggered */}
       <div className="space-y-2">
-        <p className="text-xs font-bold uppercase tracking-widest text-matema-muted px-1">Recompensas</p>
+        <p className="text-xs font-bold uppercase tracking-widest text-matema-muted px-1 flex items-center gap-2">
+          Recompensas
+          {result.doubled && (
+            <span className="text-[10px] font-extrabold text-matema-accent bg-matema-accent/10 border border-matema-accent/30 px-1.5 py-0.5 rounded-full normal-case tracking-normal">
+              ✖️2 em dobro!
+            </span>
+          )}
+        </p>
         <RewardRow icon={Zap}   label="XP"        value={result.xpEarned}    color="text-yellow-500" delay={200} />
         <RewardRow icon={Coins} label="Matecoins"  value={result.coinsEarned} color="text-amber-500"  delay={500} />
       </div>
