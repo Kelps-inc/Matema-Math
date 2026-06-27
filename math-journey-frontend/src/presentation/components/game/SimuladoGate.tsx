@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState, useEffect, useTransition } from 'react'
+import { createPortal } from 'react-dom'
 import { ClipboardList, Play, RotateCcw, ArrowLeft } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { deleteSimuladoSessionAction } from '@/app/actions/simulado'
@@ -33,7 +34,10 @@ export function SimuladoGate({
 }: Props) {
   const [choice, setChoice]          = useState<'none' | 'continue' | 'restart'>('none')
   const [isPending, startTransition] = useTransition()
+  const [mounted, setMounted]        = useState(false)
   const router = useRouter()
+
+  useEffect(() => { setMounted(true) }, [])
 
   const playerProps = { currentTier, currentDivision, currentLp }
 
@@ -66,8 +70,8 @@ export function SimuladoGate({
     ? `${h}h${m.toString().padStart(2, '0')}min`
     : `${m}min`
 
-  return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
+  const modal = (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[9999] px-4">
       <div className="bg-white rounded-3xl p-6 max-w-sm w-full shadow-xl animate-fade-in">
 
         <div className="flex items-center justify-between mb-4">
@@ -131,4 +135,9 @@ export function SimuladoGate({
       </div>
     </div>
   )
+
+  // Portal para o body: escapa de ancestrais com transform (animate-fade-in),
+  // garantindo que o fixed inset-0 ancore na viewport e centralize de verdade.
+  if (!mounted) return null
+  return createPortal(modal, document.body)
 }
