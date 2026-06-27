@@ -441,7 +441,7 @@ export async function acceptFriendRequestAction(requesterId: string): Promise<{ 
     .eq('status', 'pending')
 
   if (error) return { error: 'Erro ao aceitar pedido.' }
-  revalidatePath('/usuarios')
+  revalidatePath('/amigos', 'page')
   return {}
 }
 
