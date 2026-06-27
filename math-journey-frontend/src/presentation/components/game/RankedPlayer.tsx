@@ -24,6 +24,11 @@ export interface RankedExercise {
   context: string | null
   type: 'multiple_choice' | 'true_false' | 'numeric'
   options: string[] | null
+  // O gabarito NÃO é enviado nos modos objetivas/enem (RankedPlayer valida no
+  // servidor via checkExerciseAnswerAction). O modo Simulado ainda o carrega
+  // para feedback imediato no cliente — mas a pontuação é sempre revalidada no
+  // servidor em saveRankedGameAction.
+  correct_answer?: string
   explanation: string
   difficulty: 'easy' | 'medium' | 'hard'
   source?: string | null

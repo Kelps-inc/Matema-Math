@@ -449,7 +449,7 @@ function buildRankedAnswers(
     .map(ex => ({
       exerciseId: ex.id,
       answer:     answers[ex.id],
-      isCorrect:  answers[ex.id].trim().toLowerCase() === ex.correct_answer.trim().toLowerCase(),
+      isCorrect:  answers[ex.id].trim().toLowerCase() === (ex.correct_answer ?? '').trim().toLowerCase(),
       timeMs:     0,
     }))
 }
