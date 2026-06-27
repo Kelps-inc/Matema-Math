@@ -22,6 +22,10 @@ export interface LeaderboardEntry {
   rankedEasy:   { correct: number; total: number }
   rankedMedium: { correct: number; total: number }
   rankedHard:   { correct: number; total: number }
+  // Duelo
+  duelRating: number
+  duelWins:   number
+  duelLosses: number
   // Avatar
   avatarConfig: AvatarConfig
 }
@@ -40,7 +44,7 @@ export default async function LeaderboardPage() {
 
   const [profilesResult, answersResult, avatarsResult] = await Promise.all([
     sb.from('user_profiles')
-      .select('id, display_name, elo_tier, elo_division, elo_lp, placement_result')
+      .select('id, display_name, elo_tier, elo_division, elo_lp, placement_result, duel_rating, duel_wins, duel_losses')
       .eq('placement_completed', true),
 
     sb.from('user_exercise_answers')
@@ -125,6 +129,9 @@ export default async function LeaderboardPage() {
       rankedEasy:       stats.easy,
       rankedMedium:     stats.medium,
       rankedHard:       stats.hard,
+      duelRating:       row.duel_rating  ?? 1000,
+      duelWins:         row.duel_wins    ?? 0,
+      duelLosses:       row.duel_losses  ?? 0,
       avatarConfig:     avatarMap[row.id] ?? DEFAULT_AVATAR_CONFIG,
     }
   })
