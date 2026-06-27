@@ -7,6 +7,7 @@ import { ProgressBar } from '@/presentation/components/ui/ProgressBar'
 import { Badge } from '@/presentation/components/ui/Badge'
 import { cn } from '@/presentation/lib/utils'
 import { completeLessonAction } from '@/app/actions/progress'
+import { checkExerciseAnswerAction } from '@/app/actions/answers'
 import { createAudioContext, playSfxClick, playSfxCorrect, playSfxWrong } from '@/presentation/lib/audio'
 import { MathText } from '@/presentation/components/ui/MathText'
 import { LevelUpModal } from '@/presentation/components/game/LevelUpModal'
@@ -33,7 +34,6 @@ export interface ExerciseDTO {
   context: string | null
   type: 'multiple_choice' | 'true_false' | 'numeric'
   options: string[] | null
-  correctAnswer: string
   explanation: string
   difficulty: 'easy' | 'medium' | 'hard'
   orderIndex: number
@@ -46,11 +46,8 @@ interface ExercisePlayerProps {
 }
 
 type AnswerState = { exerciseId: string; answer: string; isCorrect: boolean }
+type Revealed = { isCorrect: boolean; correctAnswer: string }
 type Phase = 'intro' | 'answering' | 'feedback' | 'completed'
-
-function isCorrect(exercise: ExerciseDTO, answer: string): boolean {
-  return exercise.correctAnswer.trim().toLowerCase() === answer.trim().toLowerCase()
-}
 
 function useSfx() {
   const ctxRef = useRef<AudioContext | null>(null)
@@ -79,6 +76,8 @@ export function ExercisePlayer({ lesson, exercises, nextLesson }: ExercisePlayer
   const [currentIndex, setCurrentIndex] = useState(0)
   const [selected, setSelected] = useState<string | null>(null)
   const [phase, setPhase] = useState<Phase>('intro')
+  const [revealed, setRevealed] = useState<Revealed | null>(null)
+  const [checking, setChecking] = useState(false)
   const [answers, setAnswers] = useState<AnswerState[]>([])
   const [completionResult, setCompletionResult] = useState<{ newXp: number; newLevel: number; newCoins: number; leveledUp: boolean } | null>(null)
   const [actionError, setActionError] = useState<string | null>(null)
@@ -88,11 +87,19 @@ export function ExercisePlayer({ lesson, exercises, nextLesson }: ExercisePlayer
   const isLast = currentIndex === exercises.length - 1
   const correctCount = answers.filter((a) => a.isCorrect).length
 
-  function handleAnswer() {
-    if (!selected || phase !== 'answering') return
-    const correct = isCorrect(current, selected)
-    const answer: AnswerState = { exerciseId: current.id, answer: selected, isCorrect: correct }
-    setAnswers((prev) => [...prev, answer])
+  async function handleAnswer() {
+    if (!selected || phase !== 'answering' || checking) return
+    // O gabarito não vem ao cliente: validamos no servidor e só então revelamos.
+    setChecking(true)
+    const res = await checkExerciseAnswerAction(current.id, selected)
+    setChecking(false)
+    if ('error' in res) {
+      setActionError(res.error)
+      return
+    }
+    const correct = res.isCorrect
+    setRevealed(res)
+    setAnswers((prev) => [...prev, { exerciseId: current.id, answer: selected, isCorrect: correct }])
     setPhase('feedback')
     if (correct) sfx.correct()
     else sfx.wrong()
@@ -120,6 +127,7 @@ export function ExercisePlayer({ lesson, exercises, nextLesson }: ExercisePlayer
     } else {
       setCurrentIndex((i) => i + 1)
       setSelected(null)
+      setRevealed(null)
       setPhase('answering')
     }
   }
@@ -190,8 +198,8 @@ export function ExercisePlayer({ lesson, exercises, nextLesson }: ExercisePlayer
           <div className="grid gap-3">
             {current.options.map((option, optionIndex) => {
               const sel = selected === option
-              const isCorrectAnswer = phase === 'feedback' && option === current.correctAnswer
-              const isWrong = phase === 'feedback' && sel && option !== current.correctAnswer
+              const isCorrectAnswer = phase === 'feedback' && option === revealed?.correctAnswer
+              const isWrong = phase === 'feedback' && sel && option !== revealed?.correctAnswer
 
               return (
                 <button
@@ -229,8 +237,8 @@ export function ExercisePlayer({ lesson, exercises, nextLesson }: ExercisePlayer
             {['true', 'false'].map((val) => {
               const label = val === 'true' ? 'Verdadeiro' : 'Falso'
               const sel = selected === val
-              const isCorrectAnswer = phase === 'feedback' && val === current.correctAnswer
-              const isWrong = phase === 'feedback' && sel && val !== current.correctAnswer
+              const isCorrectAnswer = phase === 'feedback' && val === revealed?.correctAnswer
+              const isWrong = phase === 'feedback' && sel && val !== revealed?.correctAnswer
 
               return (
                 <button
@@ -253,19 +261,19 @@ export function ExercisePlayer({ lesson, exercises, nextLesson }: ExercisePlayer
         )}
       </div>
 
-      {phase === 'feedback' && (
+      {phase === 'feedback' && revealed && (
         <div className={cn(
           'rounded-2xl p-5 mb-4 border',
-          isCorrect(current, selected!) ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'
+          revealed.isCorrect ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'
         )}>
           <div className="flex items-center gap-2 mb-2">
-            {isCorrect(current, selected!) ? (
+            {revealed.isCorrect ? (
               <PartyPopper className="w-5 h-5 text-green-700" strokeWidth={1.75} />
             ) : (
               <Lightbulb className="w-5 h-5 text-red-700" strokeWidth={1.75} />
             )}
-            <p className={cn('font-bold', isCorrect(current, selected!) ? 'text-green-800' : 'text-red-800')}>
-              {isCorrect(current, selected!) ? 'Correto!' : 'Quase lá!'}
+            <p className={cn('font-bold', revealed.isCorrect ? 'text-green-800' : 'text-red-800')}>
+              {revealed.isCorrect ? 'Correto!' : 'Quase lá!'}
             </p>
           </div>
           <p className="text-sm text-matema-dark leading-relaxed"><MathText>{current.explanation}</MathText></p>
@@ -274,7 +282,7 @@ export function ExercisePlayer({ lesson, exercises, nextLesson }: ExercisePlayer
 
       <div className="flex gap-3">
         {phase === 'answering' ? (
-          <Button onClick={handleAnswer} disabled={!selected} className="flex-1" size="lg">
+          <Button onClick={handleAnswer} disabled={!selected || checking} loading={checking} className="flex-1" size="lg">
             Confirmar resposta
           </Button>
         ) : (

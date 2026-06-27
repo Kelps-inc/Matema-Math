@@ -90,9 +90,8 @@ export async function savePlacementAction(answers: PlacementAnswer[]) {
   if (authError || !user) return { error: 'Não autenticado' }
   if (!answers || answers.length === 0) return { error: 'Respostas inválidas' }
 
-  const elo = calculateElo(answers)
-
-  // Fetch question details to build the full result
+  // Fetch question details (gabarito incluso) — usado tanto para recalcular a correção
+  // quanto para montar o resultado detalhado.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const supabaseAny = supabase as any
   const questionIds = answers.map((a) => a.questionId)
@@ -103,6 +102,20 @@ export async function savePlacementAction(answers: PlacementAnswer[]) {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const questionMap = new Map((questions ?? []).map((q: any) => [q.id, q]))
+
+  // Recalcula isCorrect no servidor contra o gabarito — nunca confie no cliente.
+  const norm = (v: string) => v.trim().toLowerCase()
+  answers = answers
+    .filter((a) => questionMap.has(a.questionId))
+    .map((a) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const q = questionMap.get(a.questionId) as any
+      return { ...a, isCorrect: norm(a.answer) === norm(q.correct_answer ?? '') }
+    })
+
+  if (answers.length === 0) return { error: 'Respostas inválidas' }
+
+  const elo = calculateElo(answers)
 
   const richAnswers: PlacementResultAnswer[] = answers.map((a) => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

@@ -6,54 +6,96 @@ import { CompleteLessonUseCase } from '@/application/use-cases/CompleteLessonUse
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 
+// Os campos xpReward/coinReward/isCorrect enviados pelo cliente são ACEITOS para
+// compatibilidade, mas IGNORADOS pelo servidor: a recompensa vem da tabela `lessons`
+// e a correção é recalculada contra `exercises.correct_answer`. Nunca confie no cliente.
 const CompleteLessonSchema = z.object({
   lessonId: z.string().min(1),
-  xpReward: z.number().positive(),
-  coinReward: z.number().positive(),
+  xpReward: z.number().positive().optional(),
+  coinReward: z.number().positive().optional(),
   answers: z.array(z.object({
     exerciseId: z.string().min(1),
     answer: z.string(),
-    isCorrect: z.boolean(),
+    isCorrect: z.boolean().optional(),
   })),
 })
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
+function normalize(value: string): string {
+  return value.trim().toLowerCase()
+}
+
 export async function completeLessonAction(input: {
   lessonId: string
-  xpReward: number
-  coinReward: number
-  answers: Array<{ exerciseId: string; answer: string; isCorrect: boolean }>
+  xpReward?: number
+  coinReward?: number
+  answers: Array<{ exerciseId: string; answer: string; isCorrect?: boolean }>
 }) {
-  console.log('[completeLessonAction] start', { lessonId: input.lessonId, xpReward: input.xpReward, coinReward: input.coinReward, answerCount: input.answers.length })
-
   const supabase = await createClient()
-  const { data: { user }, error: authError } = await supabase.auth.getUser()
+  const { data: { user } } = await supabase.auth.getUser()
 
-  if (authError) console.error('[completeLessonAction] auth error:', authError.message)
   if (!user) {
-    console.error('[completeLessonAction] no user found')
     return { error: 'Não autenticado' }
   }
 
-  console.log('[completeLessonAction] user:', user.id)
-
   const parsed = CompleteLessonSchema.safeParse(input)
   if (!parsed.success) {
-    console.error('[completeLessonAction] zod validation failed:', parsed.error.flatten())
-    return { error: 'Dados inválidos: ' + JSON.stringify(parsed.error.flatten()) }
+    return { error: 'Dados inválidos.' }
   }
+
+  const { lessonId, answers } = parsed.data
+  const supabaseAny = supabase as any
+
+  // A recompensa NÃO é mais lida aqui: o RPC `award_lesson_completion` deriva
+  // xp_reward/coin_reward da tabela `lessons` e zera a recompensa ao recompletar
+  // uma lição já concluída (anti-refarm). Validamos só a existência da lição para
+  // dar um erro amigável antes de chamar o RPC.
+  const { data: lessonRow, error: lessonError } = await supabaseAny
+    .from('lessons')
+    .select('id')
+    .eq('id', lessonId)
+    .single()
+
+  if (lessonError || !lessonRow) {
+    return { error: 'Lição não encontrada.' }
+  }
+
+  // Recalcula a correção de cada resposta no servidor contra exercises.correct_answer.
+  const exerciseIds = answers.map((a) => a.exerciseId)
+  const correctById: Record<string, string> = {}
+  if (exerciseIds.length > 0) {
+    const { data: exerciseRows } = await supabaseAny
+      .from('exercises')
+      .select('id, correct_answer, lesson_id')
+      .in('id', exerciseIds)
+    for (const row of (exerciseRows ?? [])) {
+      // Só aceita exercícios que pertencem a esta lição.
+      if (row.lesson_id === lessonId) correctById[row.id] = row.correct_answer
+    }
+  }
+
+  const verifiedAnswers = answers
+    .filter((a) => a.exerciseId in correctById)
+    .map((a) => ({
+      exerciseId: a.exerciseId,
+      answer: a.answer,
+      isCorrect: normalize(a.answer) === normalize(correctById[a.exerciseId]),
+    }))
 
   const repo = new SupabaseProgressRepository(supabase)
   const useCase = new CompleteLessonUseCase(repo)
 
   try {
-    console.log('[completeLessonAction] executing use case...')
-    const result = await useCase.execute({ userId: user.id, ...parsed.data })
-    console.log('[completeLessonAction] success:', result)
+    const result = await useCase.execute({
+      userId: user.id,
+      lessonId,
+      answers: verifiedAnswers,
+    })
     revalidatePath('/dashboard')
     revalidatePath('/modulos')
     return { success: true, result }
   } catch (e) {
-    console.error('[completeLessonAction] use case threw:', e)
     return { error: e instanceof Error ? e.message : 'Erro ao salvar progresso' }
   }
 }

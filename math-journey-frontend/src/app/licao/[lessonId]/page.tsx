@@ -52,7 +52,6 @@ export default async function LicaoPage({ params }: Props) {
     context: e.context,
     type: e.type,
     options: e.options,
-    correctAnswer: e.correctAnswer,
     explanation: e.explanation,
     difficulty: e.difficulty,
     orderIndex: e.orderIndex,

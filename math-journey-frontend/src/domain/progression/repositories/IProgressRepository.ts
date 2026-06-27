@@ -10,8 +10,6 @@ export interface IProgressRepository {
   completeLesson(
     userId: string,
     lessonId: string,
-    xpEarned: number,
-    coinsEarned: number,
   ): Promise<LessonCompletionResult>
   recordAnswer(
     userId: string,

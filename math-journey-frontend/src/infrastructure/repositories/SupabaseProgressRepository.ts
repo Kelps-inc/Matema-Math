@@ -19,8 +19,6 @@ export class SupabaseProgressRepository implements IProgressRepository {
   async completeLesson(
     userId: string,
     lessonId: string,
-    xpEarned: number,
-    coinsEarned: number,
   ): Promise<LessonCompletionResult> {
     const { data: profile } = await this.supabase
       .from('user_profiles')
@@ -30,24 +28,15 @@ export class SupabaseProgressRepository implements IProgressRepository {
 
     const previousLevel = (profile as any)?.level ?? 1
 
+    // A recompensa é lida da tabela `lessons` DENTRO do RPC e zerada se a lição já
+    // foi concluída (anti-refarm). O RPC também grava user_lesson_progress de forma
+    // atômica — por isso não há mais upsert separado aqui.
     const { data, error } = await this.supabase.rpc('award_lesson_completion', {
       p_user_id: userId,
       p_lesson_id: lessonId,
-      p_xp: xpEarned,
-      p_coins: coinsEarned,
     })
 
     if (error) throw new Error(error.message)
-
-    const { error: upsertError } = await this.supabase.from('user_lesson_progress').upsert({
-      user_id: userId,
-      lesson_id: lessonId,
-      xp_earned: xpEarned,
-      coins_earned: coinsEarned,
-      completed_at: new Date().toISOString(),
-    }, { onConflict: 'user_id,lesson_id' })
-
-    if (upsertError) throw new Error(upsertError.message)
 
     const result = data as { xp: number; level: number; coins: number }
 

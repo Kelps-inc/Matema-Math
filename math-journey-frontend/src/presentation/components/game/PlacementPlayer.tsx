@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { cn } from '@/presentation/lib/utils'
 import { MathText } from '@/presentation/components/ui/MathText'
 import { savePlacementAction, type PlacementAnswer } from '@/app/actions/elo'
+import { checkPlacementAnswerAction } from '@/app/actions/answers'
 import { ELO_TIER_LABELS, type EloTier } from '@/domain/user/entities/User'
 import { EloTierIcon } from '@/presentation/components/ui/EloTierIcon'
 import { Settings, Lightbulb, Trophy } from 'lucide-react'
@@ -15,7 +16,6 @@ export interface PlacementQuestion {
   context: string | null
   type: 'multiple_choice' | 'true_false' | 'numeric'
   options: string[] | null
-  correct_answer: string
   explanation: string
   difficulty: 'easy' | 'medium' | 'hard'
   topic: string
@@ -44,6 +44,8 @@ export function PlacementPlayer({ questions }: PlacementPlayerProps) {
   const [phase, setPhase] = useState<Phase>('intro')
   const [current, setCurrent] = useState(0)
   const [selected, setSelected] = useState<string | null>(null)
+  const [revealed, setRevealed] = useState<{ isCorrect: boolean; correctAnswer: string } | null>(null)
+  const [answeredTimeMs, setAnsweredTimeMs] = useState(0)
   const [answers, setAnswers] = useState<PlacementAnswer[]>([])
   const [elapsedMs, setElapsedMs] = useState(0)
   const [result, setResult] = useState<{
@@ -70,28 +72,33 @@ export function PlacementPlayer({ questions }: PlacementPlayerProps) {
     return () => { if (timerRef.current) clearInterval(timerRef.current) }
   }, [phase, current])
 
-  const handleSelect = useCallback((option: string) => {
-    if (phase !== 'playing') return
+  const handleSelect = useCallback(async (option: string) => {
+    if (phase !== 'playing' || !question) return
+    const timeMs = Date.now() - questionStartRef.current
+    if (timerRef.current) clearInterval(timerRef.current)
+    setAnsweredTimeMs(timeMs)
     setSelected(option)
     setPhase('answered')
-    if (timerRef.current) clearInterval(timerRef.current)
-  }, [phase])
+    // O gabarito não vem ao cliente: validamos no servidor e revelamos o veredito.
+    const res = await checkPlacementAnswerAction(question.id, option)
+    if (!('error' in res)) setRevealed(res)
+  }, [phase, question])
 
   const handleNext = useCallback(async () => {
     if (!selected || !question) return
 
-    const timeMs = Date.now() - questionStartRef.current
-    const isCorrect = selected.trim().toLowerCase() === question.correct_answer.trim().toLowerCase()
+    const isCorrect = revealed?.isCorrect ?? false
 
     const newAnswers = [
       ...answers,
-      { questionId: question.id, answer: selected, isCorrect, timeMs },
+      { questionId: question.id, answer: selected, isCorrect, timeMs: answeredTimeMs },
     ]
     setAnswers(newAnswers)
 
     if (current + 1 < questions.length) {
       setCurrent((c) => c + 1)
       setSelected(null)
+      setRevealed(null)
       setPhase('playing')
     } else {
       // All done — save
@@ -109,7 +116,7 @@ export function PlacementPlayer({ questions }: PlacementPlayerProps) {
       })
       setPhase('result')
     }
-  }, [selected, question, answers, current, questions.length])
+  }, [selected, question, revealed, answeredTimeMs, answers, current, questions.length])
 
   // ── INTRO ──────────────────────────────────────────────────────────────────
   if (phase === 'intro') {
@@ -296,7 +303,7 @@ export function PlacementPlayer({ questions }: PlacementPlayerProps) {
         <div className="space-y-3">
           {options.map((option, i) => {
             const isSelected = selected === option
-            const isCorrect = option.trim().toLowerCase() === question.correct_answer.trim().toLowerCase()
+            const isCorrect = revealed != null && option.trim().toLowerCase() === revealed.correctAnswer.trim().toLowerCase()
             let optClass = 'border-matema-border bg-white text-matema-dark hover:border-matema-primary hover:bg-matema-cream'
 
             if (phase === 'answered') {

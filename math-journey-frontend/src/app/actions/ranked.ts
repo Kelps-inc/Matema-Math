@@ -100,26 +100,46 @@ export async function saveRankedGameAction(
   const skippedIds = opts.skippedExerciseIds ?? []
   const skippedCount = skippedIds.length
 
-  // Fetch difficulty for each answered question (server-side, don't trust client)
+  // Busca dificuldade E gabarito de cada questão no servidor — nunca confie no
+  // `isCorrect` do cliente (que poderia marcar tudo como certo para inflar LP/XP).
   const DIFF_WEIGHT: Record<string, number> = { easy: 1, medium: 1.5, hard: 2 }
-  let weightedAccuracy = 0
+  const diffMap: Record<string, number> = {}
+  const correctMap: Record<string, string> = {}
   if (answers.length > 0) {
     const { data: exerciseRows } = await supabaseAny
       .from('exercises')
-      .select('id, difficulty')
+      .select('id, difficulty, correct_answer')
       .in('id', answers.map((a) => a.exerciseId))
-    const diffMap: Record<string, number> = {}
     for (const row of (exerciseRows ?? [])) {
       diffMap[row.id] = DIFF_WEIGHT[row.difficulty] ?? 1
+      correctMap[row.id] = row.correct_answer
     }
+  }
+
+  // Recalcula isCorrect server-side e descarta IDs de exercício desconhecidos.
+  const norm = (v: string) => v.trim().toLowerCase()
+  const verified = answers
+    .filter((a) => a.exerciseId in correctMap)
+    .map((a) => ({ ...a, isCorrect: norm(a.answer) === norm(correctMap[a.exerciseId]) }))
+  answers = verified
+
+  let weightedAccuracy = 0
+  if (answers.length > 0) {
     const weightedCorrect = answers.filter((a) => a.isCorrect).reduce((s, a) => s + (diffMap[a.exerciseId] ?? 1), 0)
     const weightedTotal   = answers.reduce((s, a) => s + (diffMap[a.exerciseId] ?? 1), 0)
-    weightedAccuracy = (weightedCorrect / weightedTotal) * 100
+    weightedAccuracy = weightedTotal > 0 ? (weightedCorrect / weightedTotal) * 100 : 0
   }
 
   const correct   = answers.filter((a) => a.isCorrect).length
   const accuracy  = answers.length > 0 ? (correct / answers.length) * 100 : 0
-  const avgTimeMs = answers.length > 0 ? answers.reduce((s, a) => s + a.timeMs, 0) / answers.length : 60000
+  // `timeMs` vem do cliente (não há medição confiável no servidor sem round-trip por
+  // questão). Como o bônus de velocidade vale só 5% do score, em vez de medir no
+  // servidor nós LIMITAMOS o bônus: cada tempo é fixado em [MIN_ANSWER_MS, 60s], de
+  // modo que forjar `timeMs` baixíssimo (ou negativo) não infla o bônus além do teto.
+  const MIN_ANSWER_MS = 2000 // piso humano plausível para responder uma questão
+  const MAX_ANSWER_MS = 60000
+  const clampTime = (ms: number) => Math.min(MAX_ANSWER_MS, Math.max(MIN_ANSWER_MS, Number.isFinite(ms) ? ms : MAX_ANSWER_MS))
+  const avgTimeMs = answers.length > 0 ? answers.reduce((s, a) => s + clampTime(a.timeMs), 0) / answers.length : MAX_ANSWER_MS
   const timeBonus = Math.max(0, Math.min(100, (1 - avgTimeMs / 1000 / 60) * 100))
   const score     = weightedAccuracy * 0.95 + timeBonus * 0.05
 

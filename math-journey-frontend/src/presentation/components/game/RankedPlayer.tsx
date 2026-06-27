@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { cn } from '@/presentation/lib/utils'
 import { MathText } from '@/presentation/components/ui/MathText'
 import { saveRankedGameAction, type RankedAnswer } from '@/app/actions/ranked'
+import { checkExerciseAnswerAction } from '@/app/actions/answers'
 import { ELO_TIER_LABELS, type EloTier } from '@/domain/user/entities/User'
 import { EloTierIcon } from '@/presentation/components/ui/EloTierIcon'
 import { RankedResultScreen } from '@/presentation/components/game/RankedResultScreen'
@@ -23,7 +24,6 @@ export interface RankedExercise {
   context: string | null
   type: 'multiple_choice' | 'true_false' | 'numeric'
   options: string[] | null
-  correct_answer: string
   explanation: string
   difficulty: 'easy' | 'medium' | 'hard'
   source?: string | null
@@ -40,36 +40,31 @@ interface RankedPlayerProps {
 
 type Phase = 'playing' | 'answered' | 'saving' | 'result'
 
-const MIN_ANSWERED_TO_EXIT = 2
+const MIN_ANSWERED_TO_EXIT = 2 // fewer than this triggers the -2 PDL warning
 const OPTION_LETTERS = ['A', 'B', 'C', 'D', 'E']
 
-export function RankedPlayer({
-  exercises,
-  difficulty,
-  currentTier,
-  currentDivision,
-  currentLp,
-  useSerif = false,
-}: RankedPlayerProps) {
+export function RankedPlayer({ exercises, difficulty, currentTier, currentDivision, currentLp, useSerif = false }: RankedPlayerProps) {
   const router = useRouter()
-  const [phase, setPhase]               = useState<Phase>('playing')
-  const [current, setCurrent]           = useState(0)
-  const [selected, setSelected]         = useState<string | null>(null)
-  const [answers, setAnswers]           = useState<RankedAnswer[]>([])
-  const [skippedIds, setSkippedIds]     = useState<string[]>([])
+  const [phase, setPhase] = useState<Phase>('playing')
+  const [current, setCurrent] = useState(0)
+  const [selected, setSelected] = useState<string | null>(null)
+  const [revealed, setRevealed] = useState<{ isCorrect: boolean; correctAnswer: string } | null>(null)
+  const [answeredTimeMs, setAnsweredTimeMs] = useState(0)
+  const [answers, setAnswers] = useState<RankedAnswer[]>([])
+  const [skippedIds, setSkippedIds] = useState<string[]>([])
   const [showExitWarning, setShowExitWarning] = useState(false)
-  const [elapsedMs, setElapsedMs]       = useState(0)
-  const [result, setResult]             = useState<{
+  const [elapsedMs, setElapsedMs] = useState(0)
+  const [result, setResult] = useState<{
     score: number; accuracy: number; correct: number; total: number
     lpChange: number; newLp: number; newTier: EloTier; newDivision: number
     promoted: boolean; demoted: boolean
     xpEarned: number; coinsEarned: number; newXp: number; newLevel: number; leveledUp: boolean
   } | null>(null)
-  const [showLevelUp, setShowLevelUp]   = useState(false)
-  const [error, setError]               = useState<string | null>(null)
+  const [showLevelUp, setShowLevelUp] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const questionStartRef = useRef<number>(Date.now())
-  const timerRef         = useRef<ReturnType<typeof setInterval> | null>(null)
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   const exercise = exercises[current]
 
@@ -84,6 +79,7 @@ export function RankedPlayer({
     return () => { if (timerRef.current) clearInterval(timerRef.current) }
   }, [phase, current])
 
+  // ── shared save helper ────────────────────────────────────────────────────
   const saveGame = useCallback(async (
     answersToSave: RankedAnswer[],
     skippedIdsArg: string[],
@@ -114,32 +110,38 @@ export function RankedPlayer({
     setPhase('result')
   }, [])
 
-  const handleSelect = useCallback((option: string) => {
-    if (phase !== 'playing') return
+  const handleSelect = useCallback(async (option: string) => {
+    if (phase !== 'playing' || !exercise) return
+    const timeMs = Date.now() - questionStartRef.current
+    if (timerRef.current) clearInterval(timerRef.current)
+    setAnsweredTimeMs(timeMs)
     setSelected(option)
     setPhase('answered')
-    if (timerRef.current) clearInterval(timerRef.current)
-  }, [phase])
+    // O gabarito não vem ao cliente: validamos no servidor e revelamos o veredito.
+    const res = await checkExerciseAnswerAction(exercise.id, option)
+    if ('error' in res) setError(res.error)
+    else setRevealed(res)
+  }, [phase, exercise])
 
   const handleNext = useCallback(async () => {
     if (!selected || !exercise) return
 
-    const timeMs    = Date.now() - questionStartRef.current
-    const isCorrect = selected.trim().toLowerCase() === exercise.correct_answer.trim().toLowerCase()
+    const isCorrect = revealed?.isCorrect ?? false
     const newAnswers: RankedAnswer[] = [
       ...answers,
-      { exerciseId: exercise.id, answer: selected, isCorrect, timeMs },
+      { exerciseId: exercise.id, answer: selected, isCorrect, timeMs: answeredTimeMs },
     ]
     setAnswers(newAnswers)
 
     if (current + 1 < exercises.length) {
       setCurrent((c) => c + 1)
       setSelected(null)
+      setRevealed(null)
       setPhase('playing')
     } else {
       await saveGame(newAnswers, skippedIds)
     }
-  }, [selected, exercise, answers, current, exercises.length, skippedIds, saveGame])
+  }, [selected, exercise, revealed, answeredTimeMs, answers, current, exercises.length, skippedIds, saveGame])
 
   const handleSkip = useCallback(async () => {
     if (phase !== 'playing' || !exercise) return
@@ -151,17 +153,20 @@ export function RankedPlayer({
       setSelected(null)
       setPhase('playing')
     } else {
+      // Skipped last question — save what we have
       await saveGame(answers, newSkippedIds)
     }
   }, [phase, exercise, current, exercises.length, skippedIds, answers, saveGame])
 
   const handleExit = useCallback(() => {
+    const answeredCount = answers.length + (phase === 'answered' ? 1 : 0)
+    // Note: we count what's already in state; current question answered but not committed is counted
     const exitAnswers: RankedAnswer[] = phase === 'answered' && selected && exercise
       ? [...answers, {
           exerciseId: exercise.id,
-          answer:     selected,
-          isCorrect:  selected.trim().toLowerCase() === exercise.correct_answer.trim().toLowerCase(),
-          timeMs:     Date.now() - questionStartRef.current,
+          answer: selected,
+          isCorrect: revealed?.isCorrect ?? false,
+          timeMs: answeredTimeMs,
         }]
       : answers
 
@@ -169,21 +174,22 @@ export function RankedPlayer({
       setShowExitWarning(true)
       return
     }
+
     saveGame(exitAnswers, skippedIds)
-  }, [phase, selected, exercise, answers, skippedIds, saveGame])
+  }, [phase, selected, exercise, revealed, answeredTimeMs, answers, skippedIds, saveGame])
 
   const confirmEarlyExit = useCallback(() => {
     setShowExitWarning(false)
     const exitAnswers: RankedAnswer[] = phase === 'answered' && selected && exercise
       ? [...answers, {
           exerciseId: exercise.id,
-          answer:     selected,
-          isCorrect:  selected.trim().toLowerCase() === exercise.correct_answer.trim().toLowerCase(),
-          timeMs:     Date.now() - questionStartRef.current,
+          answer: selected,
+          isCorrect: revealed?.isCorrect ?? false,
+          timeMs: answeredTimeMs,
         }]
       : answers
     saveGame(exitAnswers, skippedIds, true)
-  }, [phase, selected, exercise, answers, skippedIds, saveGame])
+  }, [phase, selected, exercise, revealed, answeredTimeMs, answers, skippedIds, saveGame])
 
   // ── SAVING ─────────────────────────────────────────────────────────────────
   if (phase === 'saving') {
@@ -242,7 +248,7 @@ export function RankedPlayer({
 
   return (
     <div className="max-w-xl mx-auto animate-fade-in">
-      {/* Warning modal */}
+      {/* Warning modal — sair cedo */}
       {showExitWarning && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
           <div className="bg-white rounded-3xl p-6 max-w-sm w-full shadow-xl animate-fade-in">
@@ -272,7 +278,7 @@ export function RankedPlayer({
         </div>
       )}
 
-      {/* Tier + difficulty */}
+      {/* Tier + dificuldade */}
       <div className="flex items-center justify-between mb-1.5">
         <span className="flex items-center gap-1.5 text-sm font-semibold text-matema-muted">
           <EloTierIcon tier={currentTier} size="w-4 h-4" />
@@ -344,7 +350,7 @@ export function RankedPlayer({
           {options.map((option, i) => {
             const letter     = OPTION_LETTERS[i] ?? String(i + 1)
             const isSelected = selected === option
-            const isCorrect  = option.trim().toLowerCase() === exercise.correct_answer.trim().toLowerCase()
+            const isCorrect  = revealed != null && option.trim().toLowerCase() === revealed.correctAnswer.trim().toLowerCase()
 
             let optClass    = 'border-matema-border bg-white text-matema-dark hover:border-matema-primary hover:bg-matema-cream'
             let letterClass = 'border-matema-border text-matema-muted'
@@ -424,7 +430,7 @@ export function RankedPlayer({
         </div>
       )}
 
-      {/* Encerrar gameplay */}
+      {/* Encerrar gameplay — sempre no rodapé */}
       <div className="flex justify-center mt-1">
         <button
           onClick={handleExit}

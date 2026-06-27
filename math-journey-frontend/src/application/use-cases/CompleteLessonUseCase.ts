@@ -3,8 +3,6 @@ import type { IProgressRepository, LessonCompletionResult } from '@/domain/progr
 export interface CompleteLessonInput {
   userId: string
   lessonId: string
-  xpReward: number
-  coinReward: number
   answers: Array<{ exerciseId: string; answer: string; isCorrect: boolean }>
 }
 
@@ -18,11 +16,6 @@ export class CompleteLessonUseCase {
       )
     )
 
-    return this.progressRepo.completeLesson(
-      input.userId,
-      input.lessonId,
-      input.xpReward,
-      input.coinReward,
-    )
+    return this.progressRepo.completeLesson(input.userId, input.lessonId)
   }
 }

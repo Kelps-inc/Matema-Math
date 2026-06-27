@@ -24,17 +24,17 @@ export default async function PlacementPage() {
   const [easyRes, mediumRes, hardRes] = await Promise.all([
     supabaseAny
       .from('placement_questions')
-      .select('id, question, context, type, options, correct_answer, explanation, difficulty, topic')
+      .select('id, question, context, type, options, explanation, difficulty, topic')
       .eq('difficulty', 'easy')
       .limit(20),
     supabaseAny
       .from('placement_questions')
-      .select('id, question, context, type, options, correct_answer, explanation, difficulty, topic')
+      .select('id, question, context, type, options, explanation, difficulty, topic')
       .eq('difficulty', 'medium')
       .limit(20),
     supabaseAny
       .from('placement_questions')
-      .select('id, question, context, type, options, correct_answer, explanation, difficulty, topic')
+      .select('id, question, context, type, options, explanation, difficulty, topic')
       .eq('difficulty', 'hard')
       .limit(20),
   ])
