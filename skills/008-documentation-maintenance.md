@@ -12,6 +12,31 @@
 
 ---
 
+## 🚨 Grandes mudanças e novas features: doc é parte da entrega
+
+Quanto **maior** a mudança, mais obrigatória é a documentação. Toda **nova feature**,
+**nova tabela/RPC**, **mudança de arquitetura** ou **upgrade de stack** **só está concluída
+quando a documentação reflete a realidade**. Não existe "documento depois" — sem doc, a
+tarefa **não terminou** e não deve ser commitada como pronta.
+
+Para uma feature nova, espere atualizar **vários** arquivos de uma vez, tipicamente:
+`ROADMAP.md` (mover para ✅) · `DATABASE.md` (tabelas/RPC) · `API.md` (server actions) ·
+`DOMAIN_MODEL.md` (entidades/invariantes) · `GLOSSARY.md` (termos novos) ·
+`DECISIONS.md` (ADR se houve escolha não-óbvia) · a skill correspondente · e, se você é
+agente do dono, o espelho no **vault**.
+
+**Definition of Done (aplique em toda mudança grande):**
+- [ ] Código + lint/build OK
+- [ ] `docs/` e `skills/` afetados atualizados (checklist abaixo percorrido inteiro)
+- [ ] Decisão não-óbvia virou ADR em `DECISIONS.md`
+- [ ] Termo novo entrou no `GLOSSARY.md`
+- [ ] Vault espelhado (só agentes do dono) **após** o repo
+
+> Se você está sem tempo para a doc, você está sem tempo para a feature. Faça os dois — ou
+> deixe explícito, nunca silenciosamente, o que ficou pendente.
+
+---
+
 ## Antes de declarar qualquer tarefa concluída
 
 Execute este checklist. Para cada item marcado ✅, atualize o documento indicado.

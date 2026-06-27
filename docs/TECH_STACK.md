@@ -4,9 +4,10 @@
 
 | Tecnologia | Versão | Uso | Justificativa |
 |---|---|---|---|
-| Next.js | 15 | Framework principal | App Router + RSC + Server Actions = full-stack sem API separada |
+| Next.js | 16 | Framework principal | App Router + RSC + Server Actions + Turbopack = full-stack sem API separada |
 | React | 19 | UI | Server Components nativos |
 | TypeScript | 5 (strict) | Linguagem | Type safety ponta-a-ponta |
+| Supabase Realtime | latest | Tempo real | Usado no fluxo de Duelos 1v1 |
 | Tailwind CSS | v4 | Estilização | Design system utilitário, sem CSS custom manual |
 | KaTeX | latest | Renderização LaTeX | Mais rápido que MathJax, sem servidor |
 | Zod | latest | Validação | Schemas runtime + inferência TypeScript |
@@ -19,7 +20,7 @@
 | Supabase | Banco de dados + Auth | PostgreSQL gerenciado + RLS + Auth integrado |
 | PostgreSQL | Banco relacional | Suporte a JSONB, funções, RLS por linha |
 | Supabase Auth | Autenticação | Email/senha, OAuth pronto, integrado com RLS |
-| Supabase Functions (SQL) | Operações atômicas | award_lesson_completion, purchase_item |
+| Supabase Functions (SQL) | Operações atômicas | award_lesson_completion, purchase_item, apply_duel_ratings |
 
 ## Ferramentas de desenvolvimento
 
@@ -71,8 +72,8 @@ npm run lint     # ESLint
 
 ```json
 {
-  "next": "^15.x",
-  "react": "^19.x",
+  "next": "16.x",
+  "react": "19.x",
   "tailwindcss": "^4.x",
   "@supabase/ssr": "^0.x",
   "zod": "^3.x",

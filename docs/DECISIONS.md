@@ -225,3 +225,42 @@ LCP/transfer muito menores; SEO/compartilhamento e instalabilidade PWA básicos.
 **Trade-offs:**
 - WebP em `background` CSS não tem fallback automático (suporte universal nos browsers
   modernos alvo).
+
+---
+
+## ADR-011: Reconciliação do histórico de migrations (CLI vs. remoto)
+
+**Contexto:** o repo versiona migrations **numeradas** (`001`–`004`) em
+`math-journey-backend/supabase/migrations/`, mas o banco remoto tinha um histórico
+**com timestamps** (15 migrations aplicadas direto via dashboard/MCP — Duelo, Simulado,
+Amigos etc.). As duas histórias divergiam: `supabase db push`/`db pull` se recusavam a
+rodar, e nenhuma das numeradas estava registrada no remoto.
+
+**Decisão:** consolidar tudo no esquema numerado do repo (fonte canônica), via
+`supabase migration repair`:
+1. `repair --status applied 001 003 004` — schema já existia no remoto; marcadas sem reexecutar.
+2. `repair --status reverted <15 timestamps>` — removidas só do **tracking** (schema intacto).
+3. `supabase db push --include-all` — aplicou apenas `002` (idempotente).
+
+Resultado: `001`–`004` alinhadas local ↔ remoto. O projeto fica gerenciável por
+`supabase db push` daqui para frente (rodar a partir de `math-journey-backend/`).
+
+**Trade-off / lacuna conhecida:** objetos que existiam só nas 15 migrations com timestamp
+e que **não** estão nas numeradas — notadamente o RPC **`apply_duel_ratings`** — não são
+reproduzíveis a partir do repo. **Próximo passo:** materializar esses objetos numa migration
+`005_*` (ou rodar `supabase db pull` agora que as histórias estão alinhadas) para fechar a
+lacuna de reprodutibilidade.
+
+---
+
+## ADR-012: Upgrade para Next.js 16 + React 19
+
+**Contexto:** o projeto nasceu em Next.js 15 (ver ADR-001). A base evoluiu para
+**Next.js 16.2.6 + React 19.2.4** com Turbopack no dev.
+
+**Decisão:** adotar Next.js 16 (App Router + RSC + Server Actions + Turbopack) como versão
+corrente. ADR-001 permanece como registro histórico da escolha original.
+
+**Impacto na doc:** `TECH_STACK.md`, `ARCHITECTURE.md` e `skills/001-project-context.md`
+atualizados para refletir Next 16/React 19. O `AGENTS.md` do frontend já alerta que esta
+versão tem breaking changes — **leia `node_modules/next/dist/docs/` antes de codar**.

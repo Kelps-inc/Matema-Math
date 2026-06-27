@@ -236,6 +236,51 @@ Deleta conta e todos os dados do usuário.
 
 ---
 
+### `simulado.ts`
+Persistência da sessão do Simulado ENEM (tabela `simulado_sessions`, 1 por usuário).
+
+#### `getSimuladoSessionAction()`
+Retorna a sessão salva (`{ exerciseIds, answers, timeRemainingMs }`) ou `null`.
+
+#### `upsertSimuladoSessionAction(data)`
+Autosave da sessão em andamento (upsert por `user_id`).
+
+#### `deleteSimuladoSessionAction()`
+Remove a sessão (ao concluir/abandonar).
+
+#### `abandonSimuladoAction()`
+Abandona o simulado em andamento. **Output:** `{ error? }`.
+
+> A pontuação do Simulado é salva via `ranked.ts` → `saveRankedGameAction`, que
+> **revalida `isCorrect` no servidor** contra o gabarito (anti-cheat). Ver `answers.ts`.
+
+---
+
+### `duelo.ts`
+Duelos 1v1 assíncronos + Amizades (tabelas `duels`, `friendships`).
+
+#### `createDuelAction({ ... })`
+Cria um duelo (`pending`) com `invite_code` e `question_ids`. **Output:** `{ duelId, inviteCode }` ou `{ error }`.
+
+#### `joinDuelByCodeAction(code)`
+Entra num duelo por código (vira `active`). **Output:** `{ duelId }` ou `{ error }`.
+
+#### `submitDuelAnswersAction(duelId, answers)`
+Submete respostas do jogador. Quando ambos jogaram, define `winner_id` e credita rating via
+RPC **`apply_duel_ratings`** (`SECURITY DEFINER`, atômico — ajusta `duel_rating/wins/losses`).
+Correção é recalculada no servidor. **Output:** `{ summary }` ou `{ error }`.
+
+#### `getMyDuelsAction()` / `getDuelAction(duelId)`
+Leitura dos duelos do usuário / de um duelo específico.
+
+#### `searchUsersAction(query)`
+Busca usuários por username/display name (para convidar/adicionar).
+
+#### `sendFriendRequestAction(userId)` / `acceptFriendRequestAction(requesterId)` / `getMyFriendsAction()`
+Pedido, aceite e listagem de amizades (`friendships`). **Output:** `{ error? }` / lista.
+
+---
+
 ## Autenticação nos Server Actions
 
 Todos os Server Actions autenticados seguem o padrão:

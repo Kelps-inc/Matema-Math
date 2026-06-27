@@ -24,6 +24,9 @@ Perfil do jogador (1:1 com `auth.users`).
 | elo_tier | elo_tier_enum | bronze/prata/ouro/platina/diamante/mestre |
 | elo_division | int 1-4 | Divisão dentro do tier |
 | elo_lp | int | League Points 0–99 |
+| duel_rating | int (default 1000) | Rating de Duelo (separado do ELO) — migration `004` |
+| duel_wins | int (default 0) | Vitórias em Duelo |
+| duel_losses | int (default 0) | Derrotas em Duelo |
 | placement_completed | bool | Passou pelo placement? |
 | placement_completed_at | timestamptz | Quando completou |
 | last_active_at | timestamptz | Última atividade |
@@ -164,6 +167,55 @@ Questões do placement test (ELO inicial).
 | difficulty | difficulty_enum | |
 | order_index | int | |
 
+### `simulado_sessions`
+Sessão salva/retomável do Simulado ENEM (1 linha por usuário — `UNIQUE (user_id)`). Migration `003`.
+
+| Coluna | Tipo | Descrição |
+|---|---|---|
+| id | uuid PK | |
+| user_id | uuid FK → auth.users | Dono da sessão |
+| exercise_ids | uuid[] | Ordem fixa das 45 questões |
+| answers | jsonb (default `{}`) | Mapa `{ exerciseId: answer }` |
+| time_remaining_ms | int (default 9 900 000) | Tempo restante (~2h45) |
+| started_at | timestamptz | Início |
+| updated_at | timestamptz | Último autosave |
+
+### `duels`
+Duelos 1v1 **assíncronos** (estilo Perguntados). Migration `004`.
+
+| Coluna | Tipo | Descrição |
+|---|---|---|
+| id | uuid PK | |
+| challenger_id | uuid FK → auth.users | Quem desafiou |
+| opponent_id | uuid FK → auth.users (nullable) | Oponente (null enquanto `pending`) |
+| status | text | `pending` / `active` / `completed` / `cancelled` |
+| invite_code | text unique (nullable) | Código de convite |
+| question_ids | uuid[] | Questões da partida |
+| challenger_answers / opponent_answers | jsonb | Respostas de cada lado |
+| challenger_correct / opponent_correct | int | Acertos |
+| challenger_time_ms / opponent_time_ms | int | Tempo total |
+| challenger_played_at / opponent_played_at | timestamptz | Quando jogou |
+| winner_id | uuid FK → auth.users (nullable) | Vencedor |
+| challenger_rating_change / opponent_rating_change | int | Δ de `duel_rating` |
+| created_at | timestamptz | |
+| expires_at | timestamptz (default +7 dias) | Expiração do convite |
+| completed_at | timestamptz | Conclusão |
+
+Índices: `(challenger_id, status)`, `(opponent_id, status)`.
+
+### `friendships`
+Amizades / pedidos de amizade. Migration `004`.
+
+| Coluna | Tipo | Descrição |
+|---|---|---|
+| id | uuid PK | |
+| requester_id | uuid FK → auth.users | Quem pediu |
+| addressee_id | uuid FK → auth.users | Quem recebeu |
+| status | text | `pending` / `accepted` / `blocked` |
+| created_at / updated_at | timestamptz | |
+
+Constraints: `UNIQUE (requester_id, addressee_id)`, `CHECK (requester_id != addressee_id)`. Índice: `(addressee_id, status)`.
+
 ## Enums
 
 ```sql
@@ -204,6 +256,16 @@ Operação atômica:
 3. Insere em `user_inventory`
 4. Retorna `{ success: bool, error?: string }`
 
+### `apply_duel_ratings(...) → json`
+RPC `SECURITY DEFINER` que credita o resultado de um Duelo de forma atômica: ajusta
+`duel_rating`/`duel_wins`/`duel_losses` dos dois participantes e grava `winner_id` +
+`*_rating_change` na linha de `duels`. Chamado em `app/actions/duelo.ts` (`submitDuelAnswersAction`).
+
+> ⚠️ **Lacuna de reprodutibilidade conhecida:** `apply_duel_ratings` existe no banco remoto
+> mas **não** está capturada em nenhuma migration numerada do repo (entrou via migration com
+> timestamp aplicada direto no remoto, depois consolidada). Ver ADR-011 em `DECISIONS.md`.
+> Ao mexer nesse RPC, materialize-o numa migration `005_*` ou rode `supabase db pull`.
+
 ### `handle_new_user() → trigger`
 Dispara após INSERT em `auth.users`:
 - Cria linha em `user_profiles` com defaults
@@ -223,21 +285,35 @@ Todas as tabelas têm RLS habilitado.
 | user_inventory | SELECT/INSERT/UPDATE apenas próprio |
 | shop_items | SELECT público; INSERT/UPDATE apenas admin |
 | placement_questions | SELECT público |
+| simulado_sessions | ALL apenas próprio (user_id = auth.uid()) |
+| duels | SELECT: participantes ou duelos `pending` sem oponente; INSERT: só o desafiante; UPDATE: participantes |
+| friendships | ALL: requester ou addressee (WITH CHECK: requester) |
 
 ## Arquivos de migração
 
 ```
 math-journey-backend/supabase/migrations/
-  001_initial_schema.sql    # Schema completo, enums, RLS, triggers, functions
+  001_initial_schema.sql        # Schema base, enums, RLS, triggers, functions
+  002_harden_lesson_rewards.sql # Anti-cheat: RPC award_lesson_completion (2 args)
+  003_simulado_sessions.sql     # Tabela simulado_sessions + RLS
+  004_duels_and_friendships.sql # Tabelas duels/friendships + colunas de duelo
 
 math-journey-backend/supabase/seed/
-  001_content.sql           # 4 módulos, lições e exercícios iniciais
+  001_content.sql               # 4 módulos, lições e exercícios iniciais
 ```
+
+> ⚠️ O RPC `apply_duel_ratings` (Duelos) ainda **não** está numa migration numerada — ver
+> nota na seção de Functions SQL e ADR-011. O projeto está vinculado via Supabase CLI
+> (`supabase link`); o histórico local/remoto foi reconciliado (ver ADR-011).
 
 ## Como aplicar o schema
 
 ```bash
-# No Supabase SQL Editor (dashboard)
-# 1. Cole e execute 001_initial_schema.sql
-# 2. Cole e execute 001_content.sql (seed)
+# Opção A — Supabase CLI (projeto já vinculado via `supabase link`)
+cd math-journey-backend
+supabase db push            # aplica migrations pendentes ao remoto
+supabase migration list     # confere alinhamento local ↔ remoto
+
+# Opção B — Supabase SQL Editor (dashboard): cole e execute as migrations em ordem,
+# depois o seed 001_content.sql.
 ```

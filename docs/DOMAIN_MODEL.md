@@ -117,10 +117,33 @@ interface Exercise {
 **Método:**
 - `isCorrect(answer: string): boolean` — comparação case-insensitive com trim
 
+> 🔒 **Anti-cheat:** `correctAnswer` **não é serializado para o cliente** nos modos de
+> lição/objetivas/ENEM. A correção é feita no servidor (`app/actions/answers.ts` →
+> `checkExerciseAnswerAction`/`checkPlacementAnswerAction`), que recebe `(id, answer)` e
+> revela o veredito só após responder. Exceção: o modo **Simulado** ainda carrega o
+> gabarito no cliente para feedback imediato, mas a pontuação é revalidada no servidor.
+> Ver ADR-009 em `DECISIONS.md`.
+
 ---
 
 ### PlacementQuestion
 Questão usada no placement test para determinar ELO inicial. Estrutura similar ao Exercise mas armazenada em tabela separada.
+
+---
+
+### Duel
+Duelo 1v1 assíncrono entre dois jogadores. Persistido em `duels` (ver `DATABASE.md`); a lógica
+vive em `app/actions/duelo.ts`. Tem rating próprio (`duel_rating`, default 1000), separado do ELO.
+
+Estados: `pending` (aguardando oponente) → `active` (ambos entraram) → `completed` (ambos
+responderam) | `cancelled`. O resultado credita rating de forma atômica via RPC
+`apply_duel_ratings` (recálculo de acertos no servidor).
+
+---
+
+### Friendship
+Relação de amizade/pedido entre dois usuários (`friendships`). Estados: `pending` / `accepted`
+/ `blocked`. Invariante: não é possível adicionar a si mesmo (`CHECK requester_id != addressee_id`).
 
 ---
 
@@ -147,10 +170,16 @@ interface ILearningRepository {
 
 ### IProgressRepository
 ```typescript
+interface LessonCompletionResult {
+  newXp: number; newLevel: number; newCoins: number; leveledUp: boolean
+}
+
 interface IProgressRepository {
-  getCompletedLessonIds(userId: string): Promise<string[]>
-  completeLesson(userId, lessonId, xpEarned, coinsEarned): Promise<void>
-  recordAnswer(userId, exerciseId, answer, isCorrect, timeMs?, isRanked?): Promise<void>
+  completedLessonIds(userId: string): Promise<string[]>
+  // A recompensa NÃO é passada pelo chamador — o RPC award_lesson_completion a deriva
+  // de `lessons` (anti-cheat). Retorna o novo estado do perfil.
+  completeLesson(userId: string, lessonId: string): Promise<LessonCompletionResult>
+  recordAnswer(userId: string, exerciseId: string, answer: string, isCorrect: boolean): Promise<void>
 }
 ```
 
@@ -165,3 +194,8 @@ interface IProgressRepository {
 | Placement test: exatamente 15 questões | PlacementPlayer component |
 | Ranked early exit (< 2 respostas) = -2 LP por skip | Server action |
 | Peso das dificuldades: easy×1, medium×1.5, hard×2 | Cálculo de score ranqueado |
+| `isCorrect` sempre recalculado no servidor (nunca confiar no cliente) | `ranked.ts`, `elo.ts`, `answers.ts` |
+| Bônus de tempo limitado (clamp de `timeMs` em [2s, 60s]) | `saveRankedGameAction` |
+| Recompensa de lição derivada de `lessons`, zerada em refarm | RPC `award_lesson_completion` |
+| Não pode adicionar a si mesmo como amigo | `CHECK` em `friendships` |
+| Crédito de rating de duelo é atômico (RPC) | `apply_duel_ratings` |

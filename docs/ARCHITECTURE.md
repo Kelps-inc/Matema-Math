@@ -2,7 +2,7 @@
 
 ## Visão geral
 
-Matema usa uma arquitetura **Domain-Driven Design (DDD)** dentro de uma aplicação **Next.js 15** com App Router. O backend é inteiramente gerenciado pelo **Supabase** (PostgreSQL + Auth + RLS).
+Matema usa uma arquitetura **Domain-Driven Design (DDD)** dentro de uma aplicação **Next.js 16** com App Router. O backend é inteiramente gerenciado pelo **Supabase** (PostgreSQL + Auth + RLS).
 
 ```
 ┌─────────────────────────────────────────────────────────┐
@@ -11,7 +11,7 @@ Matema usa uma arquitetura **Domain-Driven Design (DDD)** dentro de uma aplicaç
 └─────────────────────────┬───────────────────────────────┘
                           │ HTTP / Server Actions
 ┌─────────────────────────▼───────────────────────────────┐
-│              Next.js 15 (App Router)                     │
+│              Next.js 16 (App Router)                     │
 │                                                          │
 │  ┌─────────────┐  ┌──────────────┐  ┌───────────────┐  │
 │  │  RSC Pages  │  │Server Actions│  │  API Routes   │  │

@@ -6,21 +6,24 @@
 
 ## Stack em uma linha
 
-Next.js 15 (App Router + RSC) + TypeScript strict + Tailwind CSS v4 + Supabase (PostgreSQL + Auth + RLS) + Vercel deploy.
+Next.js 16 (App Router + RSC + Server Actions + Turbopack) + React 19 + TypeScript strict + Tailwind CSS v4 + KaTeX + Supabase (PostgreSQL + Auth + RLS) + Vercel deploy.
 
 ## Localização dos arquivos principais
 
 ```
 math-journey-frontend/src/
-  app/              → rotas Next.js + server actions
+  app/              → rotas Next.js + server actions (app/actions/)
   application/      → use cases
   domain/           → entidades e interfaces de repositório (puro TS)
   infrastructure/   → repositórios Supabase
   presentation/     → componentes React
 
 math-journey-backend/supabase/
-  migrations/001_initial_schema.sql  → schema completo
-  seed/001_content.sql               → módulos, lições, exercícios
+  migrations/001_initial_schema.sql        → schema base
+  migrations/002_harden_lesson_rewards.sql → anti-cheat do award_lesson_completion
+  migrations/003_simulado_sessions.sql     → sessões do Simulado ENEM
+  migrations/004_duels_and_friendships.sql → Duelos 1v1 + Amizades
+  seed/001_content.sql                     → módulos, lições, exercícios
 ```
 
 ## Regras fundamentais para qualquer agente
@@ -42,11 +45,15 @@ math-journey-backend/supabase/
 
 - Lições com exercícios e teoria
 - XP + nível + moedas
-- ELO ranqueado (Bronze → Mestre, LP 0–99)
+- ELO ranqueado (Bronze → Mestre, LP 0–99) — modos Objetivas, Estilo ENEM e **Simulado ENEM** (45 questões)
+- **Duelos 1v1** assíncronos (rating próprio `duel_rating`) + página de **Amigos**
 - Avatar SVG procedural
 - Loja de cosméticos
 - Renderização LaTeX ($...$ e $$...$$)
 - Áudio ambiente + SFX Web Audio API
+- Validação de resposta **server-side** (gabarito nunca vai ao cliente) e recompensa anti-cheat no RPC
+
+> Sempre que adicionar/alterar uma feature, **atualize a documentação** (`docs/` + `skills/`) antes de encerrar — ver regra 6 abaixo e `skills/008-documentation-maintenance.md`.
 
 ## Onde encontrar mais detalhes
 

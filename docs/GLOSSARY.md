@@ -19,6 +19,11 @@
 | **PDL** | Pontos de Derrota — sinônimo de LP negativo (perda de LP) |
 | **Score** | Pontuação calculada ao fim de uma partida ranqueada (0–1) |
 | **Modo Estilo ENEM** | Modo que filtra apenas questões do ENEM |
+| **Simulado ENEM** | Prova longa de 45 questões, com sessão salva/retomável (`simulado_sessions`) |
+| **Duelo** | Partida 1v1 assíncrona entre dois jogadores (estilo Perguntados), com rating próprio |
+| **Duel Rating** | Pontuação de Duelo (`duel_rating`, default 1000), separada do ELO ranqueado |
+| **Amigo** | Outro usuário com amizade `accepted` (tabela `friendships`) |
+| **Gabarito** | Resposta correta (`correct_answer`); não é enviada ao cliente fora do Simulado (anti-cheat) |
 | **Acessório** | Item cosmético equipável no avatar (comprado na loja) |
 | **Avatar** | Representação visual do jogador (SVG procedural customizável) |
 | **Theory** | Texto explicativo exibido antes dos exercícios de uma lição |
@@ -40,6 +45,8 @@
 | **App Router** | Sistema de roteamento baseado em pastas do Next.js 13+ |
 | **revalidatePath** | Função Next.js que invalida o cache de uma rota (atualiza dados) |
 | **Slug** | Identificador URL-friendly (ex: 'algebra-e-funcoes') |
+| **SECURITY DEFINER** | Função SQL que roda com privilégios do criador; usada em RPCs atômicos (ex: `apply_duel_ratings`) |
+| **migration repair** | Comando do Supabase CLI que ajusta o histórico de migrations sem rodar SQL (ver ADR-011) |
 
 ## Abreviações usadas no código
 

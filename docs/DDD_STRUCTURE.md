@@ -24,14 +24,18 @@ math-journey-frontend/src/
 │   ├── dashboard/page.tsx        # Dashboard principal
 │   ├── avatar/page.tsx           # Editor de avatar
 │   ├── loja/page.tsx             # Loja de itens
+│   ├── amigos/page.tsx           # Amigos + Duelos 1v1
 │   ├── configuracoes/page.tsx    # Configurações
 │   ├── admin/
 │   │   └── preview-questoes/     # Admin: preview de exercícios
 │   └── actions/                  # Server Actions
 │       ├── auth.ts               # signUp, signIn, signOut
 │       ├── progress.ts           # completeLessonAction
+│       ├── answers.ts            # checkExerciseAnswerAction, checkPlacementAnswerAction (anti-cheat)
 │       ├── ranked.ts             # saveRankedGameAction
 │       ├── elo.ts                # savePlacementAction
+│       ├── simulado.ts           # sessão do Simulado ENEM (get/upsert/delete/abandon)
+│       ├── duelo.ts              # Duelos 1v1 + Amizades
 │       ├── shop.ts               # purchaseItemAction, setItemEquippedAction
 │       ├── avatar.ts             # saveAvatarConfigAction
 │       └── account.ts            # resetProgressAction, deleteAccountAction

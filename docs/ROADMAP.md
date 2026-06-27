@@ -24,6 +24,11 @@
 - Mobile-first responsivo
 - Questões ENEM etiquetadas (fonte: ENEM AAAA)
 - Modo "Estilo ENEM" desbloqueável
+- **Simulado ENEM** (45 questões, sessão salva/retomável — `simulado_sessions`)
+- **Duelos 1v1 assíncronos** (convite por código, rating próprio `duel_rating`, RPC `apply_duel_ratings`)
+- **Amigos** (busca de usuários, pedidos/aceite — `friendships`)
+- Validação de respostas server-side + recompensa anti-cheat (migration `002`)
+- PWA (manifest + ícones) e otimização de imagens (WebP)
 - Admin: preview de questões
 
 ---
@@ -52,8 +57,7 @@
 
 | Feature | Descrição |
 |---|---|
-| **Duelos 1v1** | Partidas P2P em tempo real (Supabase Realtime) |
-| **Simulado ENEM completo** | 45 questões de matemática com gabarito |
+| **Duelos em tempo real** | Hoje os Duelos 1v1 são assíncronos; evoluir para partida síncrona via Supabase Realtime |
 | **AI Tutor** | Explicações personalizadas via IA |
 | **Planos de estudo** | Cronograma personalizado por data de prova |
 | **Modo sala de aula** | Professor cria turmas, acompanha progresso |

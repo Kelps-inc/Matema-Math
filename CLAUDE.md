@@ -27,6 +27,13 @@ Estas pastas são versionadas no Git e viajam para **todos** os colaboradores. S
 5. Registre decisões técnicas não-óbvias em `docs/DECISIONS.md`.
 > Uma tarefa sem documentação atualizada **não está concluída**.
 
+> ⚠️ **SEMPRE atualize a documentação após grandes mudanças e novas features.** Quanto maior
+> a mudança (nova feature, nova tabela/RPC, nova server action, mudança de arquitetura,
+> upgrade de stack), mais obrigatória é a doc — ela é **parte da entrega**, não um "depois".
+> Espere mexer em vários docs de uma vez (`ROADMAP`, `DATABASE`, `API`, `DOMAIN_MODEL`,
+> `GLOSSARY`, `DECISIONS` + a skill correspondente). Documentação viva mantém o
+> desenvolvimento rápido, seguro e sem retrabalho. Ver `skills/008-documentation-maintenance.md`.
+
 ### 2. Se (e só se) você tiver acesso: o vault Obsidian do dono
 
 O dono (Davi) mantém um vault Obsidian privado, em
