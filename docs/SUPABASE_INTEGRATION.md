@@ -107,13 +107,13 @@ Ao usar o client com a sessão do usuário autenticado, `auth.uid()` retorna o U
 
 ### `award_lesson_completion`
 ```typescript
+// Recompensa derivada de `lessons` DENTRO do RPC — NÃO passe p_xp/p_coins (anti-cheat).
 const { data, error } = await supabase.rpc('award_lesson_completion', {
   p_user_id: userId,
-  p_lesson_id: lessonId,
-  p_xp: xpReward,
-  p_coins: coinReward
+  p_lesson_id: lessonId
 })
-// data: { success: boolean, already_completed: boolean }
+// data: { xp, level, coins, awarded_xp, awarded_coins, already_completed }
+// Recompletar uma lição já concluída credita 0 (anti-refarm).
 ```
 
 ### `purchase_item`

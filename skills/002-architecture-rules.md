@@ -87,11 +87,10 @@ Use APENAS quando necessário:
 Para operações que modificam múltiplas tabelas atomicamente, use funções SQL via RPC:
 
 ```typescript
+// A recompensa é lida de `lessons` dentro do RPC — nunca a passe pelo cliente (anti-cheat).
 const { data, error } = await supabase.rpc('award_lesson_completion', {
   p_user_id: user.id,
-  p_lesson_id: lessonId,
-  p_xp: xp,
-  p_coins: coins
+  p_lesson_id: lessonId
 })
 ```
 

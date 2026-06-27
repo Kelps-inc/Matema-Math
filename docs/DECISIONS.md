@@ -1,6 +1,6 @@
 # Architectural Decision Records — Matema
 
-> **Manutenção:** Toda decisão técnica com trade-off deliberado **deve** ser registrada aqui como um novo ADR numerado sequencialmente. Formato: consulte `docs/MAINTENANCE.md`. Último ADR: **ADR-008**.
+> **Manutenção:** Toda decisão técnica com trade-off deliberado **deve** ser registrada aqui como um novo ADR numerado sequencialmente. Formato: consulte `docs/MAINTENANCE.md`. Último ADR: **ADR-009**.
 
 ## ADR-001: Next.js App Router com Server Components
 
@@ -142,3 +142,86 @@
 **Trade-offs:**
 - HTML verboso com muitas classes
 - v4 ainda em evolução (algumas APIs mudaram em relação à v3)
+
+---
+
+## ADR-009: Recompensa e correção sempre recalculadas no servidor (anti-cheat)
+
+**Contexto:** As Server Actions `completeLessonAction` e `saveRankedGameAction` recebiam do
+cliente os valores de XP/moedas (`xpReward`/`coinReward`) e a flag `isCorrect` de cada
+resposta, e os repassavam direto para o banco (RPC `award_lesson_completion` / `update` de
+`user_profiles`). Como o `correct_answer` também é enviado ao cliente, qualquer usuário
+podia forjar a requisição (DevTools/curl) e creditar XP, moedas e LP arbitrários.
+
+**Decisão:** O servidor **ignora** qualquer recompensa/correção vinda do cliente:
+- A recompensa é lida da tabela `lessons` (`xp_reward`, `coin_reward`) dentro da action.
+- `isCorrect` é recalculado comparando `answer` com `exercises.correct_answer`
+  (mesma normalização `trim().toLowerCase()` usada na UI), descartando `exerciseId`
+  desconhecido ou que não pertença à lição.
+- Os campos do cliente continuam aceitos no schema apenas por compatibilidade, mas não
+  têm efeito.
+
+**Justificativa:**
+- Regra inegociável: nunca confiar em dados do cliente para mutações sensíveis.
+- Mantém o contrato das actions estável (a UI não precisou mudar).
+
+**Trade-offs / pendências conhecidas (defense-in-depth futura):**
+- ~~`exercises.correct_answer` ainda é enviado ao cliente (vazamento de gabarito).~~
+- ~~`timeMs` na ranqueada ainda vem do cliente (peso de 5% no score) — impacto baixo.~~
+- ~~O RPC `award_lesson_completion` ainda credita XP a cada chamada, permitindo refarm ao
+  refazer a mesma lição; e ainda aceita `p_xp/p_coins` do chamador.~~
+
+**Atualização (2026-06-15) — os três endurecimentos acima foram resolvidos:**
+
+1. **Gabarito não vai mais ao cliente.** `exercises.correct_answer` /
+   `placement_questions.correct_answer` deixaram de ser serializados nos DTOs e nas
+   queries das páginas (`licao/[lessonId]`, `ranqueada/jogar/[mode]`,
+   `ranqueada/placement`). A validação passou para Server Actions em
+   `src/app/actions/answers.ts` (`checkExerciseAnswerAction` /
+   `checkPlacementAnswerAction`), que recebem `(id, answer)`, comparam contra o gabarito
+   no servidor (mesma normalização `trim().toLowerCase()`) e só então **revelam** o
+   veredito + a resposta certa. Os players (`ExercisePlayer`, `RankedPlayer`,
+   `PlacementPlayer`) chamam essa action ao confirmar a resposta e usam o retorno para o
+   feedback "Correto!/Quase lá!" e o destaque da alternativa correta. A UX de feedback
+   imediato é preservada (um único round-trip por questão). `savePlacementAction` também
+   passou a recalcular `isCorrect` no servidor.
+
+2. **RPC `award_lesson_completion` endurecido** (migration
+   `002_harden_lesson_rewards.sql`). Nova assinatura `(p_user_id, p_lesson_id)` — não
+   aceita mais `p_xp/p_coins`. A recompensa é lida de `lessons.xp_reward/coin_reward`
+   dentro do RPC; se a lição já estiver em `user_lesson_progress`, a recompensa é
+   **zerada** (anti-refarm). O registro em `user_lesson_progress` passou a ser feito
+   dentro do RPC (atômico com o crédito de XP), eliminando o upsert separado do
+   repositório. `SupabaseProgressRepository`, `CompleteLessonUseCase`,
+   `IProgressRepository` e `completeLessonAction` foram ajustados para a nova assinatura.
+
+3. **`timeMs` da ranqueada limitado.** Como não há medição confiável no servidor sem um
+   round-trip por questão e o bônus de velocidade vale só 5% do score, optou-se por
+   **limitar o bônus**: em `saveRankedGameAction` cada `timeMs` é fixado em
+   `[2000ms, 60000ms]` antes do cálculo, de modo que forjar tempos baixíssimos (ou
+   inválidos) não infla o `timeBonus` além do teto.
+
+---
+
+## ADR-010: Otimização de assets e metadados (favicon/PWA)
+
+**Contexto:** `public/` continha imagens enormes servidas cruas — `nav-texture.jpg` (9,6 MB,
+5000px) e `header-bg.png` (1,6 MB) usadas como `background` CSS (não passam pelo
+`next/image`), além de logos PNG de ~1 MB. Faltavam ícones modernos e manifest.
+
+**Decisão:**
+- Converter os assets para **WebP** redimensionado e atualizar as referências:
+  `nav-texture.webp` (107 KB), `header-bg.webp` (41 KB), `matema-logo.webp` /
+  `matema-logo-landing.webp` (~37 KB cada). Originais removidos.
+- Adicionar `app/icon.png`, `app/apple-icon.png` (convenções do App Router),
+  `app/manifest.ts`, `og-image.webp` e `metadataBase`/`openGraph`/`twitter`/`viewport`
+  no `layout.tsx`.
+- `next.config.ts`: `images.formats` AVIF/WebP, `compiler.removeConsole` em produção,
+  `poweredByHeader: false`.
+
+**Justificativa:** redução de ~13 MB para ~260 KB nos assets críticos do above-the-fold;
+LCP/transfer muito menores; SEO/compartilhamento e instalabilidade PWA básicos.
+
+**Trade-offs:**
+- WebP em `background` CSS não tem fallback automático (suporte universal nos browsers
+  modernos alvo).

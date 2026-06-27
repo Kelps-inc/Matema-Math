@@ -77,10 +77,29 @@ Registra conclusão de lição e concede XP/moedas.
 { error: string }
 ```
 
+**Anti-cheat:** os campos `isCorrect`/`xpReward`/`coinReward` do payload são **ignorados**.
+A correção é recalculada no servidor contra `exercises.correct_answer` e a recompensa é
+derivada de `lessons` dentro do RPC. Refazer uma lição já concluída credita **0** XP/moedas.
+
 **Efeitos colaterais:**
-- Chama `award_lesson_completion` RPC (atômico)
+- Chama `award_lesson_completion(p_user_id, p_lesson_id)` RPC (atômico; lê recompensa de
+  `lessons`, zera em recompletação e grava `user_lesson_progress`)
 - Registra cada resposta em `user_exercise_answers`
 - `revalidatePath('/dashboard')`, `revalidatePath('/modulos')`
+
+---
+
+### `answers.ts`
+
+#### `checkExerciseAnswerAction(exerciseId, answer)` / `checkPlacementAnswerAction(questionId, answer)`
+Valida uma resposta no servidor **sem nunca enviar o gabarito ao cliente**. O `correct_answer`
+não é mais serializado nos DTOs/queries dos players; ele é revelado apenas como retorno destas
+actions, depois que o usuário responde.
+
+**Output:** `{ isCorrect: boolean, correctAnswer: string }` ou `{ error: string }`
+
+Usadas por `ExercisePlayer`, `RankedPlayer` e `PlacementPlayer` para o feedback imediato e o
+destaque da alternativa correta.
 
 ---
 
@@ -109,7 +128,7 @@ Salva resultado de partida ranqueada e atualiza ELO.
 weighted_correct = Σ(isCorrect ? weight[difficulty] : 0)
 weighted_total   = Σ(weight[difficulty])  // easy=1, med=1.5, hard=2
 accuracy         = weighted_correct / weighted_total
-time_bonus       = média de (1 - timeMs/60000) para corretas
+time_bonus       = (1 - avg(clamp(timeMs, 2000, 60000))/60000) * 100  // timeMs limitado p/ anti-cheat
 score            = accuracy * 0.95 + time_bonus * 0.05
 
 LP delta:

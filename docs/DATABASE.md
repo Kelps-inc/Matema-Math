@@ -187,11 +187,15 @@ CREATE TYPE difficulty_enum AS ENUM (
 RETURNS Math.floor(sqrt(xp / 50.0)) + 1
 ```
 
-### `award_lesson_completion(p_user_id, p_lesson_id, p_xp, p_coins) → json`
-Operação atômica:
-1. Insere em `user_lesson_progress` (ON CONFLICT DO NOTHING)
-2. Se inseriu (primeiro completação): incrementa XP e moedas no perfil
-3. Retorna `{ success: bool, already_completed: bool }`
+### `award_lesson_completion(p_user_id, p_lesson_id) → json`
+Operação atômica (endurecida na migration `002_harden_lesson_rewards.sql` — a assinatura
+antiga `(p_user_id, p_lesson_id, p_xp, p_coins)` foi removida; **não** confie em recompensa
+vinda do chamador):
+1. Lê `xp_reward`/`coin_reward` de `lessons` (recompensa derivada do banco, nunca do cliente).
+2. Se a lição já existe em `user_lesson_progress`, **zera** a recompensa (anti-refarm).
+3. Incrementa XP/moedas e recalcula `level` via `xp_to_level` no perfil.
+4. Faz upsert em `user_lesson_progress` (`ON CONFLICT (user_id, lesson_id)` → incrementa `attempts`).
+5. Retorna `{ xp, level, coins, awarded_xp, awarded_coins, already_completed }`.
 
 ### `purchase_item(p_user_id, p_item_id) → json`
 Operação atômica:

@@ -69,15 +69,14 @@ const { error } = await supabase
 
 ### RPC (função SQL)
 ```typescript
+// Recompensa lida de `lessons` dentro do RPC — não passe p_xp/p_coins (anti-cheat).
 const { data, error } = await supabase.rpc('award_lesson_completion', {
   p_user_id: userId,
-  p_lesson_id: lessonId,
-  p_xp: xpReward,
-  p_coins: coinReward
+  p_lesson_id: lessonId
 })
 
 // data é o JSON retornado pela função
-// ex: { success: true, already_completed: false }
+// ex: { xp, level, coins, awarded_xp, awarded_coins, already_completed }
 ```
 
 ## Auth patterns
