@@ -73,7 +73,7 @@ export function LogoWithEyes({ level, height = 65 }: LogoWithEyesProps) {
     <div style={{ position: 'relative', height, display: 'inline-block' }}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
-        src="/matema-logo.png"
+        src="/matema-logo.webp"
         alt="Matema"
         style={{ height, width: 'auto', display: 'block' }}
       />
