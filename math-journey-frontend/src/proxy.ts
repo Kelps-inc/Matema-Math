@@ -4,6 +4,13 @@ import { NextResponse, type NextRequest } from 'next/server'
 const PUBLIC_PATHS = ['/', '/entrar', '/cadastro', '/auth/callback']
 
 export async function proxy(request: NextRequest) {
+  // Webhooks externos (AbacatePay) são server-to-server, sem sessão de usuário —
+  // não podem passar pela checagem de auth (senão são redirecionados para /entrar).
+  // A própria rota valida o `webhookSecret`.
+  if (request.nextUrl.pathname.startsWith('/api/abacatepay/')) {
+    return NextResponse.next({ request })
+  }
+
   let supabaseResponse = NextResponse.next({ request })
 
   const supabase = createServerClient(
