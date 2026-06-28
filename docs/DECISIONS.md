@@ -295,3 +295,32 @@ assinantes **Pro**; admins têm acesso sem pagar.
 - Expiração é "lazy" (checada em `pro_until > now()`); não há job de varredura — o status só
   muda quando o webhook renova/cancela ou o tempo passa.
 - Preço/produto vivem no painel do AbacatePay (`ABACATEPAY_PRO_PRODUCT_ID`), fora do código.
+
+## ADR-014: Plano Turma (Sala de Aula) — PIX de valor customizado + códigos
+
+**Contexto:** além do Pro individual (ADR-013), professores/coordenadores querem licenciar o
+Pro para uma turma inteira com desconto por volume. O preço é dinâmico (`14,90 × N × fator × M`),
+mas o checkout/assinatura do AbacatePay **só aceita o produto pré-cadastrado** (R$ 14,90 fixo) —
+não dá para passar um valor arbitrário por ali.
+
+**Decisão:**
+- **Cobrança via PIX "transparent" (`/v2/transparents/create`)** — o único endpoint do AbacatePay
+  que aceita `amount` arbitrário (em centavos). Logo o Plano Turma é **PIX avulso** (sem cartão
+  recorrente), com duração escolhida pelo responsável (1/3/6/12 meses) paga num PIX só.
+- **Desconto por volume:** 20% off até 49 alunos; 25% off a partir de 50. A regra vive em
+  `domain/pro/turmaPricing.ts` (pura) e espelhada no comentário da migration `006`. O preço é
+  **calculado no servidor** (a Server Action ignora qualquer valor vindo do cliente).
+- **Entrega por códigos:** ao confirmar o pagamento, o **webhook** chama
+  `fulfill_turma_order` (idempotente) que gera **N códigos únicos** (`TRM-XXXXXXXX`). Cada aluno
+  resgata o seu (`redeem_turma_code`) e ganha `pro_until = now() + M meses`. Escolhido em vez de
+  lista de e-mails por ser mais simples e não exigir cadastro prévio dos alunos.
+- **Status por polling do nosso DB**, não do AbacatePay: o cliente consulta `turma_orders.status`
+  (gravado pelo webhook). Evita depender de endpoint de "check" do gateway e mantém o webhook
+  como única fonte da verdade do pagamento (mesma filosofia do ADR-013).
+
+**Trade-offs / riscos conhecidos:**
+- Sem renovação automática (PIX não recorre) — ao fim do período o responsável compra de novo.
+- Nomes de evento do webhook para PIX transparent não estão 100% documentados; o handler aceita
+  `status PAID` ou `billing.paid`/`pix.paid`/`pixQrCode.paid` e discrimina por `metadata.kind`.
+- Um aluno não pode ocupar duas vagas da mesma turma (checado no RPC), mas pode resgatar códigos
+  de turmas diferentes (acumula meses via `greatest`).

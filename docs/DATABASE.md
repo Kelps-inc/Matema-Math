@@ -221,6 +221,33 @@ Amizades / pedidos de amizade. Migration `004`.
 
 Constraints: `UNIQUE (requester_id, addressee_id)`, `CHECK (requester_id != addressee_id)`. Índice: `(addressee_id, status)`.
 
+### `turma_orders`
+Pedido do **Plano Turma** (1 linha por compra). Migration `006`.
+
+| Coluna | Tipo | Descrição |
+|---|---|---|
+| id | uuid PK | |
+| owner_id | uuid FK → auth.users | Responsável que comprou |
+| seats | int (2–2000) | Nº de vagas/alunos |
+| months | int (1,3,6,12) | Duração contratada |
+| unit_price_cents | int | Preço cheio por aluno/mês (1490) |
+| discount_pct | int | 20 ou 25 |
+| total_cents | int | Valor total do PIX |
+| status | text | `pending` / `paid` / `expired` / `cancelled` |
+| abacatepay_billing_id | text | Id da cobrança PIX |
+| paid_at / created_at / updated_at | timestamptz | |
+
+### `turma_codes`
+Códigos da turma (N linhas por pedido **pago**). Migration `006`.
+
+| Coluna | Tipo | Descrição |
+|---|---|---|
+| id | uuid PK | |
+| order_id | uuid FK → turma_orders | |
+| code | text unique | Ex.: `TRM-XXXXXXXX` |
+| redeemed_by | uuid FK → auth.users | Aluno que resgatou (null = livre) |
+| redeemed_at / created_at | timestamptz | |
+
 ## Enums
 
 ```sql
@@ -282,6 +309,16 @@ liberado pelo **webhook** (`/api/abacatepay/webhook`) via service role, não por
 > escritos só por RPC `security definer` ou pelo webhook (service role) — nunca confie em
 > update direto do cliente. Endurecer essa policy (column-level / WITH CHECK) é um TODO.
 
+### `fulfill_turma_order(p_order_id uuid, p_billing_id text) → json`
+RPC `SECURITY DEFINER` (migration `006`) chamada **só pelo webhook** (service role; sem grant a
+`authenticated`). **Idempotente**: se o pedido já está `paid`, não faz nada; senão marca `paid`
+e gera N códigos únicos (`TRM-XXXXXXXX`) em `turma_codes`.
+
+### `redeem_turma_code(p_code text) → json`
+RPC `SECURITY DEFINER` (migration `006`), `grant execute` para `authenticated`. Valida o código
+(existe, não resgatado, pedido `paid`, aluno ainda não está na turma) e libera
+`pro_until = now() + months` para `auth.uid()`. Retorna `{ pro_until, months }` ou `{ error }`.
+
 ### `handle_new_user() → trigger`
 Dispara após INSERT em `auth.users`:
 - Cria linha em `user_profiles` com defaults
@@ -304,6 +341,8 @@ Todas as tabelas têm RLS habilitado.
 | simulado_sessions | ALL apenas próprio (user_id = auth.uid()) |
 | duels | SELECT: participantes ou duelos `pending` sem oponente; INSERT: só o desafiante; UPDATE: participantes |
 | friendships | ALL: requester ou addressee (WITH CHECK: requester) |
+| turma_orders | SELECT/INSERT apenas próprio (owner_id = auth.uid()); UPDATE só via webhook (service role) |
+| turma_codes | SELECT: dono do pedido ou quem resgatou; INSERT/UPDATE só via RPC SECURITY DEFINER |
 
 ## Arquivos de migração
 
@@ -314,6 +353,7 @@ math-journey-backend/supabase/migrations/
   003_simulado_sessions.sql     # Tabela simulado_sessions + RLS
   004_duels_and_friendships.sql # Tabelas duels/friendships + colunas de duelo
   005_pro_subscription.sql      # Versão Pro: colunas de assinatura + RPC start_pro_trial
+  006_turma_plans.sql           # Plano Turma: turma_orders/turma_codes + RPCs fulfill/redeem
 
 math-journey-backend/supabase/seed/
   001_content.sql               # 4 módulos, lições e exercícios iniciais

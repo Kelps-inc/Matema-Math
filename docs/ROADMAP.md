@@ -30,6 +30,7 @@
 - Validação de respostas server-side + recompensa anti-cheat (migration `002`)
 - PWA (manifest + ícones) e otimização de imagens (WebP)
 - **Versão Pro** (AbacatePay): assinatura no cartão + PIX avulso + trial de 7 dias; libera o Simulado ENEM (admins têm bypass)
+- **Plano Turma** (AbacatePay): responsável compra N vagas Pro por M meses via PIX de valor customizado (20% off ≤49 alunos, 25% off ≥50); gera N códigos que os alunos resgatam — ver ADR-014
 - Admin: preview de questões
 
 ---

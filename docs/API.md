@@ -297,6 +297,25 @@ dias); `subscription` → assinatura recorrente no cartão. Envia `externalId`/`
 = id do usuário para o webhook mapear. **Output:** `{ url }` (redirecionar o cliente) ou `{ error }`.
 > O acesso Pro **não** é concedido aqui — só quando o webhook confirma o pagamento.
 
+### `turma.ts`
+Plano Turma / Sala de Aula. Um responsável compra N vagas Pro por M meses num **PIX de valor
+customizado**; ao confirmar, geramos N códigos e cada aluno resgata o seu. Preço calculado no
+domínio (`domain/pro/turmaPricing.ts`): `14,90 × N × fator × M`, fator `0.80` (≤49 alunos) ou
+`0.75` (≥50).
+
+#### `createTurmaOrderAction({ seats, months })`
+Valida (Zod), calcula a cotação **no servidor**, insere `turma_orders` (status `pending`) e cria
+a cobrança PIX (`createPixCharge` → `/v2/transparents/create`). `externalId` = id do pedido e
+`metadata.kind = 'turma'`. **Output:** `{ checkout: { orderId, amountCents, brCode, brCodeBase64, expiresAt } }` ou `{ error }`.
+
+#### `getTurmaOrderStatusAction(orderId)`
+Polling do **nosso** DB (a confirmação é gravada pelo webhook). Retorna status e, quando `paid`,
+a lista de códigos gerados. **Output:** `{ order: { status, seats, months, totalLabel, codes } }` ou `{ error }`.
+
+#### `redeemTurmaCodeAction(code)`
+Resgata um código via RPC `redeem_turma_code` — libera `pro_until = now()+M meses` para o aluno.
+**Output:** `{ proUntil }` ou `{ error }`.
+
 ---
 
 ## Autenticação nos Server Actions
@@ -354,5 +373,10 @@ Pro mapeando o usuário por `data.externalId`/`data.metadata.userId`:
 - `checkout.completed` → `pro_until = now()+30d`, status `active` (PIX/cartão avulso)
 - `subscription.completed` / `subscription.renewed` → `pro_until = now()+32d`, status `active`
 - `subscription.cancelled` → status `cancelled` (mantém acesso até `pro_until` expirar)
+
+**Plano Turma:** quando `data.metadata.kind === 'turma'` e o PIX está pago (`status PAID` /
+`billing.paid` / `pix.paid`), chama a RPC `fulfill_turma_order(orderId, billingId)`
+(idempotente) — marca o pedido como `paid` e gera os N códigos. O `orderId` vem de
+`metadata.externalId`/`externalId`.
 
 Sempre responde `200` (com `ignored` quando não há ação), evitando reenvios desnecessários.

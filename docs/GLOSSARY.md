@@ -25,6 +25,8 @@
 | **Amigo** | Outro usuário com amizade `accepted` (tabela `friendships`) |
 | **Pro** | Assinatura paga que libera o Simulado ENEM. Acesso ativo enquanto `pro_until > now()`; admins têm bypass |
 | **Trial** | Teste grátis de 7 dias do Pro, uma vez por usuário (`start_pro_trial`) |
+| **Plano Turma** | Compra de N vagas Pro por M meses por um responsável, via PIX de valor customizado, com desconto por volume (`turma_orders`/`turma_codes`) |
+| **Código de turma** | Cupom `TRM-XXXXXXXX` gerado por vaga paga; o aluno resgata e ganha Pro (`redeem_turma_code`) |
 | **AbacatePay** | Gateway de pagamento (PIX + cartão + assinatura) usado na versão Pro |
 | **Gabarito** | Resposta correta (`correct_answer`); não é enviada ao cliente fora do Simulado (anti-cheat) |
 | **Acessório** | Item cosmético equipável no avatar (comprado na loja) |

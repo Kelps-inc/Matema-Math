@@ -3,8 +3,9 @@
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Crown, Check, Loader2, QrCode, CreditCard, Gift } from 'lucide-react'
+import { Crown, Check, Loader2, QrCode, CreditCard, Gift, Users, Ticket } from 'lucide-react'
 import { startProTrialAction, startProCheckoutAction } from '@/app/actions/pro'
+import { redeemTurmaCodeAction } from '@/app/actions/turma'
 
 interface Props {
   hasPro: boolean
@@ -25,6 +26,10 @@ export function ProClient({ hasPro, isAdmin, subscriptionStatus, proUntil, trial
   const [pending, startTransition] = useTransition()
   const [busy, setBusy] = useState<null | 'trial' | 'pix' | 'subscription'>(null)
   const [error, setError] = useState<string | null>(null)
+  const [code, setCode] = useState('')
+  const [redeemBusy, setRedeemBusy] = useState(false)
+  const [redeemMsg, setRedeemMsg] = useState<string | null>(null)
+  const [redeemErr, setRedeemErr] = useState<string | null>(null)
 
   const proUntilLabel = proUntil
     ? new Date(proUntil).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })
@@ -47,6 +52,17 @@ export function ProClient({ hasPro, isAdmin, subscriptionStatus, proUntil, trial
     const res = await startProCheckoutAction(plan)
     if (res.error) { setBusy(null); setError(res.error); return }
     if (res.url) window.location.href = res.url
+  }
+
+  async function handleRedeem() {
+    setRedeemErr(null); setRedeemMsg(null)
+    setRedeemBusy(true)
+    const res = await redeemTurmaCodeAction(code)
+    setRedeemBusy(false)
+    if (res.error) { setRedeemErr(res.error); return }
+    setRedeemMsg('Código resgatado! Acesso Pro liberado.')
+    setCode('')
+    router.refresh()
   }
 
   return (
@@ -135,6 +151,45 @@ export function ProClient({ hasPro, isAdmin, subscriptionStatus, proUntil, trial
       )}
 
       {error && <p className="mt-4 text-sm text-red-500">{error}</p>}
+
+      {/* Plano Turma (responsável compra N vagas com desconto) */}
+      {!isAdmin && (
+        <Link
+          href="/pro/turma"
+          className="mt-5 flex items-center gap-3 rounded-2xl border border-indigo-200 bg-indigo-50 p-4 hover:border-indigo-400 transition-colors"
+        >
+          <Users className="w-6 h-6 text-indigo-500 flex-shrink-0" strokeWidth={1.75} />
+          <div className="flex-1">
+            <p className="font-extrabold text-matema-dark text-sm">É professor ou coordenador?</p>
+            <p className="text-xs text-matema-muted">Plano Turma: Pro para a sala toda, com até 25% de desconto por aluno.</p>
+          </div>
+          <span className="text-indigo-500 font-bold">→</span>
+        </Link>
+      )}
+
+      {/* Resgate de código de turma */}
+      <div className="mt-4 rounded-2xl border border-matema-border bg-white p-4">
+        <p className="font-bold text-matema-dark text-sm flex items-center gap-2">
+          <Ticket className="w-4 h-4 text-matema-primary" strokeWidth={1.75} /> Tem um código de turma?
+        </p>
+        <div className="mt-2 flex gap-2">
+          <input
+            value={code}
+            onChange={(e) => setCode(e.target.value.toUpperCase())}
+            placeholder="TRM-XXXXXXXX"
+            className="flex-1 rounded-xl border-2 border-matema-border px-3 py-2 font-mono text-sm font-bold text-matema-dark uppercase focus:border-matema-primary outline-none"
+          />
+          <button
+            onClick={handleRedeem}
+            disabled={redeemBusy || code.trim().length < 4}
+            className="rounded-xl bg-matema-primary px-4 py-2 text-sm font-bold text-white hover:opacity-90 disabled:opacity-60"
+          >
+            {redeemBusy ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Resgatar'}
+          </button>
+        </div>
+        {redeemMsg && <p className="mt-2 text-sm text-green-600 font-semibold">{redeemMsg}</p>}
+        {redeemErr && <p className="mt-2 text-sm text-red-500">{redeemErr}</p>}
+      </div>
 
       <p className="mt-5 text-xs text-matema-muted leading-relaxed">
         Pagamentos processados pelo AbacatePay. A assinatura no cartão renova automaticamente

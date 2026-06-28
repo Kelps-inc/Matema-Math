@@ -64,6 +64,43 @@ export async function createCheckout(input: {
   })
 }
 
+interface AbacatePixCharge {
+  id: string
+  amount: number
+  status: string
+  brCode: string
+  brCodeBase64: string
+  expiresAt?: string
+}
+
+/**
+ * Cobrança PIX de valor customizado (endpoint "transparent"). Único caminho do
+ * AbacatePay para um valor arbitrário (não atrelado a produto), usado no Plano
+ * Turma. Retorna o copia-e-cola (`brCode`) e o QR em base64. A confirmação vem
+ * pelo webhook; a duração/vagas viajam em `externalId`/`metadata`.
+ */
+export async function createPixCharge(input: {
+  amountCents: number
+  description: string
+  externalId: string
+  userId: string
+  kind: string
+  expiresInSeconds?: number
+  customer?: { name: string; email: string }
+}): Promise<AbacatePixCharge> {
+  return post<AbacatePixCharge>('/v2/transparents/create', {
+    method: 'PIX',
+    data: {
+      amount: input.amountCents,
+      expiresIn: input.expiresInSeconds ?? 60 * 60 * 24, // 24h
+      description: input.description,
+      externalId: input.externalId,
+      ...(input.customer ? { customer: input.customer } : {}),
+      metadata: { userId: input.userId, kind: input.kind, externalId: input.externalId },
+    },
+  })
+}
+
 /** Assinatura recorrente (somente cartão). O produto deve ter ciclo mensal. */
 export async function createSubscription(input: {
   productId: string

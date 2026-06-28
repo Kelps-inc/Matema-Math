@@ -41,13 +41,36 @@ export async function POST(req: NextRequest) {
 
   const event: string = body?.event ?? ''
   const data = body?.data ?? {}
-  const userId: string | undefined = data?.externalId || data?.metadata?.userId
+  const kind: string | undefined = data?.metadata?.kind
+  const status: string = (data?.status ?? '').toString().toUpperCase()
   const subscriptionId: string | undefined = data?.id
+
+  const sb = createServiceClient()
+
+  // ── Plano Turma: PIX de valor customizado ──────────────────────────────────
+  // Quando confirmado, gera os N códigos (idempotente via fulfill_turma_order).
+  if (kind === 'turma') {
+    const orderId: string | undefined = data?.metadata?.externalId || data?.externalId
+    const isPaid =
+      status === 'PAID' || event === 'billing.paid' || event === 'pix.paid' ||
+      event === 'checkout.completed' || event === 'pixQrCode.paid'
+    if (!orderId || !isPaid) return NextResponse.json({ ok: true, ignored: event })
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { error } = await (sb as any).rpc('fulfill_turma_order', {
+      p_order_id: orderId,
+      p_billing_id: data?.id ?? null,
+    })
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json({ ok: true, kind: 'turma' })
+  }
+
+  // ── Plano individual (assinatura/PIX avulso) ───────────────────────────────
+  const userId: string | undefined = data?.externalId || data?.metadata?.userId
 
   // Sempre 200 quando não há o que fazer, para o AbacatePay não reenviar à toa.
   if (!userId) return NextResponse.json({ ok: true, ignored: 'no-user' })
 
-  const sb = createServiceClient()
   const now = new Date()
   const addDays = (d: number) => new Date(now.getTime() + d * 864e5).toISOString()
 
