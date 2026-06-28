@@ -19,6 +19,8 @@ import {
   VolumeX,
   Crown,
   CreditCard,
+  Eye,
+  EyeOff,
 } from 'lucide-react'
 
 export interface SubscriptionInfo {
@@ -79,7 +81,17 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   )
 }
 
-export function SettingsClient({ subscription }: { subscription?: SubscriptionInfo }) {
+export function SettingsClient({
+  subscription,
+  canPreview = false,
+  previewFree = false,
+}: {
+  subscription?: SubscriptionInfo
+  /** Usuário é admin de verdade (pode ativar a pré-visualização). */
+  canPreview?: boolean
+  /** Está vendo a página como não-assinante (pré-visualização do admin). */
+  previewFree?: boolean
+}) {
   const [music,        setMusic]        = useState(false)
   const [musicTrack,   setMusicTrack]   = useState<string>('default')
   const [musicVolume,  setMusicVolume]  = useState(50)
@@ -360,6 +372,20 @@ export function SettingsClient({ subscription }: { subscription?: SubscriptionIn
       {subscription && (
         <Section title="Assinatura">
           <div className="py-4">
+            {previewFree && (
+              <div className="mb-4 flex items-center justify-between gap-3 rounded-2xl border border-indigo-200 bg-indigo-50 px-4 py-3">
+                <p className="flex items-center gap-2 text-sm font-semibold text-indigo-700">
+                  <Eye className="w-4 h-4" strokeWidth={2} />
+                  Pré-visualização: você está vendo como um não-assinante.
+                </p>
+                <Link
+                  href="/configuracoes"
+                  className="inline-flex items-center gap-1.5 rounded-xl bg-indigo-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-indigo-700 transition-colors flex-shrink-0"
+                >
+                  <EyeOff className="w-3.5 h-3.5" strokeWidth={2} /> Sair
+                </Link>
+              </div>
+            )}
             <div className="flex items-start gap-3 mb-3">
               <div className="w-9 h-9 rounded-2xl bg-amber-50 border border-amber-200 flex items-center justify-center flex-shrink-0">
                 <Crown className="w-5 h-5 text-amber-500" strokeWidth={1.75} />
@@ -402,10 +428,20 @@ export function SettingsClient({ subscription }: { subscription?: SubscriptionIn
               </div>
             </div>
 
+            {/* Admin: entrar na pré-visualização de não-assinante */}
+            {canPreview && !previewFree && (
+              <Link
+                href="/configuracoes?preview=free"
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-bold bg-indigo-500 text-white hover:bg-indigo-600 transition-colors"
+              >
+                <Eye className="w-4 h-4" strokeWidth={1.75} /> Ver como não-assinante
+              </Link>
+            )}
+
             {!subscription.isAdmin && (
               <div className="flex flex-wrap items-center gap-2">
                 <Link
-                  href="/pro"
+                  href={previewFree ? '/pro?preview=free' : '/pro'}
                   className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-bold bg-amber-500 text-white hover:bg-amber-600 transition-colors"
                 >
                   <CreditCard className="w-4 h-4" strokeWidth={1.75} />

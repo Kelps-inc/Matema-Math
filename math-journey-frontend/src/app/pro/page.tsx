@@ -5,7 +5,13 @@ import { ProClient } from './ProClient'
 
 export const metadata = { title: 'Matema Pro' }
 
-export default async function ProPage() {
+export default async function ProPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ preview?: string }>
+}) {
+  const { preview } = await searchParams
+
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/entrar')
@@ -13,6 +19,9 @@ export default async function ProPage() {
   const userRepo = new SupabaseUserRepository(supabase)
   const profile = await userRepo.findById(user.id)
   if (!profile) redirect('/entrar')
+
+  // Modo "ver como não-assinante" — só admin (?preview=free).
+  const previewFree = profile.isAdmin && preview === 'free'
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data: row } = await (supabase as any)
@@ -23,11 +32,12 @@ export default async function ProPage() {
 
   return (
     <ProClient
-      hasPro={profile.hasProAccess()}
-      isAdmin={profile.isAdmin}
-      subscriptionStatus={profile.subscriptionStatus}
-      proUntil={profile.proUntil ? profile.proUntil.toISOString() : null}
-      trialUsed={row?.trial_started_at != null}
+      hasPro={previewFree ? false : profile.hasProAccess()}
+      isAdmin={previewFree ? false : profile.isAdmin}
+      subscriptionStatus={previewFree ? 'none' : profile.subscriptionStatus}
+      proUntil={previewFree || !profile.proUntil ? null : profile.proUntil.toISOString()}
+      trialUsed={previewFree ? false : row?.trial_started_at != null}
+      previewFree={previewFree}
     />
   )
 }

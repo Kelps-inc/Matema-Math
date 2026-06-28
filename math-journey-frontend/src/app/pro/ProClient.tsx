@@ -3,7 +3,7 @@
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Crown, Check, Loader2, QrCode, CreditCard, Gift, Users, Ticket } from 'lucide-react'
+import { Crown, Check, Loader2, QrCode, CreditCard, Gift, Users, Ticket, Eye, EyeOff } from 'lucide-react'
 import { startProTrialAction, startProCheckoutAction } from '@/app/actions/pro'
 import { redeemTurmaCodeAction } from '@/app/actions/turma'
 
@@ -13,6 +13,7 @@ interface Props {
   subscriptionStatus: 'none' | 'trial' | 'active' | 'cancelled'
   proUntil: string | null
   trialUsed: boolean
+  previewFree?: boolean
 }
 
 const PRO_PERKS = [
@@ -21,7 +22,7 @@ const PRO_PERKS = [
   'Sessão salva — pause e continue depois',
 ]
 
-export function ProClient({ hasPro, isAdmin, subscriptionStatus, proUntil, trialUsed }: Props) {
+export function ProClient({ hasPro, isAdmin, subscriptionStatus, proUntil, trialUsed, previewFree = false }: Props) {
   const router = useRouter()
   const [pending, startTransition] = useTransition()
   const [busy, setBusy] = useState<null | 'trial' | 'pix' | 'subscription'>(null)
@@ -67,6 +68,20 @@ export function ProClient({ hasPro, isAdmin, subscriptionStatus, proUntil, trial
 
   return (
     <div className="animate-fade-in">
+      {previewFree && (
+        <div className="mb-4 flex items-center justify-between gap-3 rounded-2xl border border-indigo-200 bg-indigo-50 px-4 py-3">
+          <p className="flex items-center gap-2 text-sm font-semibold text-indigo-700">
+            <Eye className="w-4 h-4" strokeWidth={2} />
+            Pré-visualização: visão de quem não tem assinatura.
+          </p>
+          <Link
+            href="/pro"
+            className="inline-flex items-center gap-1.5 rounded-xl bg-indigo-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-indigo-700 transition-colors flex-shrink-0"
+          >
+            <EyeOff className="w-3.5 h-3.5" strokeWidth={2} /> Sair
+          </Link>
+        </div>
+      )}
       <div className="flex items-center gap-3 mb-1">
         <div className="w-11 h-11 rounded-2xl bg-amber-50 border border-amber-200 flex items-center justify-center">
           <Crown className="w-6 h-6 text-amber-500" strokeWidth={1.75} />
