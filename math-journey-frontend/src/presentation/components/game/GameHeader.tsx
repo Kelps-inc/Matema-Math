@@ -30,7 +30,7 @@ export function GameHeader({ user }: GameHeaderProps) {
           <Link href="/loja" className="px-2.5 py-2 text-sm font-medium text-white/70 hover:text-white hover:bg-white/10 rounded-xl transition-colors">
             Loja
           </Link>
-          <Link href="/amigos" className="flex flex-col items-center justify-center gap-0.5 px-2.5 py-1.5 font-bold text-matema-secondary/90 border-2 border-matema-secondary/40 bg-matema-secondary/10 hover:bg-matema-secondary/20 rounded-xl transition-colors shadow-[0_2px_10px_rgba(107,158,122,0.2)]">
+          <Link href="/amigos" className="flex flex-col items-center justify-center gap-0.5 px-2.5 py-1.5 text-sm font-medium text-white/70 hover:text-white hover:bg-white/10 rounded-xl transition-colors">
             <Users className="w-4 h-4" strokeWidth={1.75} />
             <span className="text-xs leading-none">Amigos</span>
           </Link>
