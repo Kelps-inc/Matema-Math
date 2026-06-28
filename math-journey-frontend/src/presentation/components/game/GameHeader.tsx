@@ -16,7 +16,7 @@ export function GameHeader({ user }: GameHeaderProps) {
       className="border-b border-white/10 sticky top-0 z-50 relative"
       style={{ backgroundImage: 'url(/header-bg.webp)', backgroundSize: 'cover', backgroundPosition: 'left center' }}
     >
-      <Link href="/" className="absolute left-[4.5%] top-1/2 -translate-y-1/2 select-none z-10">
+      <Link href="/inicio" className="absolute left-[4.5%] top-1/2 -translate-y-1/2 select-none z-10">
         <LogoWithEyes level={user.level} height={65} />
       </Link>
 
