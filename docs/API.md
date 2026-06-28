@@ -297,6 +297,13 @@ dias); `subscription` → assinatura recorrente no cartão. Envia `externalId`/`
 = id do usuário para o webhook mapear. **Output:** `{ url }` (redirecionar o cliente) ou `{ error }`.
 > O acesso Pro **não** é concedido aqui — só quando o webhook confirma o pagamento.
 
+#### `cancelProSubscriptionAction()`
+Cancela a assinatura recorrente no cartão (`/v2/subscriptions/cancel` via `abacatepay_subscription_id`).
+Desliga só a renovação — o acesso continua até `pro_until` expirar. Marca `subscription_status =
+'cancelled'` de imediato (o webhook `subscription.cancelled` confirma depois). Só funciona com
+assinatura `active`; PIX avulso e turma não recorrem. Exposta na página **Conta/Configurações**.
+**Output:** `{ error? }`.
+
 ### `turma.ts`
 Plano Turma / Sala de Aula. Um responsável compra N vagas Pro por M meses num **PIX de valor
 customizado**; ao confirmar, geramos N códigos e cada aluno resgata o seu. Preço calculado no

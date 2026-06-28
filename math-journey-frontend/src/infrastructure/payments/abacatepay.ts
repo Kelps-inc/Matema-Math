@@ -101,6 +101,15 @@ export async function createPixCharge(input: {
   })
 }
 
+/** Cancela uma assinatura recorrente ativa no AbacatePay. */
+export async function cancelSubscription(input: {
+  subscriptionId: string
+}): Promise<{ id: string; status: string }> {
+  return post<{ id: string; status: string }>('/v2/subscriptions/cancel', {
+    id: input.subscriptionId,
+  })
+}
+
 /** Assinatura recorrente (somente cartão). O produto deve ter ciclo mensal. */
 export async function createSubscription(input: {
   productId: string

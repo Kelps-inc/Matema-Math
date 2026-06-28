@@ -6,6 +6,7 @@ import {
   createCustomer,
   createCheckout,
   createSubscription,
+  cancelSubscription,
 } from '@/infrastructure/payments/abacatepay'
 
 function siteUrl(): string {
@@ -24,6 +25,45 @@ export async function startProTrialAction(): Promise<{ error?: string }> {
   if (data?.error) return { error: data.error }
 
   revalidatePath('/ranqueada/jogar')
+  revalidatePath('/pro')
+  revalidatePath('/dashboard')
+  return {}
+}
+
+/**
+ * Cancela a assinatura recorrente (cartão) no AbacatePay. O acesso Pro é
+ * mantido até `pro_until` expirar — só desligamos a renovação. Marca o
+ * status como `cancelled` de imediato (o webhook `subscription.cancelled`
+ * confirma depois). PIX avulso e turma não têm o que cancelar (não recorrem).
+ */
+export async function cancelProSubscriptionAction(): Promise<{ error?: string }> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Não autenticado' }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const sb = supabase as any
+  const { data: profile } = await sb
+    .from('user_profiles')
+    .select('subscription_status, abacatepay_subscription_id')
+    .eq('id', user.id)
+    .single()
+
+  if (!profile?.abacatepay_subscription_id || profile.subscription_status !== 'active') {
+    return { error: 'Você não tem uma assinatura recorrente ativa para cancelar.' }
+  }
+
+  try {
+    await cancelSubscription({ subscriptionId: profile.abacatepay_subscription_id })
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : 'Falha ao cancelar a assinatura' }
+  }
+
+  await sb.from('user_profiles')
+    .update({ subscription_status: 'cancelled', updated_at: new Date().toISOString() })
+    .eq('id', user.id)
+
+  revalidatePath('/configuracoes')
   revalidatePath('/pro')
   revalidatePath('/dashboard')
   return {}

@@ -1,13 +1,14 @@
 'use client'
 
 import { useState, useEffect, useTransition } from 'react'
+import Link from 'next/link'
 import { cn } from '@/presentation/lib/utils'
 import { resetProgressAction, deleteAccountAction } from '@/app/actions/account'
+import { cancelProSubscriptionAction } from '@/app/actions/pro'
 import {
   Music,
   CloudRain,
   Bell,
-  Palette,
   Moon,
   Sun,
   AlertTriangle,
@@ -16,7 +17,17 @@ import {
   CheckCircle2,
   Volume2,
   VolumeX,
+  Crown,
+  CreditCard,
 } from 'lucide-react'
+
+export interface SubscriptionInfo {
+  isAdmin: boolean
+  hasPro: boolean
+  status: 'none' | 'trial' | 'active' | 'cancelled'
+  proUntil: string | null
+  hasActiveSubscription: boolean
+}
 
 function Toggle({ enabled, onToggle, label, description, icon }: {
   enabled: boolean
@@ -68,7 +79,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   )
 }
 
-export function SettingsClient() {
+export function SettingsClient({ subscription }: { subscription?: SubscriptionInfo }) {
   const [music,        setMusic]        = useState(false)
   const [musicTrack,   setMusicTrack]   = useState<string>('default')
   const [musicVolume,  setMusicVolume]  = useState(50)
@@ -81,6 +92,8 @@ export function SettingsClient() {
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [resetDone, setResetDone] = useState(false)
   const [isPending, startTransition] = useTransition()
+  const [confirmCancel, setConfirmCancel] = useState(false)
+  const [cancelError, setCancelError] = useState<string | null>(null)
 
   // Lê preferências do localStorage na montagem
   useEffect(() => {
@@ -189,6 +202,19 @@ export function SettingsClient() {
       await deleteAccountAction()
     })
   }
+
+  function handleCancelSubscription() {
+    setCancelError(null)
+    startTransition(async () => {
+      const res = await cancelProSubscriptionAction()
+      if (res.error) { setCancelError(res.error); return }
+      setConfirmCancel(false)
+    })
+  }
+
+  const proUntilLabel = subscription?.proUntil
+    ? new Date(subscription.proUntil).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })
+    : null
 
   return (
     <div className="animate-fade-in">
@@ -329,6 +355,110 @@ export function SettingsClient() {
           onToggle={toggleTheme}
         />
       </Section>
+
+      {/* Assinatura */}
+      {subscription && (
+        <Section title="Assinatura">
+          <div className="py-4">
+            <div className="flex items-start gap-3 mb-3">
+              <div className="w-9 h-9 rounded-2xl bg-amber-50 border border-amber-200 flex items-center justify-center flex-shrink-0">
+                <Crown className="w-5 h-5 text-amber-500" strokeWidth={1.75} />
+              </div>
+              <div>
+                {subscription.isAdmin ? (
+                  <>
+                    <p className="font-semibold text-matema-dark text-sm">Matema Pro (admin)</p>
+                    <p className="text-xs text-matema-muted mt-0.5">Acesso Pro liberado sem mensalidade.</p>
+                  </>
+                ) : subscription.status === 'active' ? (
+                  <>
+                    <p className="font-semibold text-matema-dark text-sm">Matema Pro ativo</p>
+                    <p className="text-xs text-matema-muted mt-0.5">
+                      {subscription.hasActiveSubscription
+                        ? `Assinatura no cartão${proUntilLabel ? ` · renova em ${proUntilLabel}` : ''}.`
+                        : proUntilLabel ? `Acesso válido até ${proUntilLabel}.` : 'Acesso ativo.'}
+                    </p>
+                  </>
+                ) : subscription.status === 'trial' ? (
+                  <>
+                    <p className="font-semibold text-matema-dark text-sm">Teste grátis ativo</p>
+                    <p className="text-xs text-matema-muted mt-0.5">
+                      {proUntilLabel ? `Grátis até ${proUntilLabel}.` : 'Período de teste em andamento.'}
+                    </p>
+                  </>
+                ) : subscription.status === 'cancelled' ? (
+                  <>
+                    <p className="font-semibold text-matema-dark text-sm">Assinatura cancelada</p>
+                    <p className="text-xs text-matema-muted mt-0.5">
+                      {proUntilLabel ? `A renovação foi desligada — acesso até ${proUntilLabel}.` : 'Renovação desligada.'}
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <p className="font-semibold text-matema-dark text-sm">Você ainda não tem Pro</p>
+                    <p className="text-xs text-matema-muted mt-0.5">Desbloqueie o Simulado ENEM completo.</p>
+                  </>
+                )}
+              </div>
+            </div>
+
+            {!subscription.isAdmin && (
+              <div className="flex flex-wrap items-center gap-2">
+                <Link
+                  href="/pro"
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-bold bg-amber-500 text-white hover:bg-amber-600 transition-colors"
+                >
+                  <CreditCard className="w-4 h-4" strokeWidth={1.75} />
+                  {subscription.status === 'none'
+                    ? 'Conhecer o Pro'
+                    : subscription.status === 'cancelled'
+                      ? 'Reativar Pro'
+                      : subscription.status === 'trial'
+                        ? 'Assinar Pro'
+                        : 'Ver planos'}
+                </Link>
+
+                {subscription.hasActiveSubscription && (
+                  !confirmCancel ? (
+                    <button
+                      onClick={() => setConfirmCancel(true)}
+                      className="px-4 py-2 rounded-xl text-sm font-semibold bg-matema-warm border border-matema-border text-matema-dark hover:bg-matema-border transition-colors"
+                    >
+                      Cancelar assinatura
+                    </button>
+                  ) : (
+                    <span className="inline-flex items-center gap-2 flex-wrap">
+                      <span className="text-sm font-semibold text-matema-dark">Cancelar a renovação?</span>
+                      <button
+                        onClick={handleCancelSubscription}
+                        disabled={isPending}
+                        className="px-4 py-1.5 rounded-xl text-sm font-bold bg-red-600 text-white hover:bg-red-700 disabled:opacity-60 transition-colors"
+                      >
+                        {isPending ? 'Cancelando…' : 'Confirmar'}
+                      </button>
+                      <button
+                        onClick={() => setConfirmCancel(false)}
+                        disabled={isPending}
+                        className="px-4 py-1.5 rounded-xl text-sm font-semibold bg-matema-warm border border-matema-border text-matema-muted hover:bg-matema-border transition-colors"
+                      >
+                        Manter
+                      </button>
+                    </span>
+                  )
+                )}
+              </div>
+            )}
+
+            {cancelError && <p className="mt-2 text-sm text-red-500">{cancelError}</p>}
+
+            {subscription.hasActiveSubscription && (
+              <p className="mt-2 text-[11px] text-matema-muted leading-relaxed">
+                Ao cancelar, desligamos só a renovação automática — seu acesso Pro continua até o fim do período já pago.
+              </p>
+            )}
+          </div>
+        </Section>
+      )}
 
       {/* Conta */}
       <Section title="Conta">
