@@ -44,7 +44,7 @@ export async function proxy(request: NextRequest) {
 
   if (user && (request.nextUrl.pathname === '/entrar' || request.nextUrl.pathname === '/cadastro')) {
     const url = request.nextUrl.clone()
-    url.pathname = '/dashboard'
+    url.pathname = '/inicio'
     return NextResponse.redirect(url)
   }
 

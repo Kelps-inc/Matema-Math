@@ -45,7 +45,7 @@ export async function signUp(_: unknown, formData: FormData) {
       : 'Erro ao criar conta. Tente novamente.' }
   }
 
-  redirect('/dashboard')
+  redirect('/inicio')
 }
 
 export async function signIn(_: unknown, formData: FormData) {
@@ -66,7 +66,7 @@ export async function signIn(_: unknown, formData: FormData) {
     return { error: 'E-mail ou senha incorretos.' }
   }
 
-  redirect('/dashboard')
+  redirect('/inicio')
 }
 
 export async function signOut() {
