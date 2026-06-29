@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { signOut } from '@/app/actions/auth'
 import { MobileBottomNav } from '@/presentation/components/game/MobileBottomNav'
 import { LogoWithEyes } from '@/presentation/components/game/LogoWithEyes'
-import { Zap, Coins, Trophy, Settings, Users } from 'lucide-react'
+import { Zap, Coins, Trophy, Settings, Users, Crown } from 'lucide-react'
 import type { User } from '@/domain/user/entities/User'
 
 interface GameHeaderProps {
@@ -10,6 +10,7 @@ interface GameHeaderProps {
 }
 
 export function GameHeader({ user }: GameHeaderProps) {
+  const hasPro = user.hasProAccess()
   return (
     <>
     <header
@@ -38,7 +39,12 @@ export function GameHeader({ user }: GameHeaderProps) {
             <Trophy className="w-5 h-5" strokeWidth={1.75} />
             <span className="text-sm leading-none">Ranqueada</span>
           </Link>
-          <Link href="/duelo" className="flex flex-col items-center justify-center gap-0.5 px-2.5 py-1.5 font-bold text-matema-accent/90 border-2 border-matema-accent/40 bg-matema-accent/10 hover:bg-matema-accent/20 rounded-xl transition-colors shadow-[0_2px_10px_rgba(139,124,196,0.2)]">
+          <Link href="/duelo" className="relative flex flex-col items-center justify-center gap-0.5 px-2.5 py-1.5 font-bold text-matema-accent/90 border-2 border-matema-accent/40 bg-matema-accent/10 hover:bg-matema-accent/20 rounded-xl transition-colors shadow-[0_2px_10px_rgba(139,124,196,0.2)]">
+            {!hasPro && (
+              <span className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-amber-400 flex items-center justify-center" title="Recurso Pro">
+                <Crown className="w-2.5 h-2.5 text-white" strokeWidth={2.5} />
+              </span>
+            )}
             <span className="text-xl leading-none">🥷</span>
             <span className="text-xs leading-none">Duelo</span>
           </Link>
@@ -101,7 +107,7 @@ export function GameHeader({ user }: GameHeaderProps) {
         </div>
       </div>
     </header>
-    <MobileBottomNav />
+    <MobileBottomNav hasPro={hasPro} />
     </>
   )
 }

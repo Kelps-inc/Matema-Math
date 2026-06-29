@@ -3,9 +3,9 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/presentation/lib/utils'
-import { BookOpen, ShoppingBag, Trophy, UserRound, Users } from 'lucide-react'
+import { BookOpen, ShoppingBag, Trophy, UserRound, Users, Crown } from 'lucide-react'
 
-export function MobileBottomNav() {
+export function MobileBottomNav({ hasPro = true }: { hasPro?: boolean }) {
   const pathname = usePathname()
 
   const item = (href: string, label: string, icon: React.ReactNode, featured = false) => {
@@ -52,7 +52,16 @@ export function MobileBottomNav() {
         {item('/loja',      'Loja',      <ShoppingBag className="w-5 h-5" strokeWidth={1.75} />)}
         {item('/amigos',    'Amigos',    <Users       className="w-5 h-5" strokeWidth={1.75} />)}
         {item('/ranqueada', 'Ranqueada', <Trophy      className="w-6 h-6" strokeWidth={1.75} />, true)}
-        {item('/duelo',     'Duelo',     <span className="text-2xl leading-none">🥷</span>)}
+        {item('/duelo',     'Duelo',     (
+          <span className="relative">
+            <span className="text-2xl leading-none">🥷</span>
+            {!hasPro && (
+              <span className="absolute -top-1 -right-2 w-3.5 h-3.5 rounded-full bg-amber-400 flex items-center justify-center">
+                <Crown className="w-2 h-2 text-white" strokeWidth={2.5} />
+              </span>
+            )}
+          </span>
+        ))}
         {item('/avatar',    'Avatar',    <UserRound   className="w-5 h-5" strokeWidth={1.75} />)}
       </div>
     </nav>

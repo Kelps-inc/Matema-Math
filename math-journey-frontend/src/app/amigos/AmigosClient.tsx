@@ -64,6 +64,7 @@ export function AmigosClient({ initialFriends, initialPending }: Props) {
     startTransition(async () => {
       const res = await createDuelAction({ type: 'challenge', opponentId: friendId })
       if (res.duelId) router.push(`/duelo/${res.duelId}`)
+      else if (res.proRequired) router.push('/pro')
     })
   }
 

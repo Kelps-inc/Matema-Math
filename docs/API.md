@@ -261,13 +261,17 @@ Server Action de abandono (salva sessão + aplica −5 PDL). **Output:** `{ erro
 ---
 
 ### `duelo.ts`
-Duelos 1v1 assíncronos + Amizades (tabelas `duels`, `friendships`).
+Duelos 1v1 assíncronos + Amizades (tabelas `duels`, `friendships`). **O Duelo é recurso Pro**
+(admins têm bypass): as páginas `/duelo/*` são gated no `duelo/layout.tsx` (redireciona para
+`/pro`) e a criação/entrada também checam `hasProAccess()` — ver ADR-013.
 
 #### `createDuelAction({ ... })`
-Cria um duelo (`pending`) com `invite_code` e `question_ids`. **Output:** `{ duelId, inviteCode }` ou `{ error }`.
+Cria um duelo (`pending`) com `invite_code` e `question_ids`. Exige Pro. **Output:**
+`{ duelId, inviteCode }` ou `{ error, proRequired? }` (`proRequired` quando o usuário não tem Pro
+— o cliente redireciona para `/pro`).
 
 #### `joinDuelByCodeAction(code)`
-Entra num duelo por código (vira `active`). **Output:** `{ duelId }` ou `{ error }`.
+Entra num duelo por código (vira `active`). Exige Pro. **Output:** `{ duelId }` ou `{ error }`.
 
 #### `submitDuelAnswersAction(duelId, answers)`
 Submete respostas do jogador. Quando ambos jogaram, define `winner_id` e credita rating via

@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/infrastructure/supabase/server'
+import { SupabaseUserRepository } from '@/infrastructure/repositories/SupabaseUserRepository'
 import { revalidatePath } from 'next/cache'
 
 export interface DuelAnswer {
@@ -67,10 +68,14 @@ async function pickDuelQuestionIds(supabaseAny: any): Promise<string[]> {
 export async function createDuelAction(opts: {
   type: 'random' | 'invite' | 'challenge'
   opponentId?: string
-}): Promise<{ duelId?: string; inviteCode?: string; error?: string }> {
+}): Promise<{ duelId?: string; inviteCode?: string; error?: string; proRequired?: boolean }> {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Não autenticado' }
+
+  // Duelo é recurso Pro (admins têm bypass).
+  const me = await new SupabaseUserRepository(supabase).findById(user.id)
+  if (!me?.hasProAccess()) return { error: 'O Duelo é um recurso Pro. Assine para desafiar.', proRequired: true }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const db = supabase as any
@@ -130,6 +135,10 @@ export async function joinDuelByCodeAction(
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Não autenticado' }
+
+  // Duelo é recurso Pro (admins têm bypass).
+  const me = await new SupabaseUserRepository(supabase).findById(user.id)
+  if (!me?.hasProAccess()) return { error: 'O Duelo é um recurso Pro. Assine para entrar.' }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const db = supabase as any

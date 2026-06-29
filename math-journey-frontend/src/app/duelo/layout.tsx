@@ -13,6 +13,9 @@ export default async function DueloLayout({ children }: { children: React.ReactN
   const profile = await userRepo.findById(user.id)
   if (!profile) redirect('/entrar')
 
+  // Duelo é recurso Pro (admins têm bypass). Quem não tem acesso vai para /pro.
+  if (!profile.hasProAccess()) redirect('/pro')
+
   return (
     <div className="min-h-screen bg-matema-cream">
       <GameBackground />

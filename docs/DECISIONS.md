@@ -269,7 +269,7 @@ versão tem breaking changes — **leia `node_modules/next/dist/docs/` antes de 
 
 ## ADR-013: Versão Pro com AbacatePay (Simulado ENEM gated)
 
-**Contexto:** monetizar o Matema. O modo **Simulado ENEM** passa a ser exclusivo de
+**Contexto:** monetizar o Matema. Os modos **Simulado ENEM** e **Duelo** são exclusivos de
 assinantes **Pro**; admins têm acesso sem pagar.
 
 **Decisão:**
@@ -278,8 +278,9 @@ assinantes **Pro**; admins têm acesso sem pagar.
   **assinatura recorrente no cartão** (`/v2/subscriptions/create`). A API de assinatura só
   aceita CARD; por isso o PIX entra como cobrança avulsa renovável.
 - **Fonte da verdade do acesso = `user_profiles.pro_until`.** `hasProAccess()` no domínio =
-  `isAdmin || pro_until > now()`. Gate aplicado no server (`jogar/[mode]/page.tsx` redireciona
-  para `/pro`) e no card de modos.
+  `isAdmin || pro_until > now()`. Gates no server: **Simulado** em `jogar/[mode]/page.tsx` e
+  **Duelo** em `duelo/layout.tsx` (ambos redirecionam para `/pro`), além do card de modos e
+  das actions de criação de duelo (`createDuelAction`/`joinDuelByCodeAction`).
 - **Concessão de acesso só pelo servidor confiável.** O acesso pago é liberado pelo **webhook**
   `/api/abacatepay/webhook` (eventos `checkout.completed`, `subscription.completed|renewed|
   cancelled`), validado por `webhookSecret` na query + HMAC opcional. O webhook usa
