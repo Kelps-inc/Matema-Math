@@ -23,7 +23,7 @@ const lora = Lora({
   display: 'swap',
 })
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://tema-math-frontend.vercel.app'
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://matema-math-frontend.vercel.app'
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
