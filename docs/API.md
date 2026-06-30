@@ -329,6 +329,29 @@ Resgata um código via RPC `redeem_turma_code` — libera `pro_until = now()+M m
 
 ---
 
+### `chat.ts`
+Chat DM 1-a-1 **entre amigos** + presença online. Leve: **polling** (sem Realtime); leituras só
+dos últimos 7 dias. A RLS garante que só amigos trocam mensagens. Ver `domain/social/presence.ts`
+(`isOnline`, janela de 2 min) e ADR-015.
+
+#### `touchPresenceAction()`
+Heartbeat: grava `last_active_at = now()` do usuário. Chamado a cada 60s pelo `PresenceHeartbeat`.
+
+#### `getOnlineFriendCountAction()`
+Contagem leve de amigos online (para o "(N)" no header). **Output:** `number`.
+
+#### `getChatThreadsAction()`
+Lista de conversas: amigos + `online` + `unread` + prévia da última msg (7 dias).
+**Output:** `{ threads, onlineCount, unreadTotal }`.
+
+#### `getConversationAction(friendId)`
+Mensagens (7 dias) com um amigo; marca as recebidas como lidas. **Output:** `{ messages, error? }`.
+
+#### `sendMessageAction(friendId, content)`
+Envia uma DM (RLS exige amizade). **Output:** `{ ok }` ou `{ error }`.
+
+---
+
 ## Autenticação nos Server Actions
 
 Todos os Server Actions autenticados seguem o padrão:

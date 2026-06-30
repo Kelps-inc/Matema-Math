@@ -248,6 +248,25 @@ Códigos da turma (N linhas por pedido **pago**). Migration `006`.
 | redeemed_by | uuid FK → auth.users | Aluno que resgatou (null = livre) |
 | redeemed_at / created_at | timestamptz | |
 
+### `chat_messages`
+Mensagens diretas (DM) 1-a-1 **entre amigos**. Migration `007`. Histórico "expira" em 7 dias
+(filtrado na leitura + purge diário).
+
+| Coluna | Tipo | Descrição |
+|---|---|---|
+| id | uuid PK | |
+| sender_id | uuid FK → auth.users | Remetente |
+| recipient_id | uuid FK → auth.users | Destinatário |
+| content | text (1–1000) | Texto da mensagem |
+| read_at | timestamptz | Quando o destinatário leu (null = não lida) |
+| created_at | timestamptz | |
+
+Constraint: `CHECK (sender_id <> recipient_id)`. Índices: `(sender_id, recipient_id, created_at desc)`, `(recipient_id, read_at)`.
+
+> **Presença (online):** reaproveita `user_profiles.last_active_at` (sem coluna nova). Um
+> heartbeat no cliente (`touchPresenceAction`, 60s) atualiza o campo; "online" = ativo nos
+> últimos 2 min (`domain/social/presence.ts`).
+
 ## Enums
 
 ```sql
@@ -319,6 +338,11 @@ RPC `SECURITY DEFINER` (migration `006`), `grant execute` para `authenticated`. 
 (existe, não resgatado, pedido `paid`, aluno ainda não está na turma) e libera
 `pro_until = now() + months` para `auth.uid()`. Retorna `{ pro_until, months }` ou `{ error }`.
 
+### `purge_old_chat_messages() → void`
+RPC `SECURITY DEFINER` (migration `007`), só `service_role`. Apaga `chat_messages` com mais de
+7 dias. Agendada via **pg_cron** (diária, best-effort); se o pg_cron não estiver disponível, a
+filtragem por 7 dias na leitura já garante a expiração visível.
+
 ### `handle_new_user() → trigger`
 Dispara após INSERT em `auth.users`:
 - Cria linha em `user_profiles` com defaults
@@ -343,6 +367,7 @@ Todas as tabelas têm RLS habilitado.
 | friendships | ALL: requester ou addressee (WITH CHECK: requester) |
 | turma_orders | SELECT/INSERT apenas próprio (owner_id = auth.uid()); UPDATE só via webhook (service role) |
 | turma_codes | SELECT: dono do pedido ou quem resgatou; INSERT/UPDATE só via RPC SECURITY DEFINER |
+| chat_messages | SELECT: remetente ou destinatário; INSERT: só como remetente **e** se forem amigos (friendship accepted); UPDATE (read_at): só o destinatário |
 
 ## Arquivos de migração
 
@@ -354,6 +379,7 @@ math-journey-backend/supabase/migrations/
   004_duels_and_friendships.sql # Tabelas duels/friendships + colunas de duelo
   005_pro_subscription.sql      # Versão Pro: colunas de assinatura + RPC start_pro_trial
   006_turma_plans.sql           # Plano Turma: turma_orders/turma_codes + RPCs fulfill/redeem
+  007_chat_messages.sql         # Chat DM entre amigos + purge 7 dias (pg_cron)
 
 math-journey-backend/supabase/seed/
   001_content.sql               # 4 módulos, lições e exercícios iniciais

@@ -452,7 +452,7 @@ export async function acceptFriendRequestAction(requesterId: string): Promise<{ 
 }
 
 export async function getMyFriendsAction(): Promise<{
-  friends: { id: string; displayName: string; username: string; level: number; duelRating: number }[]
+  friends: { id: string; displayName: string; username: string; level: number; duelRating: number; lastActiveAt: string | null }[]
   pendingReceived: { id: string; displayName: string; username: string }[]
 }> {
   const supabase = await createClient()
@@ -484,13 +484,13 @@ export async function getMyFriendsAction(): Promise<{
   const allIds = [...friendIds, ...pendingReceivedIds]
   if (allIds.length === 0) return { friends: [], pendingReceived: [] }
 
-  const { data: profiles } = await db.from('user_profiles').select('id, display_name, username, level, duel_rating').in('id', allIds)
+  const { data: profiles } = await db.from('user_profiles').select('id, display_name, username, level, duel_rating, last_active_at').in('id', allIds)
   const profileMap: Record<string, any> = {} // eslint-disable-line @typescript-eslint/no-explicit-any
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   for (const p of profiles ?? []) profileMap[p.id] = p
 
   const friends = friendIds.map((id) => profileMap[id]).filter(Boolean).map((p: any) => ({ // eslint-disable-line @typescript-eslint/no-explicit-any
-    id: p.id, displayName: p.display_name ?? 'Jogador', username: p.username ?? '', level: p.level ?? 1, duelRating: p.duel_rating ?? 1000,
+    id: p.id, displayName: p.display_name ?? 'Jogador', username: p.username ?? '', level: p.level ?? 1, duelRating: p.duel_rating ?? 1000, lastActiveAt: p.last_active_at ?? null,
   }))
   const pendingReceived = pendingReceivedIds.map((id) => profileMap[id]).filter(Boolean).map((p: any) => ({ // eslint-disable-line @typescript-eslint/no-explicit-any
     id: p.id, displayName: p.display_name ?? 'Jogador', username: p.username ?? '',

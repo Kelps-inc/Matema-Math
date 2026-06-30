@@ -32,6 +32,8 @@
 - **Versão Pro** (AbacatePay): assinatura no cartão + PIX avulso + trial de 7 dias; libera o Simulado ENEM **e o Duelo** (admins têm bypass)
 - **Plano Turma** (AbacatePay): responsável compra N vagas Pro por M meses via PIX de valor customizado (20% off ≤49 alunos, 25% off ≥50); gera N códigos que os alunos resgatam — ver ADR-014
 - **Gerenciar assinatura** em Configurações: status do plano + cancelamento (`cancelProSubscriptionAction`). Admin tem o modo "ver como não-assinante" (`?preview=free` em `/configuracoes` e `/pro`) para conferir o funil de compra como um usuário grátis
+- **Presença online**: heartbeat em `last_active_at`; "(N)" de amigos online no header + bolinha verde na lista de amigos
+- **Chat (DM entre amigos)**: widget flutuante global, polling leve, histórico expira em 7 dias (`chat_messages`) — ver ADR-015
 - Admin: preview de questões
 
 ---

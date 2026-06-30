@@ -1,6 +1,6 @@
 # Architectural Decision Records — Matema
 
-> **Manutenção:** Toda decisão técnica com trade-off deliberado **deve** ser registrada aqui como um novo ADR numerado sequencialmente. Formato: consulte `docs/MAINTENANCE.md`. Último ADR: **ADR-009**.
+> **Manutenção:** Toda decisão técnica com trade-off deliberado **deve** ser registrada aqui como um novo ADR numerado sequencialmente. Formato: consulte `docs/MAINTENANCE.md`. Último ADR: **ADR-015**.
 
 ## ADR-001: Next.js App Router com Server Components
 
@@ -325,3 +325,26 @@ não dá para passar um valor arbitrário por ali.
   `status PAID` ou `billing.paid`/`pix.paid`/`pixQrCode.paid` e discrimina por `metadata.kind`.
 - Um aluno não pode ocupar duas vagas da mesma turma (checado no RPC), mas pode resgatar códigos
   de turmas diferentes (acumula meses via `greatest`).
+
+## ADR-015: Chat (DM entre amigos) + presença online — leve, sem Realtime
+
+**Contexto:** dar um canal social no jogo (chat) e indicar quem está online, sem peso de
+infra (Realtime/WebSocket) nem custo de armazenamento crescente.
+
+**Decisão:**
+- **DM 1-a-1 apenas entre amigos.** A RLS de `chat_messages` (migration `007`) só permite INSERT
+  se existir `friendship` `accepted` entre remetente e destinatário; SELECT só para os dois lados.
+- **Polling, não Realtime.** O widget flutuante global faz polling: lista a cada 15s (aberto) /
+  60s (fechado), conversa aberta a cada 5s. Mais simples e barato que canais Realtime; suficiente
+  para a escala atual.
+- **Histórico expira em 7 dias.** Garantia de UX = filtro `created_at > now()-7d` em toda leitura.
+  Limpeza de storage = `purge_old_chat_messages()` agendada por **pg_cron** (best-effort; se
+  indisponível, o filtro de leitura já basta).
+- **Presença via `last_active_at`** (sem coluna/tabela nova). `PresenceHeartbeat` grava a cada 60s;
+  `isOnline()` (`domain/social/presence.ts`) = ativo nos últimos 2 min. Header mostra "(N)" de
+  amigos online e a lista de amigos ganha bolinha verde.
+
+**Trade-offs / riscos conhecidos:**
+- Latência de até ~5s nas mensagens (polling) — aceitável; evoluível para Realtime se necessário.
+- Heartbeat gera 1 UPDATE/min por usuário ativo (barato; só quando a aba está visível).
+- Sem moderação/– bloqueio ainda; como é restrito a amigos, o risco é baixo. Bloqueio fica para depois.

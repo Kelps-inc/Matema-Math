@@ -10,8 +10,9 @@ import { createDuelAction } from '@/app/actions/duelo'
 import { useRouter } from 'next/navigation'
 import { UserSearch, Loader2, UserPlus, Check, Clock, Users } from 'lucide-react'
 import { cn } from '@/presentation/lib/utils'
+import { isOnline } from '@/domain/social/presence'
 
-type Friend    = { id: string; displayName: string; username: string; level: number; duelRating: number }
+type Friend    = { id: string; displayName: string; username: string; level: number; duelRating: number; lastActiveAt: string | null }
 type Pending   = { id: string; displayName: string; username: string }
 type SearchResult = Awaited<ReturnType<typeof searchUsersAction>>[number]
 
@@ -52,7 +53,7 @@ export function AmigosClient({ initialFriends, initialPending }: Props) {
   function handleAccept(requester: Pending) {
     setRequests((r) => r.filter((x) => x.id !== requester.id))
     setFriends((f) =>
-      [...f, { id: requester.id, displayName: requester.displayName, username: requester.username, level: 1, duelRating: 1000 }]
+      [...f, { id: requester.id, displayName: requester.displayName, username: requester.username, level: 1, duelRating: 1000, lastActiveAt: new Date().toISOString() }]
         .sort((a, b) => a.displayName.localeCompare(b.displayName, 'pt-BR')),
     )
     startTransition(async () => {
@@ -68,9 +69,11 @@ export function AmigosClient({ initialFriends, initialPending }: Props) {
     })
   }
 
-  const friendsSorted = [...friends].sort((a, b) =>
-    a.displayName.localeCompare(b.displayName, 'pt-BR'),
-  )
+  const friendsSorted = [...friends].sort((a, b) => {
+    const ao = isOnline(a.lastActiveAt), bo = isOnline(b.lastActiveAt)
+    if (ao !== bo) return ao ? -1 : 1
+    return a.displayName.localeCompare(b.displayName, 'pt-BR')
+  })
 
   return (
     <div className="space-y-6">
@@ -194,11 +197,19 @@ export function AmigosClient({ initialFriends, initialPending }: Props) {
           <div className="space-y-2">
             {friendsSorted.map((f) => (
               <div key={f.id} className="flex items-center gap-3 bg-white rounded-2xl border border-matema-border px-4 py-3 shadow-sm">
-                <div className="w-9 h-9 bg-matema-secondary/10 rounded-full flex items-center justify-center text-sm font-extrabold text-matema-secondary flex-shrink-0">
-                  {f.displayName.charAt(0).toUpperCase()}
+                <div className="relative flex-shrink-0">
+                  <div className="w-9 h-9 bg-matema-secondary/10 rounded-full flex items-center justify-center text-sm font-extrabold text-matema-secondary">
+                    {f.displayName.charAt(0).toUpperCase()}
+                  </div>
+                  {isOnline(f.lastActiveAt) && (
+                    <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-green-500 border-2 border-white" title="Online" />
+                  )}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-bold text-matema-dark text-sm truncate">{f.displayName}</p>
+                  <p className="font-bold text-matema-dark text-sm truncate flex items-center gap-1.5">
+                    {f.displayName}
+                    {isOnline(f.lastActiveAt) && <span className="text-[10px] font-bold text-green-600">online</span>}
+                  </p>
                   <p className="text-xs text-matema-muted">@{f.username} · Nível {f.level} · Rating {f.duelRating}</p>
                 </div>
                 <button

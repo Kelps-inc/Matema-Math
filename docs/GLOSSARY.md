@@ -28,6 +28,8 @@
 | **Plano Turma** | Compra de N vagas Pro por M meses por um responsável, via PIX de valor customizado, com desconto por volume (`turma_orders`/`turma_codes`) |
 | **Código de turma** | Cupom `TRM-XXXXXXXX` gerado por vaga paga; o aluno resgata e ganha Pro (`redeem_turma_code`) |
 | **AbacatePay** | Gateway de pagamento (PIX + cartão + assinatura) usado na versão Pro |
+| **Online / Presença** | Usuário ativo nos últimos 2 min (`last_active_at`, atualizado por heartbeat). Exibido como "(N)" no header e bolinha verde |
+| **Chat / DM** | Mensagens diretas 1-a-1 entre amigos (`chat_messages`), widget flutuante, histórico de 7 dias |
 | **Gabarito** | Resposta correta (`correct_answer`); não é enviada ao cliente fora do Simulado (anti-cheat) |
 | **Acessório** | Item cosmético equipável no avatar (comprado na loja) |
 | **Avatar** | Representação visual do jogador (SVG procedural customizável) |
