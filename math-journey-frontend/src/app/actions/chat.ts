@@ -193,6 +193,16 @@ export async function sendMessageAction(
     .from('chat_messages')
     .insert({ sender_id: user.id, recipient_id: friendId, content: text })
 
-  if (error) return { error: 'Não foi possível enviar. Vocês precisam ser amigos.' }
+  if (error) {
+    // 42P01 = tabela inexistente (migration 007 não aplicada).
+    if (error.code === '42P01') {
+      return { error: 'Chat ainda não configurado no servidor (migration pendente).' }
+    }
+    // 42501 / violação de RLS = não são amigos (ou amizade não aceita).
+    if (error.code === '42501' || /row-level security/i.test(error.message ?? '')) {
+      return { error: 'Não foi possível enviar. Vocês precisam ser amigos.' }
+    }
+    return { error: error.message || 'Não foi possível enviar.' }
+  }
   return { ok: true }
 }
