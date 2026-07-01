@@ -107,9 +107,12 @@ export async function createDuelAction(opts: {
   const questionIds = await pickDuelQuestionIds(db)
   if (questionIds.length < 7) return { error: 'Questões insuficientes para criar duelo.' }
 
-  const inviteCode = opts.type === 'invite' ? makeInviteCode() : undefined
   const opponentId = opts.type === 'challenge' ? opts.opponentId : undefined
   const status = opponentId ? 'active' : 'pending'
+  // Todo duelo que fica pendente (sem oponente ainda) recebe um código —
+  // inclusive os do tipo 'random' sem match imediato, para poder ser
+  // compartilhado como fallback (tela "Aguardando oponente" sempre tem código).
+  const inviteCode = status === 'pending' ? makeInviteCode() : undefined
 
   const { data: newDuel, error } = await db
     .from('duels')
