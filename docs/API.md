@@ -341,8 +341,8 @@ Heartbeat: grava `last_active_at = now()` do usuário. Chamado a cada 60s pelo `
 Contagem leve de amigos online (para o "(N)" no header). **Output:** `number`.
 
 #### `getChatThreadsAction()`
-Lista de conversas: amigos + `online` + `unread` + prévia da última msg (7 dias).
-**Output:** `{ threads, onlineCount, unreadTotal }`.
+Lista de conversas: amigos + `online` + `unread` + prévia da última msg (7 dias) + **avatar**
+(config + acessórios equipados, para o ícone). **Output:** `{ threads, onlineCount, unreadTotal }`.
 
 #### `getConversationAction(friendId)`
 Mensagens (7 dias) com um amigo; marca as recebidas como lidas. **Output:** `{ messages, error? }`.

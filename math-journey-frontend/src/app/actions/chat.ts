@@ -2,6 +2,7 @@
 
 import { createClient } from '@/infrastructure/supabase/server'
 import { isOnline } from '@/domain/social/presence'
+import { DEFAULT_AVATAR_CONFIG, type AvatarConfig } from '@/presentation/components/avatar/AvatarConfig'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -52,6 +53,25 @@ export interface ChatThread {
   lastAt: string | null
   lastPreview: string | null
   lastFromMe: boolean
+  avatar: AvatarConfig
+  accessories: string[]
+}
+
+/** Mapeia a linha do user_avatar_config para AvatarConfig. */
+function rowToAvatar(r: any): AvatarConfig {
+  return {
+    skinTone:   r.skin_tone,
+    eyeColor:   r.eye_color,
+    eyeStyle:   r.eye_style,
+    noseStyle:  r.nose_style,
+    browStyle:  r.brow_style,
+    mouthStyle: r.mouth_style,
+    bodyType:   r.body_type,
+    heightType: r.height_type,
+    hairStyle:  r.hair_style ?? 'curto',
+    hairColor:  r.hair_color ?? 'castanho',
+    gender:     r.gender ?? 'masculino',
+  }
 }
 
 /**
@@ -72,10 +92,29 @@ export async function getChatThreadsAction(): Promise<{
   const friendIds = await acceptedFriendIds(db, user.id)
   if (friendIds.length === 0) return { threads: [], onlineCount: 0, unreadTotal: 0 }
 
-  const { data: profiles } = await db
-    .from('user_profiles')
-    .select('id, display_name, username, last_active_at')
-    .in('id', friendIds)
+  const [{ data: profiles }, { data: avatarRows }, { data: itemRows }] = await Promise.all([
+    db.from('user_profiles')
+      .select('id, display_name, username, last_active_at')
+      .in('id', friendIds),
+    db.from('user_avatar_config')
+      .select('user_id, skin_tone, eye_color, eye_style, nose_style, brow_style, mouth_style, body_type, height_type, hair_style, hair_color, gender')
+      .in('user_id', friendIds),
+    db.from('user_inventory')
+      .select('user_id, shop_items(name, category)')
+      .eq('is_equipped', true)
+      .in('user_id', friendIds),
+  ])
+
+  const avatarMap: Record<string, AvatarConfig> = {}
+  for (const r of avatarRows ?? []) avatarMap[r.user_id] = rowToAvatar(r)
+
+  const accMap: Record<string, string[]> = {}
+  for (const r of itemRows ?? []) {
+    if (r.shop_items?.category !== 'acessorio') continue
+    const name = r.shop_items?.name
+    if (!name) continue
+    ;(accMap[r.user_id] ??= []).push(name)
+  }
 
   // Mensagens recentes envolvendo o usuário (últimos 7 dias).
   const since = SEVEN_DAYS_ISO()
@@ -111,6 +150,8 @@ export async function getChatThreadsAction(): Promise<{
       lastAt: last?.createdAt ?? null,
       lastPreview: last?.content ?? null,
       lastFromMe: last?.fromMe ?? false,
+      avatar: avatarMap[p.id] ?? DEFAULT_AVATAR_CONFIG,
+      accessories: accMap[p.id] ?? [],
     }
   })
 

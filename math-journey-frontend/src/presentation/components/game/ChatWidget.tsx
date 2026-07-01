@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { MessageCircle, X, ArrowLeft, Send, Loader2 } from 'lucide-react'
+import { Avatar } from '@/presentation/components/avatar/Avatar'
+import type { AvatarConfig } from '@/presentation/components/avatar/AvatarConfig'
 import {
   getChatThreadsAction,
   getConversationAction,
@@ -9,6 +11,25 @@ import {
   type ChatThread,
   type ChatMessage,
 } from '@/app/actions/chat'
+
+/** Avatar do amigo dentro de um círculo (mostra cabeça/ombros) + status online. */
+function FriendAvatar({ config, accessories, online, size }: {
+  config: AvatarConfig
+  accessories: string[]
+  online?: boolean
+  size: number
+}) {
+  return (
+    <span className="relative flex-shrink-0" style={{ width: size, height: size }}>
+      <span className="flex items-start justify-center w-full h-full rounded-full overflow-hidden bg-matema-primary/10">
+        <Avatar config={config} ownedItemNames={accessories} size={size} />
+      </span>
+      {online && (
+        <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-green-500 border-2 border-white" />
+      )}
+    </span>
+  )
+}
 
 function timeLabel(iso: string): string {
   const d = new Date(iso)
@@ -100,12 +121,7 @@ export function ChatWidget() {
                 <button onClick={() => setActive(null)} className="p-1 -ml-1 rounded-lg text-matema-muted hover:text-matema-dark hover:bg-black/5">
                   <ArrowLeft className="w-4 h-4" strokeWidth={2} />
                 </button>
-                <span className="relative flex-shrink-0">
-                  <span className="w-7 h-7 rounded-full bg-matema-primary/15 text-matema-primary flex items-center justify-center text-xs font-bold">
-                    {active.displayName.charAt(0).toUpperCase()}
-                  </span>
-                  {active.online && <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-green-500 border-2 border-white" />}
-                </span>
+                <FriendAvatar config={active.avatar} accessories={active.accessories} online={active.online} size={28} />
                 <div className="min-w-0">
                   <p className="font-bold text-matema-dark text-sm truncate leading-none">{active.displayName}</p>
                   <p className="text-[11px] text-matema-muted leading-none mt-0.5">{active.online ? 'Online' : 'Offline'}</p>
@@ -170,12 +186,7 @@ export function ChatWidget() {
                     onClick={() => openThread(t)}
                     className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-matema-warm transition-colors text-left border-b border-matema-border/60"
                   >
-                    <span className="relative flex-shrink-0">
-                      <span className="w-9 h-9 rounded-full bg-matema-primary/15 text-matema-primary flex items-center justify-center text-sm font-bold">
-                        {t.displayName.charAt(0).toUpperCase()}
-                      </span>
-                      {t.online && <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-green-500 border-2 border-white" />}
-                    </span>
+                    <FriendAvatar config={t.avatar} accessories={t.accessories} online={t.online} size={40} />
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center justify-between gap-2">
                         <p className="font-bold text-matema-dark text-sm truncate">{t.displayName}</p>
