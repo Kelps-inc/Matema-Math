@@ -151,7 +151,7 @@ export function ProClient({ hasPro, isAdmin, subscriptionStatus, proUntil, trial
         </div>
         <div>
           <h1 className="text-2xl font-extrabold text-matema-dark leading-tight">Matema Pro</h1>
-          <p className="text-sm text-matema-muted">Desbloqueie o Simulado ENEM completo.</p>
+          <p className="text-sm text-matema-muted">Desbloqueie os modos Duelo e Simulado ENEM.</p>
         </div>
       </div>
 
