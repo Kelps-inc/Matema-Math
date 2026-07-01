@@ -274,9 +274,12 @@ assinantes **Pro**; admins têm acesso sem pagar.
 
 **Decisão:**
 - **Gateway: AbacatePay.** Três caminhos de aquisição: **trial de 7 dias** (uma vez, RPC
-  `start_pro_trial`), **PIX avulso** (checkout `/v2/checkouts/create`, libera 30 dias) e
-  **assinatura recorrente no cartão** (`/v2/subscriptions/create`). A API de assinatura só
-  aceita CARD; por isso o PIX entra como cobrança avulsa renovável.
+  `start_pro_trial`), **assinatura recorrente no cartão** (`/v2/subscriptions/create`) e
+  **PIX avulso** (30 dias). ⚠️ O produto Pro é **recorrente (mensal)** e o AbacatePay **não
+  paga produto recorrente via PIX** (só cartão). Por isso o PIX individual **não** usa o
+  checkout do produto: usa uma **cobrança de valor customizado** (`/v2/transparents/create`,
+  `createPixCharge`, R$14,90, `kind: 'pro_pix'`) com QR exibido na tela — o mesmo mecanismo do
+  Plano Turma. O acesso é liberado pelo webhook.
 - **Fonte da verdade do acesso = `user_profiles.pro_until`.** `hasProAccess()` no domínio =
   `isAdmin || pro_until > now()`. Gates no server: **Simulado** em `jogar/[mode]/page.tsx` e
   **Duelo** em `duelo/layout.tsx` (ambos redirecionam para `/pro`), além do card de modos e

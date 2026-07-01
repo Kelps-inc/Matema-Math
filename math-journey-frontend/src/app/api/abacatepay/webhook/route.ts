@@ -65,6 +65,24 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true, kind: 'turma' })
   }
 
+  // ── PIX avulso individual (valor customizado) → 30 dias ────────────────────
+  if (kind === 'pro_pix') {
+    const uid: string | undefined = data?.metadata?.userId || data?.externalId
+    const isPaid =
+      status === 'PAID' || event === 'billing.paid' || event === 'pix.paid' ||
+      event === 'checkout.completed' || event === 'pixQrCode.paid'
+    if (!uid || !isPaid) return NextResponse.json({ ok: true, ignored: event })
+
+    const now2 = new Date()
+    const { error } = await sb.from('user_profiles').update({
+      pro_until: new Date(now2.getTime() + 30 * 864e5).toISOString(),
+      subscription_status: 'active',
+      updated_at: now2.toISOString(),
+    }).eq('id', uid)
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json({ ok: true, kind: 'pro_pix' })
+  }
+
   // ── Plano individual (assinatura/PIX avulso) ───────────────────────────────
   const userId: string | undefined = data?.externalId || data?.metadata?.userId
 

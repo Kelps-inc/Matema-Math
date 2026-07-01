@@ -7,7 +7,9 @@ import {
   createCheckout,
   createSubscription,
   cancelSubscription,
+  createPixCharge,
 } from '@/infrastructure/payments/abacatepay'
+import { PRO_UNIT_PRICE_CENTS } from '@/domain/pro/turmaPricing'
 
 function siteUrl(): string {
   return process.env.NEXT_PUBLIC_SITE_URL ?? 'https://matema-math-frontend.vercel.app'
@@ -67,6 +69,56 @@ export async function cancelProSubscriptionAction(): Promise<{ error?: string }>
   revalidatePath('/pro')
   revalidatePath('/dashboard')
   return {}
+}
+
+/**
+ * PIX avulso individual (30 dias) via cobrança de valor customizado — o produto
+ * Pro é recorrente e PIX não paga recorrente, então geramos um PIX próprio
+ * (R$14,90) com QR. O acesso é liberado pelo webhook (`kind: 'pro_pix'`).
+ */
+export async function startProPixAction(): Promise<{
+  pix?: { brCode: string; brCodeBase64: string; amountCents: number; expiresAt?: string }
+  error?: string
+}> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Não autenticado' }
+
+  try {
+    const charge = await createPixCharge({
+      amountCents: PRO_UNIT_PRICE_CENTS,
+      description: 'Matema Pro — 30 dias',
+      externalId: user.id,
+      userId: user.id,
+      kind: 'pro_pix',
+    })
+    return {
+      pix: {
+        brCode: charge.brCode,
+        brCodeBase64: charge.brCodeBase64,
+        amountCents: charge.amount ?? PRO_UNIT_PRICE_CENTS,
+        expiresAt: charge.expiresAt,
+      },
+    }
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : 'Falha ao gerar o PIX' }
+  }
+}
+
+/** Status Pro do usuário — usado no polling enquanto o PIX não é confirmado. */
+export async function getProStatusAction(): Promise<{ active: boolean }> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { active: false }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data } = await (supabase as any)
+    .from('user_profiles')
+    .select('pro_until, is_admin')
+    .eq('id', user.id)
+    .single()
+  const active = !!data?.is_admin
+    || (!!data?.pro_until && new Date(data.pro_until).getTime() > Date.now())
+  return { active }
 }
 
 type ProPlan = 'pix' | 'subscription'

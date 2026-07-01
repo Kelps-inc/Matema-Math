@@ -86,8 +86,10 @@ export async function createPixCharge(input: {
   userId: string
   kind: string
   expiresInSeconds?: number
-  customer?: { name: string; email: string }
 }): Promise<AbacatePixCharge> {
+  // Não enviamos `customer`: o AbacatePay exige name+taxId(CPF)+email+cellphone
+  // juntos quando presente; sem todos, a request é rejeitada. Ele coleta os
+  // dados do pagador na tela do PIX.
   return post<AbacatePixCharge>('/v2/transparents/create', {
     method: 'PIX',
     data: {
@@ -95,7 +97,6 @@ export async function createPixCharge(input: {
       expiresIn: input.expiresInSeconds ?? 60 * 60 * 24, // 24h
       description: input.description,
       externalId: input.externalId,
-      ...(input.customer ? { customer: input.customer } : {}),
       metadata: { userId: input.userId, kind: input.kind, externalId: input.externalId },
     },
   })

@@ -55,12 +55,6 @@ export async function createTurmaOrderAction(input: {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const sb = supabase as any
 
-  const { data: profile } = await sb
-    .from('user_profiles')
-    .select('display_name')
-    .eq('id', user.id)
-    .single()
-
   // 1) Registra o pedido (status pending) — fonte da verdade do valor/vagas.
   const { data: order, error: orderErr } = await sb
     .from('turma_orders')
@@ -84,7 +78,8 @@ export async function createTurmaOrderAction(input: {
       externalId: order.id,
       userId: user.id,
       kind: 'turma',
-      customer: { name: profile?.display_name || user.email || 'Responsável', email: user.email || '' },
+      // Sem `customer`: o AbacatePay exige name+taxId(CPF)+email+cellphone juntos
+      // quando enviado, e não coletamos CPF/celular. Ele pede os dados no pagamento.
     })
 
     if (charge.id) {

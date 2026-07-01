@@ -1,11 +1,12 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState, useTransition, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Crown, Check, Loader2, QrCode, CreditCard, Gift, Users, Ticket, Eye, EyeOff } from 'lucide-react'
-import { startProTrialAction, startProCheckoutAction } from '@/app/actions/pro'
+import { Crown, Check, Loader2, QrCode, CreditCard, Gift, Users, Ticket, Eye, EyeOff, Copy, X } from 'lucide-react'
+import { startProTrialAction, startProCheckoutAction, startProPixAction, getProStatusAction } from '@/app/actions/pro'
 import { redeemTurmaCodeAction } from '@/app/actions/turma'
+import { formatBRL } from '@/domain/pro/turmaPricing'
 
 interface Props {
   hasPro: boolean
@@ -31,6 +32,18 @@ export function ProClient({ hasPro, isAdmin, subscriptionStatus, proUntil, trial
   const [redeemBusy, setRedeemBusy] = useState(false)
   const [redeemMsg, setRedeemMsg] = useState<string | null>(null)
   const [redeemErr, setRedeemErr] = useState<string | null>(null)
+  const [pix, setPix] = useState<{ brCode: string; brCodeBase64: string; amountCents: number } | null>(null)
+  const [copied, setCopied] = useState(false)
+
+  // Enquanto o PIX está aberto, verifica se o pagamento foi confirmado (webhook).
+  useEffect(() => {
+    if (!pix) return
+    const id = setInterval(async () => {
+      const res = await getProStatusAction()
+      if (res.active) { setPix(null); router.refresh() }
+    }, 4000)
+    return () => clearInterval(id)
+  }, [pix, router])
 
   const proUntilLabel = proUntil
     ? new Date(proUntil).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })
@@ -55,6 +68,22 @@ export function ProClient({ hasPro, isAdmin, subscriptionStatus, proUntil, trial
     if (res.url) window.location.href = res.url
   }
 
+  async function handlePix() {
+    setError(null)
+    setBusy('pix')
+    const res = await startProPixAction()
+    setBusy(null)
+    if (res.error) { setError(res.error); return }
+    if (res.pix) setPix(res.pix)
+  }
+
+  function copyBrCode() {
+    if (!pix) return
+    navigator.clipboard.writeText(pix.brCode)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 1500)
+  }
+
   async function handleRedeem() {
     setRedeemErr(null); setRedeemMsg(null)
     setRedeemBusy(true)
@@ -68,6 +97,39 @@ export function ProClient({ hasPro, isAdmin, subscriptionStatus, proUntil, trial
 
   return (
     <div className="animate-fade-in">
+      {/* Modal PIX (30 dias) */}
+      {pix && (
+        <div className="fixed inset-0 z-[9999] bg-black/50 flex items-center justify-center px-4" onClick={() => setPix(null)}>
+          <div className="bg-white rounded-3xl p-6 max-w-sm w-full shadow-xl text-center animate-fade-in" onClick={(e) => e.stopPropagation()}>
+            <button onClick={() => setPix(null)} className="ml-auto block -mt-2 -mr-2 p-1 rounded-lg text-matema-muted hover:text-matema-dark hover:bg-black/5">
+              <X className="w-5 h-5" strokeWidth={2} />
+            </button>
+            <p className="font-extrabold text-matema-dark flex items-center justify-center gap-2">
+              <QrCode className="w-5 h-5 text-matema-primary" strokeWidth={1.75} /> Pague {formatBRL(pix.amountCents)} via PIX
+            </p>
+            <p className="text-xs text-matema-muted mt-1">30 dias de acesso Pro</p>
+            {pix.brCodeBase64 && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={pix.brCodeBase64.startsWith('data:') ? pix.brCodeBase64 : `data:image/png;base64,${pix.brCodeBase64}`}
+                alt="QR Code PIX"
+                className="mx-auto mt-4 w-52 h-52 rounded-xl border border-matema-border"
+              />
+            )}
+            <button
+              onClick={copyBrCode}
+              className="mt-4 inline-flex items-center gap-2 rounded-xl border-2 border-matema-border px-4 py-2 text-sm font-bold text-matema-dark hover:border-matema-primary"
+            >
+              {copied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
+              Copiar código copia-e-cola
+            </button>
+            <p className="mt-4 flex items-center justify-center gap-2 text-sm text-matema-muted">
+              <Loader2 className="w-4 h-4 animate-spin" /> Aguardando confirmação do pagamento…
+            </p>
+          </div>
+        </div>
+      )}
+
       {previewFree && (
         <div className="mb-4 flex items-center justify-between gap-3 rounded-2xl border border-indigo-200 bg-indigo-50 px-4 py-3">
           <p className="flex items-center gap-2 text-sm font-semibold text-indigo-700">
@@ -144,7 +206,7 @@ export function ProClient({ hasPro, isAdmin, subscriptionStatus, proUntil, trial
           )}
 
           <button
-            onClick={() => handleCheckout('pix')}
+            onClick={handlePix}
             disabled={busy !== null}
             className="flex flex-col items-center justify-center gap-1.5 rounded-2xl border-2 border-matema-border bg-white p-4 font-bold text-matema-dark hover:border-matema-primary disabled:opacity-60 transition-colors"
           >

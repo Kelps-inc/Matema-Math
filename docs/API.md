@@ -296,10 +296,19 @@ Versão Pro (assinatura via AbacatePay). O Pro libera o Simulado ENEM; admins t�
 Ativa o trial de 7 dias (uma vez por usuário) via RPC `start_pro_trial`. **Output:** `{ error? }`.
 
 #### `startProCheckoutAction(plan: 'pix' | 'subscription')`
-Garante o cliente no AbacatePay e cria a cobrança: `pix` → checkout avulso (PIX/cartão, 30
-dias); `subscription` → assinatura recorrente no cartão. Envia `externalId`/`metadata.userId`
-= id do usuário para o webhook mapear. **Output:** `{ url }` (redirecionar o cliente) ou `{ error }`.
+Cria a cobrança e devolve a URL do checkout hospedado. Hoje a UI só usa `subscription`
+(assinatura recorrente no cartão). **Output:** `{ url }` ou `{ error }`.
 > O acesso Pro **não** é concedido aqui — só quando o webhook confirma o pagamento.
+
+#### `startProPixAction()`
+PIX avulso individual (30 dias) via **cobrança de valor customizado** (`createPixCharge`,
+R$14,90, `kind: 'pro_pix'`). Necessário porque o produto Pro é recorrente e PIX não paga
+recorrente. Retorna o QR/copia-e-cola para exibir na tela. **Output:** `{ pix: { brCode,
+brCodeBase64, amountCents, expiresAt } }` ou `{ error }`. O acesso é liberado pelo webhook.
+
+#### `getProStatusAction()`
+Diz se o usuário tem Pro ativo agora (`is_admin` ou `pro_until > now()`). Usado no polling
+enquanto o PIX não é confirmado. **Output:** `{ active }`.
 
 #### `cancelProSubscriptionAction()`
 Cancela a assinatura recorrente no cartão (`/v2/subscriptions/cancel` via `abacatepay_subscription_id`).
@@ -407,6 +416,9 @@ Pro mapeando o usuário por `data.externalId`/`data.metadata.userId`:
 - `checkout.completed` → `pro_until = now()+30d`, status `active` (PIX/cartão avulso)
 - `subscription.completed` / `subscription.renewed` → `pro_until = now()+32d`, status `active`
 - `subscription.cancelled` → status `cancelled` (mantém acesso até `pro_until` expirar)
+
+**PIX avulso individual:** quando `data.metadata.kind === 'pro_pix'` e pago, libera
+`pro_until = now()+30d` para `metadata.userId`.
 
 **Plano Turma:** quando `data.metadata.kind === 'turma'` e o PIX está pago (`status PAID` /
 `billing.paid` / `pix.paid`), chama a RPC `fulfill_turma_order(orderId, billingId)`
