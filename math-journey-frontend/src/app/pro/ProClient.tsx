@@ -233,14 +233,15 @@ export function ProClient({ hasPro, isAdmin, subscriptionStatus, proUntil, trial
       {!isAdmin && (
         <Link
           href="/pro/turma"
-          className="mt-5 flex items-center gap-3 rounded-2xl border border-indigo-200 bg-indigo-50 p-4 hover:border-indigo-400 transition-colors"
+          className="mt-5 flex items-center gap-3 rounded-2xl p-4 hover:opacity-90 transition-opacity"
+          style={{ background: 'linear-gradient(135deg, #1e1b2e 0%, #2a2050 100%)', border: '1px solid rgba(109,85,204,0.4)' }}
         >
-          <Users className="w-6 h-6 text-indigo-500 flex-shrink-0" strokeWidth={1.75} />
+          <Users className="w-6 h-6 text-indigo-300 flex-shrink-0" strokeWidth={1.75} />
           <div className="flex-1">
-            <p className="font-extrabold text-matema-dark text-sm">É professor ou coordenador?</p>
-            <p className="text-xs text-matema-muted">Plano Turma: Pro para a sala toda, com até 25% de desconto por aluno.</p>
+            <p className="font-extrabold text-white text-sm">É professor ou coordenador?</p>
+            <p className="text-xs" style={{ color: 'rgba(196,181,253,0.8)' }}>Plano Turma: Pro para a sala toda, com até 25% de desconto por aluno.</p>
           </div>
-          <span className="text-indigo-500 font-bold">→</span>
+          <span className="font-bold text-indigo-300">→</span>
         </Link>
       )}
 
