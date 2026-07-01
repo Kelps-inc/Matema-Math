@@ -232,7 +232,7 @@ export function SettingsClient({
     <div className="animate-fade-in">
       <div className="mb-8">
         <Link
-          href="/dashboard"
+          href="/inicio"
           className="inline-flex items-center gap-1.5 text-sm text-matema-muted hover:text-matema-dark transition-colors mb-4"
         >
           <span className="text-base leading-none">←</span>

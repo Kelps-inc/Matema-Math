@@ -18,9 +18,10 @@ interface Props {
 }
 
 const PRO_PERKS = [
-  'Simulado ENEM completo (45 questões, 2h45)',
-  'Nota estimada e análise de tempo por questão',
-  'Sessão salva — pause e continue depois',
+  'Modo "Simulado ENEM": simulados completos de 45 questões com cronômetro de 2h45',
+  'Nota estimada com base no sistema TRI e análise de tempo por questão',
+  'Modo Duelo: desafie amigos para batalhas de questões e mostre que você detém conhecimento!',
+  'Classificação por rating, assim como no Xadrez',
 ]
 
 export function ProClient({ hasPro, isAdmin, subscriptionStatus, proUntil, trialUsed, previewFree = false }: Props) {
