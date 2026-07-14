@@ -70,7 +70,7 @@ export default async function SimuladosHistoricoPage() {
             <p className="text-xs text-matema-muted">Média das notas</p>
           </div>
           <div className="bg-white border border-matema-border rounded-2xl p-4 text-center">
-            <p className="text-2xl font-extrabold text-matema-primary">{bestScore}</p>
+            <p className="text-2xl font-extrabold text-green-500">{bestScore}</p>
             <p className="text-xs text-matema-muted">Melhor nota</p>
           </div>
           <div className="bg-white border border-matema-border rounded-2xl p-4 text-center">
