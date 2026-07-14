@@ -40,6 +40,7 @@ export default async function SimuladosHistoricoPage() {
     ? Math.round(attempts.reduce((s, a) => s + a.enemScore, 0) / attempts.length)
     : null
   const bestScore = attempts.length > 0 ? Math.max(...attempts.map((a) => a.enemScore)) : null
+  const worstScore = attempts.length > 0 ? Math.min(...attempts.map((a) => a.enemScore)) : null
 
   return (
     <div className="max-w-3xl mx-auto animate-fade-in">
@@ -63,14 +64,18 @@ export default async function SimuladosHistoricoPage() {
       </div>
 
       {attempts.length > 0 && (
-        <div className="grid grid-cols-2 gap-3 mb-6">
+        <div className="grid grid-cols-3 gap-3 mb-6">
           <div className="bg-white border border-matema-border rounded-2xl p-4 text-center">
             <p className="text-2xl font-extrabold text-matema-dark">{avgScore}</p>
-            <p className="text-xs text-matema-muted">Nota média (estilo ENEM)</p>
+            <p className="text-xs text-matema-muted">Média das notas</p>
           </div>
           <div className="bg-white border border-matema-border rounded-2xl p-4 text-center">
             <p className="text-2xl font-extrabold text-matema-primary">{bestScore}</p>
             <p className="text-xs text-matema-muted">Melhor nota</p>
+          </div>
+          <div className="bg-white border border-matema-border rounded-2xl p-4 text-center">
+            <p className="text-2xl font-extrabold text-red-500">{worstScore}</p>
+            <p className="text-xs text-matema-muted">Pior nota</p>
           </div>
         </div>
       )}
@@ -98,8 +103,8 @@ export default async function SimuladosHistoricoPage() {
             return (
               <div key={a.id} className="bg-white border border-matema-border rounded-2xl p-4 flex items-center gap-4">
                 <div className={cn('w-16 h-16 rounded-2xl border flex flex-col items-center justify-center flex-shrink-0', scoreBg)}>
-                  <span className={cn('text-xl font-extrabold leading-none', scoreColor)}>{a.enemScore}</span>
-                  <span className={cn('text-[9px] uppercase tracking-wide mt-0.5', scoreColor)}>nota enem</span>
+                  <span className={cn('text-xl font-extrabold leading-none text-center', scoreColor)}>{a.enemScore}</span>
+                  <span className={cn('text-[9px] uppercase tracking-wide mt-0.5 text-center', scoreColor)}>nota enem</span>
                 </div>
 
                 <div className="flex-1 min-w-0">
