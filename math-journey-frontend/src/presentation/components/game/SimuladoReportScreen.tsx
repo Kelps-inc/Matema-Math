@@ -7,65 +7,9 @@ import type { RankedAnswer } from '@/app/actions/ranked'
 import type { RankedExercise } from './RankedPlayer'
 import { EloTierIcon } from '@/presentation/components/ui/EloTierIcon'
 import { ELO_TIER_LABELS } from '@/domain/user/entities/User'
+import { ENEM_FLOOR, ENEM_CEIL, enemScoreLabel } from '@/domain/progression/EnemScore'
 
 const BUDGET_MS = 3 * 60 * 1000  // 3 min por questão
-
-// Aproximação TRI do ENEM — Matemática (faixa 0–900)
-//
-// Dois componentes:
-//  1. Base: curva de potência sobre taxa de acerto (50% ≈ 520, 0% = 0)
-//  2. Penalidade de inconsistência: chutador que erra as fáceis e acerta
-//     as difíceis viola a ordem esperada fácil ≥ médio ≥ difícil e recebe
-//     desconto proporcional à inversão.
-const ENEM_FLOOR = 338  // piso real do ENEM (nota com 0 acertos)
-const ENEM_CEIL  = 900
-
-// Expoente calibrado para: 0% → 338, 50% → ~520, 100% → 900
-// (curva côncava: acertar mais resulta em saltos cada vez maiores de nota)
-const ENEM_EXP = 1.63
-
-function estimateEnemScore(answers: RankedAnswer[], exercises: RankedExercise[]): number {
-  if (answers.length === 0) return ENEM_FLOOR
-
-  const correct = answers.filter(a => a.isCorrect).length
-  const span    = ENEM_CEIL - ENEM_FLOOR  // 562 pontos úteis
-
-  // ── Base ──────────────────────────────────────────────────────────────────
-  const base = Math.round(ENEM_FLOOR + span * Math.pow(correct / answers.length, ENEM_EXP))
-
-  // ── Penalidade TRI: violação da ordenação de acurácia por dificuldade ─────
-  let easyRight = 0, easyTotal = 0
-  let medRight  = 0, medTotal  = 0
-  let hardRight = 0, hardTotal = 0
-
-  for (const a of answers) {
-    const diff = exercises.find(e => e.id === a.exerciseId)?.difficulty ?? 'medium'
-    if (diff === 'easy')        { easyTotal++; if (a.isCorrect) easyRight++ }
-    else if (diff === 'medium') { medTotal++;  if (a.isCorrect) medRight++ }
-    else if (diff === 'hard')   { hardTotal++; if (a.isCorrect) hardRight++ }
-  }
-
-  const easyAcc = easyTotal > 0 ? easyRight / easyTotal : null
-  const medAcc  = medTotal  > 0 ? medRight  / medTotal  : null
-  const hardAcc = hardTotal > 0 ? hardRight / hardTotal : null
-
-  // Violação: acertar mais as difíceis que as fáceis/médias é implausível
-  // e indica chute nas difíceis ou má-fé
-  const v1 = easyAcc != null && hardAcc != null ? Math.max(0, hardAcc - easyAcc) : 0
-  const v2 = medAcc  != null && hardAcc != null ? Math.max(0, hardAcc - medAcc)  : 0
-  const penalty = Math.round((v1 * 0.7 + v2 * 0.3) * 200)
-
-  return Math.max(ENEM_FLOOR, base - penalty)
-}
-
-function enemScoreLabel(score: number): { label: string; color: string; bg: string } {
-  if (score <= 400) return { label: 'Muito abaixo da média', color: 'text-red-600',    bg: 'bg-red-50    border-red-200'    }
-  if (score <  520) return { label: 'Abaixo da média',       color: 'text-orange-600', bg: 'bg-orange-50 border-orange-200' }
-  if (score <  620) return { label: 'Na média',               color: 'text-amber-600',  bg: 'bg-amber-50  border-amber-200'  }
-  if (score <  720) return { label: 'Acima da média',         color: 'text-blue-600',   bg: 'bg-blue-50   border-blue-200'   }
-  if (score <  820) return { label: 'Muito bom',              color: 'text-indigo-600', bg: 'bg-indigo-50 border-indigo-200' }
-  return                 { label: 'Excelente',                 color: 'text-green-600',  bg: 'bg-green-50  border-green-200'  }
-}
 
 function fmtMs(ms: number): string {
   const s = Math.floor(ms / 1000)
@@ -90,7 +34,7 @@ export function SimuladoReportScreen({ result, answers, exercises, onPlayAgain, 
   const overBudget = answers.filter(a => a.timeMs > BUDGET_MS)
   const inBudget   = answers.filter(a => a.timeMs <= BUDGET_MS)
 
-  const enemScore = estimateEnemScore(answers, exercises)
+  const enemScore = result.enemScore ?? ENEM_FLOOR
   const { label: enemLabel, color: enemColor, bg: enemBg } = enemScoreLabel(enemScore)
   // Bar fill: 338–900 → 0–100%
   const enemBarPct = Math.round(((enemScore - ENEM_FLOOR) / (ENEM_CEIL - ENEM_FLOOR)) * 100)
@@ -120,11 +64,10 @@ export function SimuladoReportScreen({ result, answers, exercises, onPlayAgain, 
       </div>
 
       {/* ── Stats rápidos ── */}
-      <div className="grid grid-cols-3 gap-2">
+      <div className="grid grid-cols-2 gap-2">
         {[
           { label: 'Acertos',   value: `${result.correct}/${result.total}` },
           { label: 'Precisão',  value: `${result.accuracy}%` },
-          { label: 'Pontuação', value: `${result.score}` },
         ].map(({ label, value }) => (
           <div key={label} className="bg-white border border-matema-border rounded-2xl p-3 text-center">
             <div className="text-base font-extrabold text-matema-dark">{value}</div>

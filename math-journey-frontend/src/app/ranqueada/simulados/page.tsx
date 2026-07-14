@@ -7,6 +7,7 @@ import { EloTierIcon } from '@/presentation/components/ui/EloTierIcon'
 import { ELO_TIER_LABELS } from '@/domain/user/entities/User'
 import { ClipboardList, Clock, TrendingUp, TrendingDown, Minus } from 'lucide-react'
 import { cn } from '@/presentation/lib/utils'
+import { enemScoreLabel } from '@/domain/progression/EnemScore'
 
 const DIV_LABELS = ['', 'I', 'II', 'III', 'IV']
 
@@ -36,9 +37,9 @@ export default async function SimuladosHistoricoPage() {
   const attempts = await getSimuladoHistoryAction()
 
   const avgScore = attempts.length > 0
-    ? Math.round(attempts.reduce((s, a) => s + a.score, 0) / attempts.length)
+    ? Math.round(attempts.reduce((s, a) => s + a.enemScore, 0) / attempts.length)
     : null
-  const bestScore = attempts.length > 0 ? Math.max(...attempts.map((a) => a.score)) : null
+  const bestScore = attempts.length > 0 ? Math.max(...attempts.map((a) => a.enemScore)) : null
 
   return (
     <div className="max-w-3xl mx-auto animate-fade-in">
@@ -65,7 +66,7 @@ export default async function SimuladosHistoricoPage() {
         <div className="grid grid-cols-2 gap-3 mb-6">
           <div className="bg-white border border-matema-border rounded-2xl p-4 text-center">
             <p className="text-2xl font-extrabold text-matema-dark">{avgScore}</p>
-            <p className="text-xs text-matema-muted">Nota média</p>
+            <p className="text-xs text-matema-muted">Nota média (estilo ENEM)</p>
           </div>
           <div className="bg-white border border-matema-border rounded-2xl p-4 text-center">
             <p className="text-2xl font-extrabold text-matema-primary">{bestScore}</p>
@@ -92,12 +93,13 @@ export default async function SimuladosHistoricoPage() {
             const divLabel = a.newTier === 'mestre' ? '' : ` ${DIV_LABELS[a.newDivision] ?? a.newDivision}`
             const TrendIcon = a.lpChange > 0 ? TrendingUp : a.lpChange < 0 ? TrendingDown : Minus
             const trendColor = a.lpChange > 0 ? 'text-green-600' : a.lpChange < 0 ? 'text-red-500' : 'text-matema-muted'
+            const { color: scoreColor, bg: scoreBg } = enemScoreLabel(a.enemScore)
 
             return (
               <div key={a.id} className="bg-white border border-matema-border rounded-2xl p-4 flex items-center gap-4">
-                <div className="w-14 h-14 rounded-2xl bg-matema-cream border border-matema-border flex flex-col items-center justify-center flex-shrink-0">
-                  <span className="text-lg font-extrabold text-matema-dark leading-none">{a.score}</span>
-                  <span className="text-[9px] text-matema-muted uppercase tracking-wide">nota</span>
+                <div className={cn('w-16 h-16 rounded-2xl border flex flex-col items-center justify-center flex-shrink-0', scoreBg)}>
+                  <span className={cn('text-xl font-extrabold leading-none', scoreColor)}>{a.enemScore}</span>
+                  <span className={cn('text-[9px] uppercase tracking-wide mt-0.5', scoreColor)}>nota enem</span>
                 </div>
 
                 <div className="flex-1 min-w-0">
@@ -105,7 +107,7 @@ export default async function SimuladosHistoricoPage() {
                   <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
                     <span className="font-semibold text-matema-dark">{a.correct}/{a.total} acertos</span>
                     <span className="text-matema-muted">·</span>
-                    <span className="text-matema-muted">{a.accuracy}% precisão</span>
+                    <span className="text-matema-muted">{a.accuracy}% de precisão</span>
                     <span className="text-matema-muted">·</span>
                     <span className="flex items-center gap-1 text-matema-muted">
                       <Clock className="w-3 h-3" strokeWidth={2} />

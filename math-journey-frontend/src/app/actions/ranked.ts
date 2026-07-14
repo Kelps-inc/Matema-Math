@@ -3,6 +3,7 @@
 import { createClient } from '@/infrastructure/supabase/server'
 import { revalidatePath } from 'next/cache'
 import type { EloTier } from '@/domain/user/entities/User'
+import { estimateEnemScore } from '@/domain/progression/EnemScore'
 
 const TIER_ORDER: EloTier[] = ['bronze', 'prata', 'ouro', 'platina', 'diamante', 'mestre']
 
@@ -110,6 +111,7 @@ export async function saveRankedGameAction(
   // `isCorrect` do cliente (que poderia marcar tudo como certo para inflar LP/XP).
   const DIFF_WEIGHT: Record<string, number> = { easy: 1, medium: 1.5, hard: 2 }
   const diffMap: Record<string, number> = {}
+  const diffLabelMap: Record<string, 'easy' | 'medium' | 'hard'> = {}
   const correctMap: Record<string, string> = {}
   if (answers.length > 0) {
     const { data: exerciseRows } = await supabaseAny
@@ -117,8 +119,9 @@ export async function saveRankedGameAction(
       .select('id, difficulty, correct_answer')
       .in('id', answers.map((a) => a.exerciseId))
     for (const row of (exerciseRows ?? [])) {
-      diffMap[row.id] = DIFF_WEIGHT[row.difficulty] ?? 1
-      correctMap[row.id] = row.correct_answer
+      diffMap[row.id]      = DIFF_WEIGHT[row.difficulty] ?? 1
+      diffLabelMap[row.id] = row.difficulty
+      correctMap[row.id]   = row.correct_answer
     }
   }
 
@@ -231,10 +234,13 @@ export async function saveRankedGameAction(
 
   // Histórico dedicado do Simulado ENEM — base para a tela de histórico e,
   // futuramente, para o gráfico de evolução (mesma tabela, uma linha por prova).
+  let enemScore: number | undefined
   if (opts.mode === 'simulado') {
+    enemScore = estimateEnemScore(answers, diffLabelMap)
     await supabaseAny.from('simulado_attempts').insert({
       user_id:       user.id,
       score:         Math.round(score),
+      enem_score:    enemScore,
       accuracy:      Math.round(accuracy),
       correct,
       total:         answers.length,
@@ -285,5 +291,6 @@ export async function saveRankedGameAction(
     newLevel,
     leveledUp,
     doubled,
+    enemScore,
   }
 }

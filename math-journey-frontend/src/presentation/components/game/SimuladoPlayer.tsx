@@ -487,5 +487,6 @@ function mapResult(res: Awaited<ReturnType<typeof saveRankedGameAction>>): Ranke
     newXp:       res.newXp!,
     newLevel:    res.newLevel!,
     leveledUp:   res.leveledUp!,
+    enemScore:   res.enemScore,
   }
 }

@@ -6,6 +6,7 @@ import type { EloTier } from '@/domain/user/entities/User'
 export interface SimuladoAttempt {
   id: string
   score: number
+  enemScore: number
   accuracy: number
   correct: number
   total: number
@@ -30,7 +31,7 @@ export async function getSimuladoHistoryAction(): Promise<SimuladoAttempt[]> {
 
   const { data } = await db
     .from('simulado_attempts')
-    .select('id, score, accuracy, correct, total, time_taken_ms, lp_change, new_lp, new_tier, new_division, xp_earned, coins_earned, doubled, completed_at')
+    .select('id, score, enem_score, accuracy, correct, total, time_taken_ms, lp_change, new_lp, new_tier, new_division, xp_earned, coins_earned, doubled, completed_at')
     .eq('user_id', user.id)
     .order('completed_at', { ascending: false })
 
@@ -38,6 +39,7 @@ export async function getSimuladoHistoryAction(): Promise<SimuladoAttempt[]> {
   return (data ?? []).map((r: any) => ({
     id:          r.id,
     score:       r.score,
+    enemScore:   r.enem_score,
     accuracy:    r.accuracy,
     correct:     r.correct,
     total:       r.total,

@@ -12,6 +12,7 @@ export interface RankedResult {
   promoted: boolean; demoted: boolean
   xpEarned: number; coinsEarned: number; newXp: number; newLevel: number; leveledUp: boolean
   doubled?: boolean
+  enemScore?: number
 }
 
 interface Props {
