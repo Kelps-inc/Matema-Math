@@ -80,7 +80,13 @@ export interface RankedAnswer {
 
 export async function saveRankedGameAction(
   answers: RankedAnswer[],
-  opts: { skippedExerciseIds?: string[]; earlyExitPenalty?: boolean; useDouble?: boolean } = {},
+  opts: {
+    skippedExerciseIds?: string[]
+    earlyExitPenalty?: boolean
+    useDouble?: boolean
+    mode?: 'objetivas' | 'enem' | 'simulado'
+    timeTakenMs?: number
+  } = {},
 ) {
   const supabase = await createClient()
   const { data: { user }, error: authError } = await supabase.auth.getUser()
@@ -222,6 +228,26 @@ export async function saveRankedGameAction(
   }))
 
   await supabaseAny.from('user_exercise_answers').insert([...answerRows, ...skippedRows])
+
+  // Histórico dedicado do Simulado ENEM — base para a tela de histórico e,
+  // futuramente, para o gráfico de evolução (mesma tabela, uma linha por prova).
+  if (opts.mode === 'simulado') {
+    await supabaseAny.from('simulado_attempts').insert({
+      user_id:       user.id,
+      score:         Math.round(score),
+      accuracy:      Math.round(accuracy),
+      correct,
+      total:         answers.length,
+      time_taken_ms: opts.timeTakenMs ?? 0,
+      lp_change:     change,
+      new_lp:        newElo.lp,
+      new_tier:      newElo.tier,
+      new_division:  newElo.division,
+      xp_earned:     xpEarned,
+      coins_earned:  coinsEarned,
+      doubled,
+    })
+  }
 
   await supabaseAny
     .from('user_profiles')

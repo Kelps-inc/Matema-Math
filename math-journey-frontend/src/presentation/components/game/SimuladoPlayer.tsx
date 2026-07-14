@@ -88,7 +88,8 @@ export function SimuladoPlayer({
           void (async () => {
             await deleteSimuladoSessionAction()
             const rankedAnswers = buildRankedAnswers(exercises, answersRef.current)
-            const res = await saveRankedGameAction(rankedAnswers, { skippedExerciseIds: [] })
+            const timeTakenMs = TOTAL_SECS * 1000 // esgotou o tempo total
+            const res = await saveRankedGameAction(rankedAnswers, { skippedExerciseIds: [], mode: 'simulado', timeTakenMs })
             if (!res.error) {
               const r = mapResult(res)
               if (r.leveledUp) setShowLevelUp(true)
@@ -134,9 +135,11 @@ export function SimuladoPlayer({
 
     const rankedAnswers = buildRankedAnswers(exercises, answersRef.current)
 
+    const timeTakenMs = (TOTAL_SECS - remainingRef.current) * 1000
+
     void (async () => {
       await deleteSimuladoSessionAction()
-      const res = await saveRankedGameAction(rankedAnswers, { skippedExerciseIds: [] })
+      const res = await saveRankedGameAction(rankedAnswers, { skippedExerciseIds: [], mode: 'simulado', timeTakenMs })
       if (res.error) { setError(res.error); setPhase('playing'); return }
       const r = mapResult(res)
       if (r.leveledUp) setShowLevelUp(true)

@@ -162,12 +162,20 @@ export default async function RanqueadaModoPage() {
           </div>
 
           {hasPro ? (
-            <Link
-              href="/ranqueada/jogar/simulado"
-              className="mt-auto w-full text-center bg-amber-500 text-white font-bold py-2.5 rounded-2xl hover:bg-amber-600 active:scale-[0.98] transition-all text-sm"
-            >
-              Iniciar simulado →
-            </Link>
+            <div className="mt-auto flex flex-col gap-2">
+              <Link
+                href="/ranqueada/jogar/simulado"
+                className="w-full text-center bg-amber-500 text-white font-bold py-2.5 rounded-2xl hover:bg-amber-600 active:scale-[0.98] transition-all text-sm"
+              >
+                Iniciar simulado →
+              </Link>
+              <Link
+                href="/ranqueada/simulados"
+                className="w-full text-center text-amber-600 font-semibold py-1.5 rounded-2xl hover:bg-amber-50 transition-colors text-xs"
+              >
+                Ver histórico
+              </Link>
+            </div>
           ) : (
             <Link
               href="/pro"
