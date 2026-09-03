@@ -225,17 +225,8 @@ export function AudioManager() {
       tryStartMusic()
     }
 
-    function handleClickSfx(e: MouseEvent) {
-      // Aproveita o clique para resolver o pendente de autoplay
-      handleFirstInteraction()
-
-      if (localStorage.getItem('matema_sfx_enabled') === 'false') return
-      const target = e.target as HTMLElement
-      if (!target.closest('button, a, [role="button"]')) return
-      if (!ctxRef.current) ctxRef.current = createAudioContext()
-      const ctx = ctxRef.current
-      if (!ctx) return
-      if (ctx.state === 'suspended') ctx.resume()
+    // Toca o clique via buffer já decodificado (ou dispara o carregamento se ainda não tiver).
+    function playClickBuffer(ctx: AudioContext) {
       if (!clickBufRef.current) { loadClickSound(ctx); return }
       const src  = ctx.createBufferSource()
       const gain = ctx.createGain()
@@ -246,13 +237,51 @@ export function AudioManager() {
       src.start()
     }
 
+    // Marca quando o som já foi disparado via pointerdown, para o fallback de
+    // `click` (teclado) não tocar de novo no mesmo gesto de mouse/touque.
+    let lastPointerSoundAt = 0
+
+    // Dispara no PRESS (pointerdown) em vez do RELEASE (click) — o evento `click`
+    // só ocorre depois do mouseup/touchend, o que fazia o som sair sempre um
+    // pouco atrasado em relação ao toque/clique físico do usuário.
+    function handlePointerDownSfx(e: PointerEvent) {
+      handleFirstInteraction()
+
+      if (localStorage.getItem('matema_sfx_enabled') === 'false') return
+      const target = e.target as HTMLElement
+      if (!target.closest('button, a, [role="button"]')) return
+      if (!ctxRef.current) ctxRef.current = createAudioContext()
+      const ctx = ctxRef.current
+      if (!ctx) return
+      if (ctx.state === 'suspended') ctx.resume()
+      lastPointerSoundAt = performance.now()
+      playClickBuffer(ctx)
+    }
+
+    // Fallback para ativação via teclado (Enter/Espaço), que não gera pointerdown.
+    // Ignora se um pointerdown já tocou o som há pouco (mesmo clique de mouse/touch).
+    function handleClickSfxFallback(e: MouseEvent) {
+      if (performance.now() - lastPointerSoundAt < 400) return
+      handleFirstInteraction()
+
+      if (localStorage.getItem('matema_sfx_enabled') === 'false') return
+      const target = e.target as HTMLElement
+      if (!target.closest('button, a, [role="button"]')) return
+      if (!ctxRef.current) ctxRef.current = createAudioContext()
+      const ctx = ctxRef.current
+      if (!ctx) return
+      if (ctx.state === 'suspended') ctx.resume()
+      playClickBuffer(ctx)
+    }
+
     window.addEventListener('matema:music-force',  handleForce)
     window.addEventListener('matema:music-toggle', handleToggle)
     window.addEventListener('matema:music-volume', handleVolume)
     window.addEventListener('matema:music-track',  handleTrackChange)
     window.addEventListener('matema:rain-toggle',  handleRainToggle)
     window.addEventListener('matema:rain-volume',  handleRainVolume)
-    document.addEventListener('click', handleClickSfx, true)
+    document.addEventListener('pointerdown', handlePointerDownSfx, true)
+    document.addEventListener('click', handleClickSfxFallback, true)
 
     return () => {
       window.removeEventListener('matema:music-force',  handleForce)
@@ -261,7 +290,8 @@ export function AudioManager() {
       window.removeEventListener('matema:music-track',  handleTrackChange)
       window.removeEventListener('matema:rain-toggle',  handleRainToggle)
       window.removeEventListener('matema:rain-volume',  handleRainVolume)
-      document.removeEventListener('click', handleClickSfx, true)
+      document.removeEventListener('pointerdown', handlePointerDownSfx, true)
+      document.removeEventListener('click', handleClickSfxFallback, true)
       stopMusic()
       stopRain()
     }

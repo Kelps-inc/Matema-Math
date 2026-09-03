@@ -204,7 +204,8 @@ export function ExercisePlayer({ lesson, exercises, nextLesson }: ExercisePlayer
               return (
                 <button
                   key={`${current.id}-${optionIndex}`}
-                  onClick={() => { if (phase === 'answering') { setSelected(option); sfx.click() } }}
+                  onPointerDown={() => { if (phase === 'answering') sfx.click() }}
+                  onClick={() => { if (phase === 'answering') setSelected(option) }}
                   disabled={phase === 'feedback'}
                   className={cn(
                     'w-full text-left p-4 rounded-2xl border-2 transition-all duration-200 font-medium text-matema-dark',
@@ -243,7 +244,8 @@ export function ExercisePlayer({ lesson, exercises, nextLesson }: ExercisePlayer
               return (
                 <button
                   key={val}
-                  onClick={() => { if (phase === 'answering') { setSelected(val); sfx.click() } }}
+                  onPointerDown={() => { if (phase === 'answering') sfx.click() }}
+                  onClick={() => { if (phase === 'answering') setSelected(val) }}
                   disabled={phase === 'feedback'}
                   className={cn(
                     'p-4 rounded-2xl border-2 font-semibold transition-all duration-200 text-center',
